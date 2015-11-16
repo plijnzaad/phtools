@@ -19,7 +19,8 @@ Usage: $0 input.sam output.bed [-u]
 
     -u    Option to keep only uniquely aligned reads
 
-Both the input and output files be from/to a pipe, in that case use '-' as the filename.
+Both the input and output files can be from/to a pipe, in that case use '-' as
+the filename.
 
 For reads with multiple aligned locations, only the top hit will be reported
 ZZZZZZZZ
