@@ -1,0 +1,14 @@
+Package: DBChIP
+Type: Package
+Title: Differential Binding of Transcription Factor with ChIP-seq
+Version: 1.1.6
+Date: 2012-04-17
+Author: Kun Liang
+Maintainer: Kun Liang <kliang@stat.wisc.edu>
+Depends: R (>= 2.14.0), edgeR, DESeq
+Suggests: ShortRead
+Description: DBChIP detects differentially bound sharp binding sites across multiple conditions, with or without matching control samples.
+License: GPL (>= 2)
+LazyLoad: yes
+biocViews: ChIPseq, Sequencing, Transcription, Genetics, Bioinformatics
+Packaged: 2012-04-19 21:10:13 UTC; kliang

@@ -1,0 +1,203 @@
+K 25
+svn:wc:ra_dav:version-url
+V 36
+/repos/tools/!svn/ver/1161/trunk/ngs
+END
+wig-addchr.pl
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/repos/tools/!svn/ver/786/trunk/ngs/wig-addchr.pl
+END
+untrim.pl
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/repos/tools/!svn/ver/1166/trunk/ngs/untrim.pl
+END
+bam2fastq.sh
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/repos/tools/!svn/ver/1144/trunk/ngs/bam2fastq.sh
+END
+filter_simple_repeats.pl
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/repos/tools/!svn/ver/786/trunk/ngs/filter_simple_repeats.pl
+END
+bam-addchr.sh
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/repos/tools/!svn/ver/1155/trunk/ngs/bam-addchr.sh
+END
+qual-filter.sh
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/repos/tools/!svn/ver/1155/trunk/ngs/qual-filter.sh
+END
+sam2gff.pl
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/repos/tools/!svn/ver/786/trunk/ngs/sam2gff.pl
+END
+pairedend2fullinsert.pl
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/repos/tools/!svn/ver/1166/trunk/ngs/pairedend2fullinsert.pl
+END
+fastq-duplicateIDs.pl
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/repos/tools/!svn/ver/992/trunk/ngs/fastq-duplicateIDs.pl
+END
+bam2chromsizes.sh
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/repos/tools/!svn/ver/1144/trunk/ngs/bam2chromsizes.sh
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/repos/tools/!svn/ver/1165/trunk/ngs/Makefile
+END
+q_analyzer.pl
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/repos/tools/!svn/ver/786/trunk/ngs/q_analyzer.pl
+END
+ptrun.sh
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/repos/tools/!svn/ver/1158/trunk/ngs/ptrun.sh
+END
+sam2chromsizes.sh
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/repos/tools/!svn/ver/786/trunk/ngs/sam2chromsizes.sh
+END
+bed2bedGraph.sh
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/repos/tools/!svn/ver/1144/trunk/ngs/bed2bedGraph.sh
+END
+fastq-subsample-paired.pl
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/repos/tools/!svn/ver/1041/trunk/ngs/fastq-subsample-paired.pl
+END
+bamstats.pl
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/repos/tools/!svn/ver/1144/trunk/ngs/bamstats.pl
+END
+cod2bedGraph.sh
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/repos/tools/!svn/ver/1144/trunk/ngs/cod2bedGraph.sh
+END
+fastq2pairedfastq.pl
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/repos/tools/!svn/ver/1032/trunk/ngs/fastq2pairedfastq.pl
+END
+qrun.sh
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/repos/tools/!svn/ver/1165/trunk/ngs/qrun.sh
+END
+fastq-uniquify.pl
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/repos/tools/!svn/ver/997/trunk/ngs/fastq-uniquify.pl
+END
+center+smooth.pl
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/repos/tools/!svn/ver/1166/trunk/ngs/center+smooth.pl
+END
+fastq-subsample-single.pl
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/repos/tools/!svn/ver/1024/trunk/ngs/fastq-subsample-single.pl
+END
+bed2strandedBigWig.sh
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/repos/tools/!svn/ver/1155/trunk/ngs/bed2strandedBigWig.sh
+END
+q1-chr.sh
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/repos/tools/!svn/ver/1155/trunk/ngs/q1-chr.sh
+END
+bw-combine-chr.sh
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/repos/tools/!svn/ver/1155/trunk/ngs/bw-combine-chr.sh
+END
+bed-split-strands.sh
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/repos/tools/!svn/ver/1155/trunk/ngs/bed-split-strands.sh
+END
+split-bychr.pl
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/repos/tools/!svn/ver/786/trunk/ngs/split-bychr.pl
+END
+README.txt
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/repos/tools/!svn/ver/877/trunk/ngs/README.txt
+END
+bam2aln
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/repos/tools/!svn/ver/1144/trunk/ngs/bam2aln
+END
+sam-addchr.pl
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/repos/tools/!svn/ver/786/trunk/ngs/sam-addchr.pl
+END
+move-to-trash.sh
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/repos/tools/!svn/ver/786/trunk/ngs/move-to-trash.sh
+END
+pairnumber.pl
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/repos/tools/!svn/ver/1166/trunk/ngs/pairnumber.pl
+END

@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/repos/tools/!svn/ver/1153/trunk/ngs/eg
+END
+bowtie1_pairedend_read_mapping.eg
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/repos/tools/!svn/ver/1165/trunk/ngs/eg/bowtie1_pairedend_read_mapping.eg
+END
+bowtie2_pairedend_read_mapping.eg
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/repos/tools/!svn/ver/1165/trunk/ngs/eg/bowtie2_pairedend_read_mapping.eg
+END
+center_reads.eg
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/repos/tools/!svn/ver/1165/trunk/ngs/eg/center_reads.eg
+END
+bowtie1_single_read_mapping.eg
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/repos/tools/!svn/ver/1165/trunk/ngs/eg/bowtie1_single_read_mapping.eg
+END
+bowtie2_single_read_mapping.eg
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/repos/tools/!svn/ver/1165/trunk/ngs/eg/bowtie2_single_read_mapping.eg
+END

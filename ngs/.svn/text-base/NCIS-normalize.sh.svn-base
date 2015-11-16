@@ -1,0 +1,131 @@
+#!/bin/sh
+
+# -*- mode: R; -*-
+
+usage() {
+  echo "Usage: env stdout=`pwd`/this.out stderr=`pwd`/this.log  
+  dir=`pwd` \\
+  input=input.bed \\
+  chip=chip.bed  \\
+  fraglen=200 \\
+  outname='testrun23' \\
+  chr=chrIV,chrV \\
+  chromsizes=chromsizes.txt $0" >&2
+  exit 2
+}
+
+dfltname="$HOME/SCRIPT.`basename $0`.$(echo "$@" | tr -s '[](){}; ' _ ).$$"
+
+if cd $dir; then
+:
+else
+  echo "could not cd to dir '$dir'"
+  exit 1
+fi
+
+
+
+require_var() { 
+# check if given variable(s) is defined. 
+# use as require_var foo bar if $foo and $bar are mandatory
+    for var in "$@"; do
+      eval "val=\$$var"
+      if [ -z "$val"  ]; then
+          echo "Variable $var is not defined; exiting" >&2
+          echo
+          usage
+      fi
+    done
+}
+
+require_var dir input chip fraglen outname
+     
+exec > ${stdout-$dfltname.out}
+exec 2> ${stderr-$dfltname.err}
+
+set -x
+
+
+## blurp for PBS:
+
+call="$0 $@"
+date
+echo "PBS jobname is '$PBS_JOBID'" 
+echo "Executing $call on host `hostname -s`. "
+
+## exit 0
+
+### --- Parameters.
+### Specify all the parameters here. Substitutions (e.g.: a=$b/c) and comments are allowed.
+### Comments are stripped; whitespace and literal '#'-signs are ignored.
+### NOTE: never use any whitespace in assignments
+parameters=$(echo "
+  ### --- Start of parameters (comments and substitutions are allowed)
+  _currentRscript_=$call
+  dir=$dir
+  chip=$chip
+  input=$input
+  outname=$outname
+  chr=$chr
+  chromsizes=$chromsizes  
+  ### --- End of parameters
+" | sed -n 's/#.*$//;/=/p;')
+
+if  sed -n '/^cat *<< *ZZZZZZZZ/,/^ZZZZZZZZ$/{s/#.*//;p;}' $0 | grep -v ZZZZZZZZ | grep -n '[])a-zA-Z0-9._]\$'; then
+  echo "Dollar signs in script (see stdout); escape or use a[['b']] syntax" >&2
+  exit 
+fi
+
+echo "Parameters are: "
+echo "$parameters"
+echo
+
+### The R interpreter is called on the next line, with the script written
+### after that as part of stdin. We also save a copy (the tee bit) and set an
+### environment variable containing the script name, for use inside the R
+### script. Everything after the 'cat <<' is R code.
+cat << ZZZZZZZZ | tee /var/tmp/$(basename $0).r | env $parameters R --vanilla --slave
+##### This R script was created automatically by $0, dont edit
+library(NCIS)
+
+setwd(Sys.getenv('dir'))
+
+chip <- Sys.getenv('chip')
+input <- Sys.getenv('input')
+frag.len <- as.numeric(Sys.getenv('fraglen'))
+out.name <- Sys.getenv('outname')
+
+chr.vec <- Sys.getenv("chr")
+chromsizes <- Sys.getenv("chromsizes")
+
+if(nchar(chr.vec)) { 
+  stopifnot(nchar(chromsizes))
+
+  chr.vec <- unlist(strsplit(chr.vec, ","))
+
+  chromsizes <- read.delim(chromsizes, header=FALSE, sep="\t")
+  l <- chromsizes[[2]]
+  names(l) <- chromsizes[[1]]
+  chr.len.vec <- l[chr.vec]
+} else {
+  chr.vec <- NULL
+  chr.len.vec <- NULL
+}
+
+
+warning("Starting ...\n")
+
+result <- NCIS(chip.data=chip,
+               input.data=input,
+               data.type="BED",
+               frag.len=frag.len,
+               chr.vec=chr.vec,
+               chr.len.vec=chr.len.vec)
+             
+file <- sprintf("%s.rda", out.name)
+warning("... done. Saving results to ",file,"\n")
+save(result, file=file)
+quit(save="no")
+
+### end of R script
+ZZZZZZZZ

@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# This is an example script, meant to be copied and adjust so it 
+# can work with .../tools/ngs/Makefile. (name must be 'do_pairedend_read_mapping')
+
+pwd
+
+require_var() { 
+# check if given variable(s) is defined. 
+# use as 
+#   require_var foo bar 
+# if $foo and $bar are mandatory
+    for var in "$@"; do
+      eval "val=\$$var"
+      if [ -z "$val"  ]; then
+          echo "variable $var is not defined; exiting" >&2
+          return 3
+      fi
+    done
+}
+
+check_isnotempty() { 
+    local file=$1; shift
+    if [ ! -s $file ]; then
+        echo "File '$file' does not exist or is empty"
+        exit 1
+    fi
+}
+
+require_var genome
+check_isnotempty "$genome.1.ebwt"
+
+if [ $# -ne 3 ] ;then
+    echo "Got args: $@
+Usage: $0 reads1.fastq reads2.fastq output.sam" >&2
+    exit 4
+fi
+
+reads1="$1"
+reads2="$2"
+sam="$3"
+
+check_isnotempty $reads1
+check_isnotempty $reads2
+
+bowtie -S $genome -1 $reads1 -2 $reads2 $sam
+bowtie_status=$?
+
+if [ ! -s $sam ]; then 
+   echo "Resulting .sam file $sam empty, removing it" >&2
+   rm $sam
+   exit 3
+fi 
+
+exit $bowtie_status

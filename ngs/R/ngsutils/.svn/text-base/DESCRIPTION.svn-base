@@ -1,0 +1,13 @@
+Package: ngsutils
+Type: Package
+Title: Various little things for NGS analysis
+Version: 0.4
+Date: 2015-09-9
+Author: Philip Lijnzaad <plijnzaad@gmail.com>
+Maintainer: Philip Lijnzaad <plijnzaad@gmail.com>
+Suggests: NCIS, Rsamtools
+Description: Various little things for NGS analysis.
+License: GPL (>= 2)
+LazyLoad: yes
+Depends: R (>= 2.14), Biobase, IRanges, GenomicRanges (>= 1.6.7), rtracklayer, ShortRead
+Suggests: uuutils (>= 1.32), Gviz

@@ -1,0 +1,12 @@
+import(edgeR, DESeq)
+
+export(
+    DBChIP,
+    read.binding.site.list,
+    site.merge,
+    load.data,
+    get.site.count,
+    test.diff.binding,
+    report.peak,
+    plotPeak
+)

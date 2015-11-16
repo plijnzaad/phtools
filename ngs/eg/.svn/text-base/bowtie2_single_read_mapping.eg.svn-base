@@ -1,0 +1,102 @@
+#!/bin/bash -x
+
+# This is an example script, meant to be copied and adjust so it 
+# can work with .../tools/ngs/Makefile (name must be 'do_single_read_mapping')
+# 
+# The script takes two arguments, the input reads (in fastq  or fastq.gz format) and the
+# output file (ending in .sam, not .bam ...)
+# Additional arguments can be passed as environment variable extra_mapping_opts, as
+# env extra_mapping_opts="--foo bar --this that".
+# Note that when this is done in a calling script (such as qrun.sh), you have to
+# supply an extra level of quoting. E.g.:
+#
+# qrun.sh env extra_mapping_opts="'--very-fast --trim5 10'" make exptest.bam
+#
+
+pwd
+
+check_isnotempty() { 
+    local file=$1; shift
+    if [ ! -s $file ]; then
+        echo "File '$file' does not exist or is empty"
+        exit 1
+    fi
+}
+
+
+require_var() { 
+# check if given variable(s) is defined. 
+# use as 
+#   require_var foo bar 
+# if $foo and $bar are mandatory
+    for var in "$@"; do
+      eval "val=\$$var"
+      if [ -z "$val"  ]; then
+          echo "variable $var is not defined; exiting" >&2
+          return 3
+      fi
+    done
+}
+tmpdir=/dev/shm
+
+require_var genome
+
+check_isnotempty "$genome.1.bt2"
+
+if [ $# -ne 2 ] ;then
+    echo "Got args: $@
+Usage: [ env extra_mapping_opts=\"'--this that --foo bar'\" ] $0 reads.fastq[.gz] output.[bs]am " >&2
+    exit 4
+fi
+
+reads_file="$1"
+output_file="$2"
+
+check_isnotempty $reads_file
+
+## Not needed, bowtie automatically understands *.gz files
+## if [[ $reads_file =~ .gz$ ]]; then
+##     readfifo=$tmpdir/$USER.$$.readfifo
+##     mkfifo $readfifo
+##     zcat $reads_file > $readfifo & 
+##     reads=$readfifo
+## else
+## fi
+
+reads=$reads_file
+
+### writefifo=$tmpdir/$USER.$$.writefifo
+### tmpfiles="$tmpfiles $writefifo"
+### mkfifo $writefifo
+
+### if [[ $output_file =~ .bam ]]; then
+###     echo ".bam files not allowed, as fifos choke on the sorting step ..."
+###     exit 14
+###     grep -Pvi "\\tchrm" $writefifo | samtools view -b -u | ( samtools sort -T$tmpdir/$USER.$$.$RANDOM.samsort -Obam > $output_file; samtools index $output_file ) &
+###     output=$writefifo
+### else
+
+output=$output_file # no filtering
+
+## fi
+
+## Example options:
+## trim5="--trim5 15 "
+## num_aligns="-k 5"
+## opts="$trim5 --end-to-end --sensitive $num_aligns "
+
+# make sure stuff gets cleaned up upon exit
+trap 'rm -f $tmpfiles > /dev/null 2>&1' 0
+
+bowtie2 $opts $extra_mapping_opts -x $genome -U $reads -S $output 
+bowtie_status=$?
+
+sync
+if [ ! -s $output_file ]; then 
+   echo "Resulting file $output_file empty, removing it" >&2
+   rm $sam
+   exit 3
+fi 
+
+
+exit $bowtie_status

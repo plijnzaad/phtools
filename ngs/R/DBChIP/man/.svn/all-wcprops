@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/repos/tools/!svn/ver/786/trunk/ngs/R/DBChIP/man
+END
+PHA4.Rd
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/repos/tools/!svn/ver/786/trunk/ngs/R/DBChIP/man/PHA4.Rd
+END
+plotPeak.Rd
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/repos/tools/!svn/ver/786/trunk/ngs/R/DBChIP/man/plotPeak.Rd
+END
+test.diff.binding.Rd
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/repos/tools/!svn/ver/786/trunk/ngs/R/DBChIP/man/test.diff.binding.Rd
+END
+input.data.list.Rd
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/repos/tools/!svn/ver/786/trunk/ngs/R/DBChIP/man/input.data.list.Rd
+END
+read.binding.site.list.Rd
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/repos/tools/!svn/ver/786/trunk/ngs/R/DBChIP/man/read.binding.site.list.Rd
+END
+DBChIP-package.Rd
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/repos/tools/!svn/ver/786/trunk/ngs/R/DBChIP/man/DBChIP-package.Rd
+END
+site.merge.Rd
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/repos/tools/!svn/ver/786/trunk/ngs/R/DBChIP/man/site.merge.Rd
+END
+chip.data.list.Rd
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/repos/tools/!svn/ver/786/trunk/ngs/R/DBChIP/man/chip.data.list.Rd
+END
+conds.Rd
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/repos/tools/!svn/ver/786/trunk/ngs/R/DBChIP/man/conds.Rd
+END
+binding.site.list.Rd
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/repos/tools/!svn/ver/786/trunk/ngs/R/DBChIP/man/binding.site.list.Rd
+END
+load.data.Rd
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/repos/tools/!svn/ver/786/trunk/ngs/R/DBChIP/man/load.data.Rd
+END
+DBChIP.Rd
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/repos/tools/!svn/ver/786/trunk/ngs/R/DBChIP/man/DBChIP.Rd
+END
+get.site.count.Rd
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/repos/tools/!svn/ver/786/trunk/ngs/R/DBChIP/man/get.site.count.Rd
+END
+report.peak.Rd
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/repos/tools/!svn/ver/786/trunk/ngs/R/DBChIP/man/report.peak.Rd
+END
