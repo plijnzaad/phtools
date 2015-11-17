@@ -13,7 +13,7 @@
 # from the reads were discarded to improve the mapping, the shifting
 # should not be by 73 bp, but by 73-15 = 58 bp
 prefix=/dev/shm/$USER.$$.$RANDOM.center
-center+smooth.pl --minlen 50 --maxlen 170 --smooth 31 | samtools sort -T$prefix -Obam
+center+smooth.pl --type paired --minlen 50 --maxlen 170 --smooth 31 | samtools sort -T$prefix -Obam
 ## bug in samtools, -T is not needed to start with ...
 
 ## Be very cautioous when centering/shifting previously centered reads,
