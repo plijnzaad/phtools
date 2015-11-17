@@ -234,10 +234,11 @@ LINE:
 }                                       # LINE
 
 warn "Shifted ". commafy($nreads) . " reads, skipped ". commafy($unmapped). " unmapped reads\n";
-warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because to long\n";
 warn commafy($skipped_left) . " reads skipped on the left side, ". commafy($skipped_right) . " on the right side of the chromosome\n";
 warn commafy($trimmed_left) . " reads trimmed on the left side, " . commafy($trimmed_right) . " on the right side of the chromosome\n";
-warn commafy($no_length) . " reads were unpaired, and skipped because no --shift was specified\n";
+## single only:
+warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because to long\n" unless $single;
+warn "Found " . commafy($no_length) . " unpaired reads, skipped because no --shift was specified\n" unless $single;
 
 die "No reads were output!" unless $nreads > 0;
 
