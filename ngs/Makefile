@@ -3,6 +3,18 @@
 ### !! Always run as make --warn-undefined-variables (best redefine make as:
 ### !! alias make='make --warn-undefined-variables' )
 
+## The following environment variables can be used:
+##
+## extra_mapping_opts # not used by any rule, but available to e.g. ./do_single_read_mapping
+## sort_opts 	      # passed to samtools sort. E.g, '-n' for
+## filter_opts 	      # passed to samtools view. e.g. '-f 2' to discard non-paired reads
+## chromsizes	      # mandatory, needed by bedtools and bedGraphToBigWig
+##
+## To use them, do something like
+##
+##   env variable=value make -f Thismakefile file.bam
+
+
 ### -------- general stuff --------
 
 makefile_path := $(shell unset CDPATH && cd -P $(dir $(word 1, $(MAKEFILE_LIST))) && pwd -P)
@@ -47,7 +59,7 @@ rm = $(movetotrash)			# for debugging
 ## .ONESHELL:				# pass all lines of a recipe form to one shell invocation
 
 
-.PHONY: help usage debug extra_mapping_opts
+.PHONY: help usage debug extra_mapping_opts sort_opts filter_opts chromsizes 
 
 ## Following used to be separate rules, but they are always 'out-of-date' so
 ## always trigger a rebuild. Just $(call chec_var, thevariable) where needed
@@ -61,7 +73,8 @@ rm = $(movetotrash)			# for debugging
 ##	$(call warn_var, extra_mapping_opts)
 ## sort_opts: 
 ##	$(call warn_var, sort_opts)
-## NOTE: pass in as ... extra_mapping_opts='--foo bar', not  extra_mapping_opts='  --foo bar'!!
+## filter_opts: 
+##	$(call warn_var, filter_opts)
 
 ### -------- mapping-related stuff (formerly in SRA.makefile) -------- 
 
@@ -170,10 +183,11 @@ rm = $(movetotrash)			# for debugging
 ## simple conversion + sorting + indexing and read-shifting
 ## (The sorting can also be done in parallel)
 %.bam: %.sam 
+	$(call warn
 	@echo Creating $@ 1>&2
-	date
+	$(call warn_var, filter_opts)
 	$(call warn_var, sort_opts)
-	samtools view -h -f 2 -b -u $*.sam | samtools sort $(sort_opts) -T$(tmpdir)/$(USER).$$$$.$$RANDOM.samsort -Obam > $@
+	samtools view -h $(filter_opts) -b -u $*.sam | samtools sort $(sort_opts) -T$(tmpdir)/$(USER).$$$$.$$RANDOM.samsort -Obam > $@
 ##	# $RANDOM is to avoid potential clashes from parallel jobs. (This
 ##	# is all due to samtools brain damage regarding '-T')
 	date
@@ -184,7 +198,7 @@ rm = $(movetotrash)			# for debugging
 
 %Q2.bam: %.bam 
 	@echo Creating $@ 1>&2
-	samtools view -f 2 -q2 -h -b $< > $@
+	samtools view $(filter_opts) -q2 -h -b $< > $@
 	samtools index $@
 	(bamstats.pl $@ ; echo '----'; bamstat $@) > $*Q2.bamstat
 	date
@@ -194,7 +208,7 @@ rm = $(movetotrash)			# for debugging
 %-fwd.bam: %.bam			#assume it's sorted!
 	@echo Creating $@ 1>&2
 	date
-	samtools view -b -f 2 -F20 -h $*.bam -o $@
+	samtools view -b $(filter_opts) -F20 -h $*.bam -o $@
 	date
 	samtools index $@
 	(bamstats.pl $@ ; echo '----'; bamstat $@) > $*-fwd.bamstat
@@ -286,7 +300,7 @@ rm = $(movetotrash)			# for debugging
 	@echo '============================================================'
 	cat ./do_center_reads
 	@echo '============================================================'
-	samtools view -f 2 -h $< | do_center_reads > $@; $(call check_result, $$?, $@)
+	samtools view $(filter_opts) -h $< | do_center_reads > $@; $(call check_result, $$?, $@)
 	samtools index $@
 	@echo Done creating $@ 1>&2
 
@@ -295,7 +309,7 @@ rm = $(movetotrash)			# for debugging
 ## coverages for aesthetic reasons. (that these cannot be log()-ed anymore ! )
 ## TOO DANGEROUS: if centered reads are again centered, they shift by half-length!!
 ## Note that IGB and UCSC allow negating values, so there is less need for this ...
-### l%-fwd.bw: %.bam
+### %-fwd.bw: %.bam
 ### 	@echo Creating $@ ...  1>&2
 ### 	$(call check_var, chromsizes)
 ### 	$(call check_exists, $(chromsizes))
