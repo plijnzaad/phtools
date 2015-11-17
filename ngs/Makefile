@@ -183,7 +183,6 @@ rm = $(movetotrash)			# for debugging
 ## simple conversion + sorting + indexing and read-shifting
 ## (The sorting can also be done in parallel)
 %.bam: %.sam 
-	$(call warn
 	@echo Creating $@ 1>&2
 	$(call warn_var, filter_opts)
 	$(call warn_var, sort_opts)
