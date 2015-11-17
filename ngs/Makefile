@@ -40,7 +40,7 @@ CO = 					#skip version control
 rm = $(movetotrash)			# for debugging
 
 .SUFFIXES: 				# this deletes the traditional .c .h etc. extensions
-.SUFFIXES: .fastq -dusted.fastq .sam .bam .bed .bedGraph .aln .bw
+.SUFFIXES: .fastq .fastq.gz -dusted.fastq .sam .bam .bed .bedGraph .aln .bw
 .SECONDARY:				# means: don't remove any intermediate files
 .DELETE_ON_ERROR:			# means: any file created by a failing recipe is deleted
 .EXPORT_ALL_VARIABLES:
@@ -100,6 +100,19 @@ rm = $(movetotrash)			# for debugging
 ### and likewise for other formats, but that would confuse things here.
 
 ## single read mapping (this should be done in parallel ...)
+## NOTE: code duplication here, the rules are identical apart from prereq suffix
+%.sam: %.fastq
+	@echo Creating $@ 1>&2
+	date
+	$(call warn_var, extra_mapping_opts)
+	@echo -n 'Script is: '; ls -l ./do_single_read_mapping
+	@echo '============================================================'
+	cat ./do_single_read_mapping
+	@echo '============================================================'
+	./do_single_read_mapping $< $@; $(call check_result, $$?, $@)
+	date
+	@echo Done creating $@ 1>&2
+## NOTE: code duplication here, same rule as %.sam : %.fastq
 %.sam: %.fastq.gz 
 	@echo Creating $@ 1>&2
 	date
@@ -108,11 +121,11 @@ rm = $(movetotrash)			# for debugging
 	@echo '============================================================'
 	cat ./do_single_read_mapping
 	@echo '============================================================'
-	./do_single_read_mapping $*.fastq.gz $*.sam; $(call check_result, $$?, $@)
+	./do_single_read_mapping $< $@; $(call check_result, $$?, $@)
 	date
 	@echo Done creating $@ 1>&2
-## note: extra_mapping_opts is not passed as argument (but through env), but it is still
-## useful to check it.
+## note: extra_mapping_opts is not passed as argument (but through env),
+## but it is still useful to check it.
 
 ## %.bam: %.fastq.gz extra_mapping_opts
 ##	@echo  'does not work with large files, fifos choke on the sort step ...'
