@@ -221,7 +221,6 @@ LINE:
         next LINE if $strict;
         $newlen=$smooth - ($end - $chr_length);
       }
-      $nreads++;
       $cigar=sprintf('%dM', $newlen);
       $seq=  'N' x $newlen;               # whole sequence is just N's
       $tlen=0; # since everything now a single-end read!
@@ -231,13 +230,16 @@ LINE:
                   $tlen, $seq, $qual, @optionals);
       
       print join("\t", @fields) . "\n";
+      $nreads++;
 }                                       # LINE
 
 warn "Shifted ". commafy($nreads) . " reads, skipped ". commafy($unmapped). " unmapped reads\n";
 warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because to long\n";
 warn commafy($skipped_left) . " reads skipped on the left side, ". commafy($skipped_right) . " on the right side of the chromosome\n";
 warn commafy($trimmed_left) . " reads trimmed on the left side, " . commafy($trimmed_right) . " on the right side of the chromosome\n";
-warn commafy($no_length) . " reads were unpaired and skipped because no --shift was specified\n";
+warn commafy($no_length) . " reads were unpaired, and skipped because no --shift was specified\n";
+
+die "No reads were output!" unless $nreads > 0;
 
 sub read_chromo_sizes {
     my($file)=@_;
