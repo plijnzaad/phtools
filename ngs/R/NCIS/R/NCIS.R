@@ -1,17 +1,20 @@
-#NCIS (Normalization for ChIP-Seq) estimates normalizing factor between a ChIP sample and a control/input sample
-#input parameters:
-#chip.data	 ChIP data.
-#input.data	 control data.
-#data.type	 "MCS", "AlignedRead" or "BED".
-#frag.len	 average fragment length. Default 200 bp.
-#min.binsize	 minimum of binsize to search.
-#max.binsize	 maximum of binsize to search.
-#binsize.shift	 the threshold of binsize after which the normalization factor is computed as the average of two estimates, one on regular bins and the other on bins shifed half binsize.
-#min.stop.binsize	 minimum of binsize to use (stop).
-#chr.vec	 vector of chromosomes in the data. Only reads in chr.vec are considered for normalization purpose.
-#chr.len.vec	 vector of chromosome lengths corresponding to chr.vec
-#contact: kliang@stat.wisc.edu
-#last modified: 2012.05.29
+##NCIS (Normalization for ChIP-Seq) estimates normalizing factor between a ChIP sample and a control/input sample
+##input parameters:
+##chip.data	 ChIP data.
+##input.data	 control data.
+##data.type	 "MCS", "AlignedRead" or "BED".
+##frag.len	 average fragment length. Default 200 bp.
+##min.binsize	 minimum of binsize to search.
+##max.binsize	 maximum of binsize to search.
+##binsize.shift	 the threshold of binsize after which the normalization factor is computed as the average of two estimates, one on regular bins and the other on bins shifed half binsize.
+##min.stop.binsize	 minimum of binsize to use (stop).
+##chr.vec	 vector of chromosomes in the data. Only reads in chr.vec are considered for normalization purpose.
+##chr.len.vec	 vector of chromosome lengths corresponding to chr.vec
+##contact: kliang@stat.wisc.edu
+##last modified: 2012.05.29
+
+## Modifications by plijnzaad@gmail.com. Additions are read.AlignedRead,
+## est.norm.quant.search (replaces est.norm.med.search) and plot.bincounts
 
 NCIS <- function(chip.data, input.data,
                  data.type=c("MCS", "BED", "AlignedRead"),
@@ -21,7 +24,8 @@ NCIS <- function(chip.data, input.data,
                  keep.bindata=FALSE) {
 
   warning("Note: this is NCIS, modified by plijnzaad@gmail.com.\n",
-          "The original version was downloaded from http://pages.cs.wisc.edu/~kliang/NCIS/NCIS.R on 2013-03-06.\n")
+          "The original version was downloaded from http://pages.cs.wisc.edu/~kliang/NCIS/NCIS.R",
+          " on 2013-03-06 (but has now disappeared; it's now part of Bioconductor\n")
 
   if(data.type=="MCS"){
         chip <- read.MCS(chip.data)
