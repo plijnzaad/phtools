@@ -224,7 +224,7 @@ LINE:
       $nreads++;
       $cigar=sprintf('%dM', $newlen);
       $seq=  'N' x $newlen;               # whole sequence is just N's
-      $tlen=$newlen;
+      $tlen=0; # since everything now a single-end read!
       $qual='*';
       
       my @fields=($qname,$flag, $rname, $pos, $mapq, $cigar, $rnext, $pnext,
