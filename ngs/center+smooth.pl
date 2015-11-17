@@ -1,6 +1,5 @@
 #!/usr/bin/perl 
-my $version = 'unknown';
-## (leave as is, id is automagically adjusted by svn)
+my $version = '0.0';
 
 use Getopt::Long;
 use Number::Format;
@@ -10,7 +9,7 @@ sub commafy {
 }
 
 my $usage='
-Usage: center+smooth.pl [ --shift NUMBER  ]  [ --smooth NUMBER ] [ options ] 
+Usage: center+smooth.pl--type [paired|single] [ --shift NUMBER ] [ --smooth NUMBER ] [ options ] 
 
   The script is aimed at MNase-seq data (used to map nucleosome positions)
   and is meant to get sharper peaks at the likely position of the
@@ -60,16 +59,30 @@ Usage: center+smooth.pl [ --shift NUMBER  ]  [ --smooth NUMBER ] [ options ]
 
 Options:
 
-  --shift <number>    Shift all reads by this amount in their own 3\'-direction. 
-                      Can be negative. If not specified, shifting is by half the 
-                      fragmentlength found in field 9 of the SAM file. This only
-                      makes sense for paired-end reads, so the program warns about
-                      reads having length zero, and skips them.
-  --minlen <number>   Skip reads where the fragment length is less than this (default: 100)
-  --maxlen <number>   Skip reads where the fragment length is greater than this (default: 200)
-  --smooth <number>   Smooth over not 1, but several basepairs. Assumed to be uneven.
-  --chrom_sizes <file> tab-delimited file with ^chromosome_name\\tchromosome_length$ (needed if not in header of SAM file, or if those are wrong)
-  --strict            Skip shifted reads (enlarged or not) that don\'t fall entirely within the chromosome. The default is to shorten such reads so that they do again.
+  --type  paired|single Indicate if the SAM file contains single-end or paired-end reads
+  --shift <number>    Shift all reads by this amount in their own
+                      3\'-direction.  Can be negative. If not specified,
+                      shifting is by half the fragmentlength found in
+                      field 9 of the SAM file. This only makes sense for
+                      paired-end reads, so the program warns about reads
+                      having length zero, and skips them.
+
+  --minlen <number> Skip reads where the fragment length is less than this
+                    (default: 100)
+
+  --maxlen <number> Skip reads where the fragment length is greater than
+                    this (default: 200)
+
+  --smooth <number> Smooth over not 1, but several basepairs. Assumed to
+                    be uneven.
+
+  --chrom_sizes <file> tab-delimited file with
+    ^chromosome_name\\tchromosome_length$ (needed if not in header of SAM
+                       file, or if those are wrong)
+
+  --strict Skip shifted reads (enlarged or not) that don\'t fall entirely
+           within the chromosome. The default is to shorten such reads so
+           that they do again.
 
 For more speed, see bbcfutils::bam2wig.
 ';
@@ -78,14 +91,17 @@ my $help=0;
 my $shift=undef;                        # meaning: automatic
 my $smooth=1;                           # i.e. none
 my $chrom_sizes=undef;
-my $minlen= 100;
+my $minlen=0;
 my $maxlen= 200;                    # i.e. at most one nucleosome!
 my $strict=undef;
 my $auto=1;
+my $seqtype=undef;
+
 my @argv_copy=@ARGV;                    # eaten by GetOptions
 die $usage if  GetOptions('help'=> \$help,
-                          'chrom_sizes|c=s' => \$chrom_sizes,
+                          'type|s=s' => \$seqtype,
                           'shift|s=i' => \$shift,
+                          'chrom_sizes|c=s' => \$chrom_sizes,
                           'minlen|G=i' => \$minlen,
                           'maxlen|L=i' => \$maxlen,
                           'shift|s=i' => \$shift,
@@ -96,6 +112,15 @@ die $usage if  GetOptions('help'=> \$help,
 my $cmdline= "$0 " . join(" ", @argv_copy);
 
 use strict;
+
+die "--type argument required, must be 'paired' or 'single' " 
+    unless ($seqtype =~ /single/i || $seqtype =~ /paired/i ) ;
+
+my $single= ($seqtype =~ /single/i);
+
+if ($single) {
+  die "--shift argument is required for single-end reads" unless  $shift;
+}
 
 my $pg_printed=0;
 
@@ -109,7 +134,7 @@ if ($chrom_sizes) {
 
 my $nreads=0;
 my ($trimmed_left, $trimmed_right, $skipped_left, $skipped_right)=(0,0,0,0);
-my ($unmapped, $too_short, $too_long)=(0,0,0);
+my ($unmapped, $too_short, $too_long, $no_length)=(0,0,0,0);
 
 my $halfsmooth= int( ($smooth -1) /2);
 
@@ -139,7 +164,8 @@ LINE:
       unless $chr_length;
 
       if(!$tlen && !$shift ) { 
-        die "$0: SAM file contains no template lengths, but no shift was specified,";
+        $no_length++;
+        next LINE;
       }
       
       my $readlen=length($seq);
@@ -150,17 +176,22 @@ LINE:
       
       my $reverse_strand = ($flag & 0x10);
 
-      if (abs($tlen) < $minlen ) {
-        $too_short++;
-        next LINE;
+      my $s;
+      if ($single) {  
+        $s=$shift;
+      } else {
+        if (abs($tlen) < $minlen ) {
+          $too_short++;
+          next LINE;
+        }
+        if (abs($tlen) > $maxlen ) {
+          $too_long++;
+          next LINE;
+        }
+        $s=int(abs($tlen)/2 +0.5);     # automatic
+        $s = $shift if $shift;         # can still override, also for PE
       }
-      if (abs($tlen) > $maxlen ) {
-        $too_long++;
-        next LINE;
-      }
-      
-      my $s=int(abs($tlen)/2 +0.5);     # automatic
-      $s = $shift if $shift;            # override
+
       if ($reverse_strand) { 
         $pos = $pos + ($readlen -1) - $s - $halfsmooth;
       } else {
@@ -190,11 +221,10 @@ LINE:
         next LINE if $strict;
         $newlen=$smooth - ($end - $chr_length);
       }
-      
       $nreads++;
       $cigar=sprintf('%dM', $newlen);
       $seq=  'N' x $newlen;               # whole sequence is just N's
-      $tlen=$newlen; # note: converted everything to single-end sequences here!
+      $tlen=$newlen;
       $qual='*';
       
       my @fields=($qname,$flag, $rname, $pos, $mapq, $cigar, $rnext, $pnext,
@@ -207,6 +237,7 @@ warn "Shifted ". commafy($nreads) . " reads, skipped ". commafy($unmapped). " un
 warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because to long\n";
 warn commafy($skipped_left) . " reads skipped on the left side, ". commafy($skipped_right) . " on the right side of the chromosome\n";
 warn commafy($trimmed_left) . " reads trimmed on the left side, " . commafy($trimmed_right) . " on the right side of the chromosome\n";
+warn commafy($no_length) . " reads were unpaired and skipped because no --shift was specified\n";
 
 sub read_chromo_sizes {
     my($file)=@_;
