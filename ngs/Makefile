@@ -118,9 +118,9 @@ rm = $(movetotrash)			# for debugging
 	@echo Creating $@ 1>&2
 	date
 	$(call warn_var, extra_mapping_opts)
-	@echo -n 'Script is: '; ls -l ./do_single_read_mapping
+	@echo -n 'Script is: '; ls -l `pwd`/do_single_read_mapping
 	@echo '============================================================'
-	cat ./do_single_read_mapping
+	cat do_single_read_mapping
 	@echo '============================================================'
 	./do_single_read_mapping $< $@; $(call check_result, $$?, $@)
 	date
@@ -130,9 +130,9 @@ rm = $(movetotrash)			# for debugging
 	@echo Creating $@ 1>&2
 	date
 	$(call warn_var, extra_mapping_opts)
-	@echo -n 'Script is: '; ls -l ./do_single_read_mapping
+	@echo -n 'Script is: '; ls -l `pwd`/do_single_read_mapping
 	@echo '============================================================'
-	cat ./do_single_read_mapping
+	cat do_single_read_mapping
 	@echo '============================================================'
 	./do_single_read_mapping $< $@; $(call check_result, $$?, $@)
 	date
@@ -146,9 +146,9 @@ rm = $(movetotrash)			# for debugging
 ##	date
 ##	$(call warn_var, extra_mapping_opts)
 ## 	@echo Creating $@ 1>&2
-## 	@echo -n 'Script is: '; ls -l ./do_single_read_mapping
+## 	@echo -n 'Script is: '; ls -l `pwd`/do_single_read_mapping
 ## 	@echo '============================================================'
-## 	cat ./do_single_read_mapping
+## 	cat do_single_read_mapping
 ## 	@echo '============================================================'
 ## 	./do_single_read_mapping $*.fastq.gz $*.bam; $(call check_result, $$?, $@)
 ## 	@echo Done creating $@ 1>&2
@@ -159,9 +159,9 @@ rm = $(movetotrash)			# for debugging
 %.sam: %_R1.fastq %_R2.fastq 
 	@echo Creating $@ 1>&2
 	$(call warn_var, extra_mapping_opts)
-	@echo -n 'Script is: '; ls -l ./do_pairedend_read_mapping
+	@echo -n 'Script is: '; ls -l `pwd`/do_pairedend_read_mapping
 	@echo '============================================================'
-	cat ./do_pairedend_read_mapping
+	cat do_pairedend_read_mapping
 	@echo '============================================================'
 	./do_pairedend_read_mapping $^ $*.sam; $(call check_result, $$?, $@)
 	date
@@ -171,9 +171,9 @@ rm = $(movetotrash)			# for debugging
 %.sam: %_R1.fastq.gz %_R2.fastq.gz
 	@echo Creating $@ 1>&2
 	$(call warn_var, extra_mapping_opts)
-	@echo -n 'Script is: '; ls -l ./do_pairedend_read_mapping
+	@echo -n 'Script is: '; ls -l `pwd`/do_pairedend_read_mapping
 	@echo '============================================================'
-	cat ./do_pairedend_read_mapping
+	cat do_pairedend_read_mapping
 	@echo '============================================================'
 	./do_pairedend_read_mapping $^ $*.sam; $(call check_result, $$?, $@)
 	date
@@ -295,11 +295,11 @@ rm = $(movetotrash)			# for debugging
 ## Shifted Smoothed Singlebasepair reads
 %-cen.bam: %.bam
 	@echo Creating $@ 1>&2
-	@echo -n 'Script is: '; ls -l ./do_center_reads
+	@echo -n 'Script is: '; ls -l `pwd`/do_center_reads
 	@echo '============================================================'
-	cat ./do_center_reads
+	cat do_center_reads
 	@echo '============================================================'
-	samtools view $(filter_opts) -h $< | do_center_reads > $@; $(call check_result, $$?, $@)
+	samtools view $(filter_opts) -h $< | ./do_center_reads > $@; $(call check_result, $$?, $@)
 	samtools index $@
 	@echo Done creating $@ 1>&2
 
