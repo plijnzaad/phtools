@@ -16,5 +16,5 @@ prefix=/dev/shm/$USER.$$.$RANDOM.center
 center+smooth.pl --type paired --minlen 50 --maxlen 170 --smooth 31 | samtools sort -T$prefix -Obam
 ## bug in samtools, -T is not needed to start with ...
 
-## Be very cautioous when centering/shifting previously centered reads,
+## Be very cautious when centering/shifting previously centered reads,
 ## see also center+smooth.pl -h
