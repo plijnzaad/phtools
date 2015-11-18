@@ -14,7 +14,7 @@ Usage: center+smooth.pl--type [paired|single] [ --shift NUMBER ] [ --smooth NUMB
   The script is aimed at MNase-seq data (used to map nucleosome positions)
   and is meant to get sharper peaks at the likely position of the
   nucleosome dyad. It reads a SAM file from stdin, and writes (to stdout)
-  a SAM file, all shifted by into their 3\'-direction. For paired-end read
+  a SAM file, all shifted into their 3\'-direction. For paired-end read
   data, the amount of shifting is determined by the template length (field
   9) found in the SAM file.  It can also be specified manually using the
   --shift paramter, typically when dealing with single-end data. Make sure
@@ -22,18 +22,18 @@ Usage: center+smooth.pl--type [paired|single] [ --shift NUMBER ] [ --smooth NUMB
   otherwise shifting by half the template length does not make sense (see
   also the --minlen and --maxlen options).
 
-  The reads are made \'single-basepair reads\'. The reason for this is
+  The reads are made into "single-basepair reads". The reason for this is
   that basepair 2, 3, etc. are not additional independent evidence of the
   nucleosome dyad being located at the 5\'-end of the current read, and
   including additional basepairs only smooths the data, thus decreasing
   the resolution. If this smoothing is desired, use the --smooth option
   (31 is a a reasonable value). After centering and/or smoothing, the read
   coordinates are changed and consistent (although not sorted
-  anymore!). The read sequence consists of only \'N\'s, the CIGAR string
-  of only \'M\'s.
+  anymore!). The resulting read "sequence" consists of only \'N\'s, the
+  CIGAR string of only \'M\'s.
 
-  The program is typically part of a
-  pipeline that converts from BAM and back again, as
+  The program is typically part of a pipeline that converts from BAM and
+  back again, as
 
       prefix=/dev/shm/$USER.$$.center
       samtools view -h reads.bam | center+smooth.pl --smooth 31 |\
@@ -48,7 +48,7 @@ Usage: center+smooth.pl--type [paired|single] [ --shift NUMBER ] [ --smooth NUMB
   by -15, to pretend that the trimmed reads did actually begin at the
   boundary.
 
-  This caution also applies to the --min and max length: the defaults
+  This caution also applies to the --min and --max length: the defaults
   correspond to single-nucleosome fragments provided the mapping was done
   without any trimming.
 
@@ -73,10 +73,10 @@ Options:
   --maxlen <number> Skip reads where the fragment length is greater than
                     this (default: 200)
 
-  --smooth <number> Smooth over not 1, but several basepairs. Assumed to
+  --smooth <number> Number of basepairs to smooth over. Assumed to
                     be uneven.
 
-  --chrom_sizes <file> tab-delimited file with
+  --chrom_sizes <file> tab-delimited file containing
     ^chromosome_name\\tchromosome_length$ (needed if not in header of SAM
                        file, or if those are wrong)
 
@@ -91,7 +91,7 @@ my $help=0;
 my $shift=undef;                        # meaning: automatic
 my $smooth=1;                           # i.e. none
 my $chrom_sizes=undef;
-my $minlen=0;
+my $minlen=100;
 my $maxlen= 200;                    # i.e. at most one nucleosome!
 my $strict=undef;
 my $auto=1;
