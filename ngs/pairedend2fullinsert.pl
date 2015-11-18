@@ -13,7 +13,8 @@ my $usage="
 Usage: Convert paired-end reads to full-length inserts for the purpose of
   seeing the coverage (e.g., of nucleosomes). Input and output must be/is
   in SAM format (with header), and is read from stdin/written to stdout.
-  The resulting SEQ is 
+  The resulting CIGAR string is <insertlength>M; the template length is
+  zero, and the reesulting SEQs are all N's.
 
   Be aware of the way the mapping was done. If e.g. the mapper was told to
   discard the first 15 bp from each read (to improve the mapping), you
@@ -124,7 +125,7 @@ LINE:
       $qual='*';
       $ninserts++;
       my @fields=($qname,$flag, $rname, $pos, $mapq, $cigar, $rnext, $pnext,
-                  $tlen, $seq, $qual, @optionals);
+                  0, $seq, $qual, @optionals);
       print join("\t", @fields) . "\n";
 }                                       # LINE
 
