@@ -1,6 +1,5 @@
 #!/usr/bin/perl 
-my $version = 'unknown';
-## (leave as is, id is automagically adjusted by svn)
+my $version = '0.0';
 
 my $scriptname="pairedend2fullinsert.pl";
 
@@ -10,10 +9,11 @@ my $fmt=new Number::Format(-thousands_sep => ',');
 sub commafy {  $fmt->format_number($_[0]); }
 
 my $usage="
-Usage: 
-  Convert paired-end reads to full-length inserts (all N's) for the purpose of
+
+Usage: Convert paired-end reads to full-length inserts for the purpose of
   seeing the coverage (e.g., of nucleosomes). Input and output must be/is
   in SAM format (with header), and is read from stdin/written to stdout.
+  The resulting SEQ is 
 
   Be aware of the way the mapping was done. If e.g. the mapper was told to
   discard the first 15 bp from each read (to improve the mapping), you
@@ -40,6 +40,7 @@ my $minlen=0;
 my $maxlen=1000000;
 
 my $untrim=0;
+my $ninserts=0;
 
 my $pg_printed=0;
 
@@ -121,7 +122,7 @@ LINE:
       $cigar=sprintf('%dM', $newlen);
       $seq=  'N' x $newlen;               # whole sequence is just N's
       $qual='*';
-      
+      $ninserts++;
       my @fields=($qname,$flag, $rname, $pos, $mapq, $cigar, $rnext, $pnext,
                   $tlen, $seq, $qual, @optionals);
       print join("\t", @fields) . "\n";
@@ -131,6 +132,9 @@ if ($nfirst ne $nsecond) {
   warn "Expected equal number of first and second mates, instead found "
       . commafy($nfirst) . " first mates but ".commafy($nsecond) ." second mates\n";
 }
+
+die "No inserts where written" unless $ninserts;
+warn "Wrote ". commafy($ninserts) . "\n";
 warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because to long\n";
 
 sub read_chromo_sizes {
