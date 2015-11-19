@@ -11,6 +11,10 @@
 ### Note that you can often use INPUT=/dev/stdin for reading from std input, and
 ### OUPUT=/devstdout QUIET=true for writing to stdout.
 
+### VALIDATION_STRINGENCY=LENIENT is always used.
+
+validation='VALIDATION_STRINGENCY=LENIENT'
+
 require_var() { 
     for var in "$@"; do
       eval "val=\$$var"
@@ -41,5 +45,5 @@ fi
 jar="$1"
 shift
 
-java -d64 -Xmx512M -jar $pthome/$jar.jar "$@" VALIDATION_STRINGENCY=LENIENT
+java -d64 -Xmx512M -jar $pthome/$jar.jar "$@" $validation
 
