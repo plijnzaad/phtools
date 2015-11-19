@@ -12,10 +12,6 @@
 ### OUPUT=/devstdout QUIET=true for writing to stdout.
 
 require_var() { 
-# check if given variable(s) is defined. 
-# use as 
-#   require_var foo bar 
-# if $foo and $bar are mandatory
     for var in "$@"; do
       eval "val=\$$var"
       if [ -z "$val"  ]; then
@@ -25,7 +21,7 @@ require_var() {
     done
 }
 
-require_var pthome                      # for the picard-tools
+require_var pthome
 ## e.g. /usr/local/picard-tools
 
 
@@ -45,5 +41,5 @@ fi
 jar="$1"
 shift
 
-java -d64 -Xmx512M -jar $pthome/$jar.jar "$@"
+java -d64 -Xmx512M -jar $pthome/$jar.jar "$@" VALIDATION_STRINGENCY=LENIENT
 
