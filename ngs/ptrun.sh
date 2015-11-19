@@ -15,6 +15,14 @@
 
 validation='VALIDATION_STRINGENCY=LENIENT'
 
+## avoid "ERROR: Option 'VALIDATION_STRINGENCY' cannot be specified more than once."
+for i in "$@"; do 
+    if [ "$i" == "$validation" ]; then
+        validation=""
+    fi
+done
+
+
 require_var() { 
     for var in "$@"; do
       eval "val=\$$var"
