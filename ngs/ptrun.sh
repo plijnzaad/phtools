@@ -28,16 +28,6 @@ require_var() {
 require_var pthome
 ## e.g. /usr/local/picard-tools
 
-
-pthelp() {
-  pushd $pthome
-  echo "
-  Usage: ptrun.sh jarfile, where FILE is one of:
-"
-  ls -x *.jar | sed 's/\.jar//g'
-  exit 1
-}
-
 if [ $# -lt 1 ] ; then
         pthelp
 fi
