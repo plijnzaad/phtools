@@ -66,7 +66,7 @@ if ($chrom_sizes) {
   $chromos = {};                        # read during parsing
 }
 
-my $single_read_mask= 0x2 | 0x10 | 0xf00;
+my $single_read_mask= 0x10 | 0xf00;
 ### (any bits not in this refer to paired end reads, so must be unset)
 
 LINE:
