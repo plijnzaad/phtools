@@ -48,7 +48,8 @@ my $pg_printed=0;
 
 my $chromos=undef;
 
-my ($nfirst, $nsecond, $too_short, $too_long, $unmapped);
+my ($nfirst, $nsecond, $too_short, $too_long, $unmapped,
+    $skipped_left, $skipped_right)=(0,0,0,0,0,0,0);
 
 my @argv_copy=@ARGV;                    # eaten by GetOptions
 die $usage if  GetOptions('help'=> \$help,
@@ -65,6 +66,7 @@ if ($chrom_sizes) {
 } else {    
   $chromos = {};                        # read during parsing
 }
+
 
 my $single_read_mask= 0x10 | 0xf00;
 ### (any bits not in this refer to paired end reads, so must be unset)
@@ -101,7 +103,17 @@ LINE:
         next LINE;
       }
 
+      $pos = $pos - $untrim;
+      if ($pos <= 0) {
+        $skipped_left++;
+        next LINE;
+        
+      }
       my $newlen=abs($tlen) + 2*$untrim;
+      if ($pos + $newlen -1 > $chr_length) { 
+        $skipped_right++;
+        next LINE;
+      }
       
       if ( $newlen < $minlen ) {
         $too_short++;
@@ -136,8 +148,11 @@ if ($nfirst ne $nsecond) {
 }
 
 die "No inserts where written" unless $ninserts;
-warn "Wrote ". commafy($ninserts) . "\n";
-warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because to long\n";
+warn commafy($unmapped) . " reads were unmapped and skipped\n";
+warn commafy($skipped_left) . " reads dropped off the left side, ". commafy($skipped_right) . " off the right side of the chromosome\n";
+## (non of the above should happen, really)
+warn "Wrote ". commafy($ninserts) . " inserts\n";
+warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because too long\n";
 
 sub read_chromo_sizes {
     my($file)=@_;
