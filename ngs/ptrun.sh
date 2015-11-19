@@ -22,6 +22,14 @@ for i in "$@"; do
     fi
 done
 
+pthelp() {
+  pushd $pthome
+  echo "
+  Usage: ptrun.sh jarfile, where FILE is one of:
+"
+  ls -x *.jar | sed 's/\.jar//g'
+  exit 1
+}
 
 require_var() { 
     for var in "$@"; do
