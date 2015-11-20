@@ -16,6 +16,9 @@ import time
 import math
 import re
 
+print "Untested, and prolly broken"
+sys.exit(-1)
+
 def convertStr(s):
     """Convert string to either int or float."""
     try:
@@ -139,44 +142,41 @@ def removeOpticalDuplicates(param) :
 
             if chr <> "*" and (chr <> curChr or startPos <> curStartPos or not nextLine) : 
                 for key in tile_cigarToDupDict.keys() :
-                   dups = tile_cigarToDupDict[key]
-                   dups.sort()
-                   if len(dups) == 1 :
-                      nondupline = dups[0][3]
-                      outFile.write(nondupline)
-                   elif len(dups) > 1 :
-                       processed = []
-                       for k in range(0, len(dups)) :
-                          processed.append(False)
-
-                       for i in range(0, len(dups)) :
-                          if not processed[i] : 
-                              xi = convertStr(dups[i][0])
-                              yi = convertStr(dups[i][1])
-                              mapqi = convertStr(dups[i][2])
-                              processed[i] = True
+                    dups = tile_cigarToDupDict[key]
+                    dups.sort()         # not needed
+                    if len(dups) == 1 :
+                        nondupline = dups[0][3]
+                        outFile.write(nondupline)
+                        continue
+                    ## at this point we should create a graph with edges
+                    ## where the distance is large enough. The single clique
+                    ## in this graph are genuine non-duplicates.
+                    ## For the remainder you try to find the one with hight quality
+                    ## (Code below may or may not  do that, haven't tested)
+                    for i in range(0, len(dups)) :
+                        xi = convertStr(dups[i][0])
+                        yi = convertStr(dups[i][1])
+                        mapqi = convertStr(dups[i][2])
                         
-                              best = i
-                              bestMapq = mapqi
-                              for j in range(i+1, len(dups)) :
-                                  if not processed[j] : 
-                                      xj = convertStr(dups[j][0])
-                                      yj = convertStr(dups[j][1])
-                                      mapqj = convertStr(dups[j][2])
-                                      ## d2 = (xj-xi)*(xj-xi) + (yj-yi)*(yj-yi)
-                                      ## if d2 > optDist2 : break; # no dup
-                                      if abs(xj-xi) > optDist : break; # no dup
-                                      if abs(yj-yi) <= optDist : # dup, keep best one
-                                          processed[j] = True 
-                                          if mapqj > bestMapq :
-                                              # (add output of the 'loosing' line here?)
-                                              best = j
-                                              bestMapq = mapqj
-                              bestline = dups[best][3]
-                              outFile.write(bestline)
+                        best = i
+                        bestMapq = mapqi
+                        foundcluster=False
+                        for j in range(i+1, len(dups)) :
+                            xj = convertStr(dups[j][0])
+                            yj = convertStr(dups[j][1])
+                            d2 = (xj-xi)*(xj-xi) + (yj-yi)*(yj-yi)
+                            if d2 > optDist2 : continue # if all j's far enough, best is still i
+                            foundcluster=True
+                            mapqj = convertStr(dups[j][2])
+                            if mapqj > bestMapq :
+                                if outputDups: # @@add this option
+                                    dupFile.write(@@@what?)
+                                best = j
+                                bestMapq = mapqj
+                        bestline = dups[best][3]
+                        outFile.write(bestline)
                 tile_cigarToDupDict = {} 
                 tile_cigarToDupDict[tile_cigar] = [[x, y, mapq, line]]
-
             if chr <> "*" and not nextLine and (chr <> curChr or startPos <> curStartPos) : 
                 outFile.write(line)
             if chr == "*" :
