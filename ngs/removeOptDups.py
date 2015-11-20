@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 
-"RemoveOpticalDuplicates.py"
-"Author: Anna Salzberg"
+"Remove optical duplicates from a SAM file"
+"Original by Anna Salzberg at https://gist.github.com/annasa/eef7c30152ac296bb49b"
 "Additions by plijnzaad@gmail.com"
 
 import sys
@@ -40,7 +40,7 @@ class Parameter :
 
     # Prints usage
     def usage(self):
-        print "Usage: python   RemoveOpticalDuplicates.py  [-d pixels]  [ <input file> ] " 
+        print "Usage: python RemoveOpticalDuplicates.py  [-d pixels]  [ <input file> ] " 
         print "where the input is a sam file sorted by chr position.  Default optical_duplciate_pixel_distance: 10"
         print "    (Note: Use around 100 pixels for later versions of the Illumina software)"
         print "Example: python RemoveOpticalDuplicates.py  sampleA.bwa.sorted.sam  >  sampleA.bwa.rmoptdup.sam"
