@@ -1,8 +1,13 @@
 #!/usr/local/bin/python
 
-"Remove optical duplicates from a SAM file"
-"Original by Anna Salzberg at https://gist.github.com/annasa/eef7c30152ac296bb49b"
-"Additions by plijnzaad@gmail.com"
+## Remove optical duplicates from a SAM file
+## Original by Anna Salzberg at https://gist.github.com/annasa/eef7c30152ac296bb49b
+## See also http://sourceforge.net/p/samtools/mailman/message/32915073/
+##  (http://samtools-help.narkive.com/iU2fiVxO/reporting-bug-optical-duplicates-of-picard-markduplicates)
+##
+## Additions by plijnzaad@gmail.com
+
+## (it assumes a the reads to be on a single tile?)
 
 import sys
 import string
@@ -17,17 +22,17 @@ def convertStr(s):
         ret = int(s)
     except ValueError:
         try :
-            ret = float(s);
+            ret = float(s)
         except ValueError :
-            ret = -1;
+            ret = -1
                       
     return ret
 
 class Parameter :
     def __init__(self, argv) :
-        self.argv = argv;
-        self.inFN = "";
-        self.opticalDuplicatePixelDistance = 10;
+        self.argv = argv
+        self.inFN = ""
+        self.opticalDuplicatePixelDistance = 10
 
     def getOpticalDuplicatePixelDistance(self) :
         return self.opticalDuplicatePixelDistance 
@@ -36,12 +41,12 @@ class Parameter :
         return self.inFN
 
     def getOutFN(self) :
-        return self.outFN;    
+        return self.outFN
 
     # Prints usage
     def usage(self):
         print "Usage: python RemoveOpticalDuplicates.py  [-d pixels]  [ <input file> ] " 
-        print "where the input is a sam file sorted by chr position.  Default optical_duplciate_pixel_distance: 10"
+        print "where the input is a sam file sorted by chr position.  Default optical_duplicate_pixel_distance: 10"
         print "    (Note: Use around 100 pixels for later versions of the Illumina software)"
         print "Example: python RemoveOpticalDuplicates.py  sampleA.bwa.sorted.sam  >  sampleA.bwa.rmoptdup.sam"
         print "The -d argument specifies the minimum x or y-difference (in pixels). Any pair of read closer than this is considered duplicates"
@@ -49,38 +54,39 @@ class Parameter :
         sys.exit(1)
     
     def checkArgs(self) :
-        i = 1;
-        argc = len(sys.argv);
-        errorMsg = "";
+        i = 1
+        argc = len(sys.argv)
+        errorMsg = ""
         while i < argc and errorMsg == "":
             if self.argv[i] == '-d' :
-                i += 1;
+                i += 1
                 if i < argc and not self.argv[i].startswith('-') :
-                    self.opticalDuplicatePixelDistance = convertStr(self.argv[i]);
+                    self.opticalDuplicatePixelDistance = convertStr(self.argv[i])
                     if self.opticalDuplicatePixelDistance < 1 :
                         errorMsg = 'Error: optical duplicate pixel distance must be an integer >= 1'
                 else :
                     errorMsg = 'Error: optical duplicate pixel distance expected after -d flag'
             elif i == argc-1 :
-                self.inFN = self.argv[i];
+                self.inFN = self.argv[i]
             else :
-                errorMsg = 'Error: unknown flag: ' + self.argv[i];
+                errorMsg = 'Error: unknown flag: ' + self.argv[i]
                 
-            i += 1;
+            i += 1
 
         if errorMsg == "" and self.inFN != "" and \
                                          not re.match(r'.*\.sam$', self.inFN):
             errorMsg = 'Need a SAM file'
         
         if errorMsg <> "" :
-            print errorMsg;
-            self.usage();
+            print errorMsg
+            self.usage()
 
 
 def removeOpticalDuplicates(param) :
     inFN = param.getInFN()
     outFile = sys.stdout
     optDist = param.getOpticalDuplicatePixelDistance()
+    optDist2= optDist*optDist # squared Euclidean distance criterion
 
     if inFN == "":
         inFile = sys.stdin
@@ -120,24 +126,24 @@ def removeOpticalDuplicates(param) :
             tile = subtokens[4]
             x = subtokens[5]
             y = subtokens[6]
-            tile_cigar = tile + "_" + cigar; 
+            tile_cigar = tile + "_" + cigar
             if first :
                 curChr = chr
                 curStartPos = startPos
-                first = False;
+                first = False
 
             if chr <> "*" and (chr == curChr and startPos == curStartPos) :
-                    dups = tile_cigarToDupDict.get(tile_cigar, []);
-                    dups.append([x, y, mapq, line]);
-                    tile_cigarToDupDict[tile_cigar] = dups;
+                    dups = tile_cigarToDupDict.get(tile_cigar, [])
+                    dups.append([x, y, mapq, line])
+                    tile_cigarToDupDict[tile_cigar] = dups
 
             if chr <> "*" and (chr <> curChr or startPos <> curStartPos or not nextLine) : 
                 for key in tile_cigarToDupDict.keys() :
-                   dups = tile_cigarToDupDict[key];
-                   dups.sort();
+                   dups = tile_cigarToDupDict[key]
+                   dups.sort()
                    if len(dups) == 1 :
                       nondupline = dups[0][3]
-                      outFile.write(nondupline);
+                      outFile.write(nondupline)
                    elif len(dups) > 1 :
                        processed = []
                        for k in range(0, len(dups)) :
@@ -148,45 +154,44 @@ def removeOpticalDuplicates(param) :
                               xi = convertStr(dups[i][0])
                               yi = convertStr(dups[i][1])
                               mapqi = convertStr(dups[i][2])
-                              processed[i] = True;
+                              processed[i] = True
                         
-                              best = i;
-                              bestMapq = mapqi;
+                              best = i
+                              bestMapq = mapqi
                               for j in range(i+1, len(dups)) :
                                   if not processed[j] : 
                                       xj = convertStr(dups[j][0])
                                       yj = convertStr(dups[j][1])
                                       mapqj = convertStr(dups[j][2])
-                       
+                                      ## d2 = (xj-xi)*(xj-xi) + (yj-yi)*(yj-yi)
+                                      ## if d2 > optDist2 : break; # no dup
                                       if abs(xj-xi) > optDist : break; # no dup
                                       if abs(yj-yi) <= optDist : # dup, keep best one
                                           processed[j] = True 
                                           if mapqj > bestMapq :
                                               # (add output of the 'loosing' line here?)
-                                              best = j;
-                                              bestMapq = mapqj;
+                                              best = j
+                                              bestMapq = mapqj
                               bestline = dups[best][3]
-                              outFile.write(bestline);
+                              outFile.write(bestline)
                 tile_cigarToDupDict = {} 
                 tile_cigarToDupDict[tile_cigar] = [[x, y, mapq, line]]
 
             if chr <> "*" and not nextLine and (chr <> curChr or startPos <> curStartPos) : 
-                outFile.write(line);
+                outFile.write(line)
             if chr == "*" :
-                outFile.write(line);
+                outFile.write(line)
             curChr = chr
-            curStartPos = startPos;
-
-        line = nextLine;
-                
-    inFile.close();
-    outFile.close();
+            curStartPos = startPos
+        line = nextLine
+    inFile.close()
+    outFile.close()
 
 
 # Execute as application
 if __name__ == '__main__' :
     param = Parameter(sys.argv)
-    param.checkArgs();
+    param.checkArgs()
 
     removeOpticalDuplicates(param) 
 
