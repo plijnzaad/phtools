@@ -85,37 +85,36 @@ class Parameter :
             self.usage()
 
 
-def find_best_replicate(dups):
-    ndups=0
-    for i in range(0, len(dups)) :  # len(dups) can just be 1
-        xi = convertStr(dups[i][0])
-        yi = convertStr(dups[i][1])
-        mapqi = convertStr(dups[i][2])
-        
-        best = i
-        bestMapq = mapqi
-        for j in range(i+1, len(dups)) :
-            xj = convertStr(dups[j][0])
-            yj = convertStr(dups[j][1])
-            d2 = (xj-xi)*(xj-xi) + (yj-yi)*(yj-yi)
-            if d2 > optDist2:
-                continue
-            mapqj = convertStr(dups[j][2])
-            if mapqj > bestMapq :
-                if outputDups: # @@add this option
-                    dupFile.write( dups[best][3] )
-                    best = j
-                    bestMapq = mapqj
-        return best
-
-def output_best_replicate(dict) :
+def output_best_replicates(dupCands) :
     # dict contains tile+cigar combinations having reads with same start position
     ndups=0
-    for key in dict.keys() :
-        dups = dict[key]
-        best = find_best_replicate(dups)
+    for tile in dupCands.keys() :
+        reads = dupCands[tile]
+        best = find_best_replicate(reads)
         outFile.write(dups[best][3])
         # ndups += ???
+        for i in range(0, len(dups)) :  # len(dups) can just be 1
+            xi = convertStr(dups[i][0])
+            yi = convertStr(dups[i][1])
+            mapqi = convertStr(dups[i][2])
+            
+            best = i
+            bestMapq = mapqi
+            for j in range(i+1, len(dups)) :
+                xj = convertStr(dups[j][0])
+                yj = convertStr(dups[j][1])
+                d2 = (xj-xi)*(xj-xi) + (yj-yi)*(yj-yi)
+                if d2 > optDist2:
+                    continue
+                mapqj = convertStr(dups[j][2])
+                if mapqj > bestMapq :
+                    if outputDups: # @@add this option
+                        dupFile.write( dups[best][3] )
+                        best = j
+                        bestMapq = mapqj
+            output best j for i?
+         output best pair of all i,j?
+    ndups=0
     return ndups
 
 def removeOpticalDuplicates(param) :
@@ -133,7 +132,7 @@ def removeOpticalDuplicates(param) :
             print "Unable to open file " + inFN
             sys.exit(-1)
 
-    tile_cigarToDupDict = {}            # reinitialized every line
+    dupCands_perTile = {}            # reinitialized every line
     curChr = ""
     curStartPos = ""
 
@@ -171,11 +170,12 @@ def removeOpticalDuplicates(param) :
 
         if (not nextLine or chr <> curChr or startPos <> curStartPos ) :
             ## EOF, or found new non-duplicate, output potential old ones and start over
-            ndups = ndups + output_best_replicate( tile_cigarToDupDict )
-            tile_cigarToDupDict = {} 
-            tile_cigarToDupDict[tile_cigar] = [ read ]
+            ndups = ndups + output_best_replicates( dupCands_perTile )
+            dupCands_perTile = {} 
+            dupCands_perTile[tile_cigar] = [ read ]
         else:
-            tile_cigarToDupDict[tile_cigar].append(read)
+            dupCands_perTile[tile_cigar] =  dupCands_perTile.get(tile_cigar, []) # make sure it exists
+            dupCands_perTile[tile_cigar].append(read)
 
         curChr = chr
         curStartPos = startPos
