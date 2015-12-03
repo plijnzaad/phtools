@@ -84,42 +84,39 @@ class Parameter :
             print errorMsg
             self.usage()
 
-def output_best_replicate(dict) :
-    # each dict contains all reads with same coordinate
-    for key in dict.keys() :
-        dups = dict[key]
-        if len(dups) == 1 :
-            nondupline = dups[0][3]
-            outFile.write(nondupline)
-            return 0
-        ## at this point we should create a graph with edges where dist is small
-        ## For each of the connected component, output the 'best'
-        ## (most should be singletons, i.e. non-duplicates)
-        for i in range(0, len(dups)) :
-            xi = convertStr(dups[i][0])
-            yi = convertStr(dups[i][1])
-            mapqi = convertStr(dups[i][2])
 
-            best = i
-            bestMapq = mapqi
-            foundcluster=False
-            for j in range(i+1, len(dups)) :
-                xj = convertStr(dups[j][0])
-                yj = convertStr(dups[j][1])
-                d2 = (xj-xi)*(xj-xi) + (yj-yi)*(yj-yi)
-                if d2 > optDist2:
-                    continue
-                foundcluster=True
-                mapqj = convertStr(dups[j][2])
-                if mapqj > bestMapq :
-                    if outputDups: # @@add this option
-                        dupFile.write(@@@what?)
+def find_best_replicate(dups):
+    ndups=0
+    for i in range(0, len(dups)) :  # len(dups) can just be 1
+        xi = convertStr(dups[i][0])
+        yi = convertStr(dups[i][1])
+        mapqi = convertStr(dups[i][2])
+        
+        best = i
+        bestMapq = mapqi
+        for j in range(i+1, len(dups)) :
+            xj = convertStr(dups[j][0])
+            yj = convertStr(dups[j][1])
+            d2 = (xj-xi)*(xj-xi) + (yj-yi)*(yj-yi)
+            if d2 > optDist2:
+                continue
+            mapqj = convertStr(dups[j][2])
+            if mapqj > bestMapq :
+                if outputDups: # @@add this option
+                    dupFile.write( dups[best][3] )
                     best = j
                     bestMapq = mapqj
-            bestline = dups[best][3]
-            outFile.write(bestline)
-            return 1
+        return best
 
+def output_best_replicate(dict) :
+    # dict contains tile+cigar combinations having reads with same start position
+    ndups=0
+    for key in dict.keys() :
+        dups = dict[key]
+        best = find_best_replicate(dups)
+        outFile.write(dups[best][3])
+        # ndups += ???
+    return ndups
 
 def removeOpticalDuplicates(param) :
     inFN = param.getInFN()
@@ -140,7 +137,6 @@ def removeOpticalDuplicates(param) :
     curChr = ""
     curStartPos = ""
 
-    first = True
     PG_output = False
     line = inFile.readline()
     while (1) :
@@ -148,49 +144,43 @@ def removeOpticalDuplicates(param) :
         nextLine = inFile.readline()
         if line.startswith("@") :
             outFile.write(line)
-        else:
-            if not PG_output:
-                PG_output=True
-                outFile.write("@PG\tID:removeOptDups.py\tPN:removeOptDups.py\tVN:0 CL:"+" ".join(param.argv)+"\n")
-            tokens = line.split()
-            chr = tokens[2]
-            startPos = tokens[3]
-            mapq = tokens[4] 
-            cigar = tokens[5]
-            subtokens = tokens[0].split(":")
-            machine_name = subtokens[0]
-            run_name = subtokens[1]
-            flowcell_id = subtokens[2]
-            flowcell_lane = subtokens[3]
-            tile = subtokens[4]
-            x = subtokens[5]
-            y = subtokens[6]
-            tile_cigar = tile + "_" + cigar
+            line = nextLine
+            continue
+        if not PG_output:
+            PG_output=True
+            outFile.write("@PG\tID:removeOptDups.py\tPN:removeOptDups.py\tVN:0 CL:"+" ".join(param.argv)+"\n")
 
-            if first or chr == "*" :
-                first = False
-                outFile.write(line)
-                curChr = chr
-                curStartPos = startPos
-                continue
+        tokens = line.split()
+        chr = tokens[2]
+        startPos = tokens[3]
+        mapq = tokens[4] 
+        cigar = tokens[5]
+        subtokens = tokens[0].split(":")
+        # machine_name = subtokens[0]; run_name = subtokens[1]; flowcell_id = subtokens[2]; lane = subtokens[3]
+        tile = subtokens[4]
+        x = subtokens[5]
+        y = subtokens[6]
+        tile_cigar = tile + "_" + cigar
+        read = [x, y, mapq, line]
 
-            if (chr == curChr and startPos == curStartPos) : # potential opt. dup, accumulate:
-                dups = tile_cigarToDupDict.get(tile_cigar, [])
-                dups.append([x, y, mapq, line])
-                tile_cigarToDupDict[tile_cigar] = dups
-
-            if (chr <> curChr or startPos <> curStartPos or not nextLine) :
-                ## found new non-duplicate, output potential old 
-                ndups = ndups + output_best_replicate( tile_cigarToDupDict )
-                ## start over
-                tile_cigarToDupDict = {} 
-                tile_cigarToDupDict[tile_cigar] = [[x, y, mapq, line]]
-
-            if not nextLine or (chr <> curChr or startPos <> curStartPos) : 
-                outFile.write(line)
+        if chr == "*" :
+            outFile.write(line)
             curChr = chr
             curStartPos = startPos
+            continue
+
+        if (not nextLine or chr <> curChr or startPos <> curStartPos ) :
+            ## EOF, or found new non-duplicate, output potential old ones and start over
+            ndups = ndups + output_best_replicate( tile_cigarToDupDict )
+            tile_cigarToDupDict = {} 
+            tile_cigarToDupDict[tile_cigar] = [ read ]
+        else:
+            tile_cigarToDupDict[tile_cigar].append(read)
+
+        curChr = chr
+        curStartPos = startPos
         line = nextLine
+
     inFile.close()
     outFile.close()
 
