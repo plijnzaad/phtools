@@ -93,6 +93,7 @@ def output_best_replicates(dupCands) :
         best = find_best_replicate(reads)
         outFile.write(dups[best][3])
         # ndups += ???
+        ## find connected components among set of reads; for each of them, output the best one ...
         for i in range(0, len(dups)) :  # len(dups) can just be 1
             xi = convertStr(dups[i][0])
             yi = convertStr(dups[i][1])
