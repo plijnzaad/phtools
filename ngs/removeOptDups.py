@@ -16,8 +16,8 @@ import time
 import math
 import re
 
-print "Untested, and prolly broken"
-sys.exit(-1)
+##print "Untested, and prolly broken"
+##sys.exit(-1)
 
 def convertStr(s):
     """Convert string to either int or float."""
@@ -84,6 +84,42 @@ class Parameter :
             print errorMsg
             self.usage()
 
+def output_best_replicate(dict) :
+    # each dict contains all reads with same coordinate
+    for key in dict.keys() :
+        dups = dict[key]
+        if len(dups) == 1 :
+            nondupline = dups[0][3]
+            outFile.write(nondupline)
+            return 0
+        ## at this point we should create a graph with edges where dist is small
+        ## For each of the connected component, output the 'best'
+        ## (most should be singletons, i.e. non-duplicates)
+        for i in range(0, len(dups)) :
+            xi = convertStr(dups[i][0])
+            yi = convertStr(dups[i][1])
+            mapqi = convertStr(dups[i][2])
+
+            best = i
+            bestMapq = mapqi
+            foundcluster=False
+            for j in range(i+1, len(dups)) :
+                xj = convertStr(dups[j][0])
+                yj = convertStr(dups[j][1])
+                d2 = (xj-xi)*(xj-xi) + (yj-yi)*(yj-yi)
+                if d2 > optDist2:
+                    continue
+                foundcluster=True
+                mapqj = convertStr(dups[j][2])
+                if mapqj > bestMapq :
+                    if outputDups: # @@add this option
+                        dupFile.write(@@@what?)
+                    best = j
+                    bestMapq = mapqj
+            bestline = dups[best][3]
+            outFile.write(bestline)
+            return 1
+
 
 def removeOpticalDuplicates(param) :
     inFN = param.getInFN()
@@ -100,7 +136,7 @@ def removeOpticalDuplicates(param) :
             print "Unable to open file " + inFN
             sys.exit(-1)
 
-    tile_cigarToDupDict = {} 
+    tile_cigarToDupDict = {}            # reinitialized every line
     curChr = ""
     curStartPos = ""
 
@@ -130,56 +166,27 @@ def removeOpticalDuplicates(param) :
             x = subtokens[5]
             y = subtokens[6]
             tile_cigar = tile + "_" + cigar
-            if first :
+
+            if first or chr == "*" :
+                first = False
+                outFile.write(line)
                 curChr = chr
                 curStartPos = startPos
-                first = False
+                continue
 
-            if chr <> "*" and (chr == curChr and startPos == curStartPos) :
-                    dups = tile_cigarToDupDict.get(tile_cigar, [])
-                    dups.append([x, y, mapq, line])
-                    tile_cigarToDupDict[tile_cigar] = dups
+            if (chr == curChr and startPos == curStartPos) : # potential opt. dup, accumulate:
+                dups = tile_cigarToDupDict.get(tile_cigar, [])
+                dups.append([x, y, mapq, line])
+                tile_cigarToDupDict[tile_cigar] = dups
 
-            if chr <> "*" and (chr <> curChr or startPos <> curStartPos or not nextLine) : 
-                for key in tile_cigarToDupDict.keys() :
-                    dups = tile_cigarToDupDict[key]
-                    dups.sort()         # not needed
-                    if len(dups) == 1 :
-                        nondupline = dups[0][3]
-                        outFile.write(nondupline)
-                        continue
-                    ## at this point we should create a graph with edges
-                    ## where the distance is large enough. The single clique
-                    ## in this graph are genuine non-duplicates.
-                    ## For the remainder you try to find the one with hight quality
-                    ## (Code below may or may not  do that, haven't tested)
-                    for i in range(0, len(dups)) :
-                        xi = convertStr(dups[i][0])
-                        yi = convertStr(dups[i][1])
-                        mapqi = convertStr(dups[i][2])
-                        
-                        best = i
-                        bestMapq = mapqi
-                        foundcluster=False
-                        for j in range(i+1, len(dups)) :
-                            xj = convertStr(dups[j][0])
-                            yj = convertStr(dups[j][1])
-                            d2 = (xj-xi)*(xj-xi) + (yj-yi)*(yj-yi)
-                            if d2 > optDist2 : continue # if all j's far enough, best is still i
-                            foundcluster=True
-                            mapqj = convertStr(dups[j][2])
-                            if mapqj > bestMapq :
-                                if outputDups: # @@add this option
-                                    dupFile.write(@@@what?)
-                                best = j
-                                bestMapq = mapqj
-                        bestline = dups[best][3]
-                        outFile.write(bestline)
+            if (chr <> curChr or startPos <> curStartPos or not nextLine) :
+                ## found new non-duplicate, output potential old 
+                ndups = ndups + output_best_replicate( tile_cigarToDupDict )
+                ## start over
                 tile_cigarToDupDict = {} 
                 tile_cigarToDupDict[tile_cigar] = [[x, y, mapq, line]]
-            if chr <> "*" and not nextLine and (chr <> curChr or startPos <> curStartPos) : 
-                outFile.write(line)
-            if chr == "*" :
+
+            if not nextLine or (chr <> curChr or startPos <> curStartPos) : 
                 outFile.write(line)
             curChr = chr
             curStartPos = startPos
