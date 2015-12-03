@@ -16,8 +16,8 @@ import time
 import math
 import re
 
-##print "Untested, and prolly broken"
-##sys.exit(-1)
+print "Untested, and prolly broken"
+sys.exit(-1)
 
 def convertStr(s):
     """Convert string to either int or float."""
