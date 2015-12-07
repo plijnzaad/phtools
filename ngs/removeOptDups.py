@@ -171,7 +171,8 @@ def removeOpticalDuplicates(param) :
 
         if (not nextLine or chr <> curChr or startPos <> curStartPos ) :
             ## EOF, or found new non-duplicate, output old ones and start over
-            ndups = ndups + output_best_replicates( dupCands_perPos )
+            (uniq, dup) = output_unique( dupCands_perPos )
+            nuniq += uniq; ndup += dup
             dupCands_perPos = {} 
             dupCands_perPos[tile_cigar] = [ read ]
         else:
