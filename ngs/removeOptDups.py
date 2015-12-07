@@ -123,6 +123,8 @@ def removeOpticalDuplicates(param) :
     outFile = sys.stdout
     optDist = param.getOpticalDuplicatePixelDistance()
     optDist2= optDist*optDist # squared Euclidean distance criterion
+    nuniq=0
+    ndup=0
 
     if inFN == "":
         inFile = sys.stdin
