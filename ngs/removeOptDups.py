@@ -38,6 +38,7 @@ class Parameter :
         self.argv = argv
         self.inFN = ""
         self.opticalDuplicatePixelDistance = 10
+        self.dupsFile=""
 
     def getOpticalDuplicatePixelDistance(self) :
         return self.opticalDuplicatePixelDistance 
@@ -47,6 +48,9 @@ class Parameter :
 
     def getOutFN(self) :
         return self.outFN
+
+    def dupsFile:
+        return self.dupsFile
 
     # Prints usage
     def usage(self):
@@ -89,7 +93,11 @@ class Parameter :
 def output_best(dups):
     # x,y,mapq, line
     d= sorted(dups, key=lambda x:x[2])
-    outFile.write(d[-1][3])    
+    outFile.write(d[-1][3])
+    if outputDups:
+        dupsFile.write("# selected: "  + d[-1][3])
+        for i in range(1,len(d)):
+            dupsFile.write("# dup: "  + d[i][3])
         
 def output_uniq(dupCands) :
     # dict contains tile+cigar combinations having reads with same start
