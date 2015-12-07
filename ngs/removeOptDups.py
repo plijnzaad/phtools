@@ -113,8 +113,8 @@ def output_best_replicates(dupCands) :
                         dupFile.write( dups[best][3] )
                         best = j
                         bestMapq = mapqj
-            output best j for i?
-         output best pair of all i,j?
+            @@output best j for i?
+         @@output best pair of all i,j?
     ndups=0
     return ndups
 
@@ -133,7 +133,7 @@ def removeOpticalDuplicates(param) :
             print "Unable to open file " + inFN
             sys.exit(-1)
 
-    dupCands_perTile = {}            # reinitialized every line
+    dupCands_perPos = {}            # reinitialized every pos
     curChr = ""
     curStartPos = ""
 
@@ -170,13 +170,13 @@ def removeOpticalDuplicates(param) :
             continue
 
         if (not nextLine or chr <> curChr or startPos <> curStartPos ) :
-            ## EOF, or found new non-duplicate, output potential old ones and start over
-            ndups = ndups + output_best_replicates( dupCands_perTile )
-            dupCands_perTile = {} 
-            dupCands_perTile[tile_cigar] = [ read ]
+            ## EOF, or found new non-duplicate, output old ones and start over
+            ndups = ndups + output_best_replicates( dupCands_perPos )
+            dupCands_perPos = {} 
+            dupCands_perPos[tile_cigar] = [ read ]
         else:
-            dupCands_perTile[tile_cigar] =  dupCands_perTile.get(tile_cigar, []) # make sure it exists
-            dupCands_perTile[tile_cigar].append(read)
+            dupCands_perPos[tile_cigar] =  dupCands_perPos.get(tile_cigar, []) # make sure it exists
+            dupCands_perPos[tile_cigar].append(read)
 
         curChr = chr
         curStartPos = startPos
