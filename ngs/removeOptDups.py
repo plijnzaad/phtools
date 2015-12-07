@@ -1,4 +1,5 @@
-#!/usr/local/bin/python
+#!/bin/env python3
+### #!/usr/local/bin/python
 
 ## Remove optical duplicates from a SAM file
 ## Original by Anna Salzberg at https://gist.github.com/annasa/eef7c30152ac296bb49b
@@ -15,6 +16,7 @@ import os
 import time
 import math
 import re
+import networkx as nx
 
 print "Untested, and prolly broken"
 sys.exit(-1)
@@ -84,39 +86,37 @@ class Parameter :
             print errorMsg
             self.usage()
 
-
-def output_best_replicates(dupCands) :
-    # dict contains tile+cigar combinations having reads with same start position
+def output_best(dups):
+    # x,y,mapq, line
+    d= sorted(dups, key=lambda x:x[2])
+    outFile.write(d[-][3])    
+        
+def output_uniq(dupCands) :
+    # dict contains tile+cigar combinations having reads with same start
+    # position
+    nuniq=0
     ndups=0
     for tile in dupCands.keys() :
-        reads = dupCands[tile]
-        best = find_best_replicate(reads)
-        outFile.write(dups[best][3])
-        # ndups += ???
-        ## find connected components among set of reads; for each of them, output the best one ...
-        for i in range(0, len(dups)) :  # len(dups) can just be 1
-            xi = convertStr(dups[i][0])
-            yi = convertStr(dups[i][1])
-            mapqi = convertStr(dups[i][2])
-            
-            best = i
-            bestMapq = mapqi
-            for j in range(i+1, len(dups)) :
-                xj = convertStr(dups[j][0])
-                yj = convertStr(dups[j][1])
+        reads = dupCands[tile]          # x, y, mapq, line
+        G=nx.Graph()
+        G.add_nodes_from(range(len(reads)))
+        for i in range(0, len(reads)) :  # len(reads) can just be 1
+            xi = reads[i][0]
+            yi = reads[i][1]
+            for j in range(i+1, len(reads)) :
+                xj = reads[j][0]
+                yj = reads[j][1]
                 d2 = (xj-xi)*(xj-xi) + (yj-yi)*(yj-yi)
-                if d2 > optDist2:
-                    continue
-                mapqj = convertStr(dups[j][2])
-                if mapqj > bestMapq :
-                    if outputDups: # @@add this option
-                        dupFile.write( dups[best][3] )
-                        best = j
-                        bestMapq = mapqj
-            @@output best j for i?
-         @@output best pair of all i,j?
-    ndups=0
-    return ndups
+                if d2 < optDist2:
+                    G.add_edge(i,j)
+        for comp in nx.connected_components(G):
+            if len(comp)) ==  1:
+                outFile.write(reads[0][3])
+                nuniq += 1
+            else:
+                ndups += len(comp)
+                output_best(  [ reads[i] for i in comp ] )
+    return (nuniq,ndups)
 
 def removeOpticalDuplicates(param) :
     inFN = param.getInFN()
@@ -161,7 +161,7 @@ def removeOpticalDuplicates(param) :
         x = subtokens[5]
         y = subtokens[6]
         tile_cigar = tile + "_" + cigar
-        read = [x, y, mapq, line]
+        read = [ convertStr(x), convertStr(y), mapq, line]
 
         if chr == "*" :
             outFile.write(line)
