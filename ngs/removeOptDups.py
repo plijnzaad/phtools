@@ -89,7 +89,7 @@ class Parameter :
 def output_best(dups):
     # x,y,mapq, line
     d= sorted(dups, key=lambda x:x[2])
-    outFile.write(d[-][3])    
+    outFile.write(d[-1][3])    
         
 def output_uniq(dupCands) :
     # dict contains tile+cigar combinations having reads with same start
