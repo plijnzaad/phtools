@@ -56,11 +56,12 @@ def output_best(dups):
     if outputDups:
         args.logFile.write("# selected: "  + d[0][3])
         for i in range(1,len(d)-1):
-            args.logFile.write("# dup: "  + d[i][3])
+            args.logFile.write("# duplicate: "  + d[i][3])
         
 def output_uniq(dupCands, dist2) :
     # dict contains tile+cigar combinations having reads with same start
-    # position
+    # position. dist2 is the squared distance (for faster comparison)
+    noutput=0
     nuniq=0
     ndups=0
     for tile in dupCands.keys() :
@@ -77,15 +78,17 @@ def output_uniq(dupCands, dist2) :
                 if d2 < dist2:
                     G.add_edge(i,j)
         for comp in nx.connected_components(G):
+            noutput +=1
             if len(comp) ==  1:
                 outFile.write(reads[0][3])
                 nuniq += 1
             else:
                 ndups += len(comp)
                 output_best(  [ reads[i] for i in comp ] )
-    return (nuniq,ndups)
+    return (noutput,nuniq,ndups)
 
 def main(args) :
+    nout
     nuniq=0
     ndup=0
     dist2 = args.dist*args.dist
@@ -123,8 +126,8 @@ def main(args) :
             continue
         if (not nextLine or chr != curChr or startPos != curStartPos ) :
             ## EOF, or found new non-duplicate, output old ones and start over
-            (uniq, dup) = output_unique( dupCands_perPos, dist2 )
-            nuniq += uniq; ndup += dup
+            (n, u, d) = output_unique( dupCands_perPos, dist2 )
+            nout+= n; nuniq += u; ndup += d
             dupCands_perPos = {} 
             dupCands_perPos[tile_cigar] = [ read ]
         else:
@@ -133,9 +136,12 @@ def main(args) :
         curChr = chr
         curStartPos = startPos
         line = nextLine
+    args.logFile.write("Wrote " + nout + " reads, found " + nuniq  +" reads and " + ndups + "replicates")
     args.inFile.close()
     args.outFile.close()
-
+    args.logFile.close()
+## main
+    
 # Execute as application
 if __name__ == '__main__' :
     main(parseArgs()) 
