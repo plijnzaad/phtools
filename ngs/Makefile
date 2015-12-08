@@ -61,21 +61,6 @@ rm = $(movetotrash)			# for debugging
 
 .PHONY: help usage debug smooth extra_mapping_opts sort_opts filter_opts chromsizes 
 
-## Following used to be separate rules, but they are always 'out-of-date' so
-## always trigger a rebuild. Just $(call chec_var, thevariable) where needed
-smooth:
-	$(call check_var, smooth)
-
-chromsizes: 
-	$(call check_var, chromsizes)
-	$(call check_exists, $(chromsizes))
-extra_mapping_opts: 
-	$(call warn_var, extra_mapping_opts)
-sort_opts: 
-	$(call warn_var, sort_opts)
-filter_opts: 
-	$(call warn_var, filter_opts)
-
 ### -------- mapping-related stuff (formerly in SRA.makefile) -------- 
 
 ### General direction is sra -> fastq -> sam -> bam -> bed -> bedGraph -> bw
