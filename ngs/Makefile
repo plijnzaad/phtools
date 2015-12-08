@@ -24,22 +24,22 @@ tmpdir := /dev/shm
 
 ## Functions
 
-## check existence of a variable:
+## check existence of a variable, fail if absent:
 check_var = if [ -z "$(strip $($(strip $(1))))" ]; then echo "Missing variable '$(1)', exiting" >&2;  exit 7; fi
 ## Use as e.g. $(call check_var, chromsizes)
 
 ## just warn about missing variable:
 warn_var = if [ -z "$(strip $($(strip $(1))))" ]; then echo "Missing variable '$(1)'" >&2;  fi
 
-## check exists of file
+## check existence of file, fail if absent:
 check_exists = if [ ! -s $(1) ]; then echo "File $(1) does not exist or is empty" >&2;  exit 8; fi
 
-## automatically remove re-created empty target:
+## check for created empty target (fail, but don't remove the target)
 check_notempty = if [ ! -s $(1) ]; then echo "Empty file '$(1)' created, not removing it, may be latency." >&2; exit 6; fi
 ## Use exactly (one line, don't forget \t and semi) as
 ##	COMPLICATED_RECIPE ; $(call check_notempty, $@)
 
-## automatically remove re-created target if recipe failed or result is empty:
+## as check_notempty, but also check exit status:
 check_result = if [ $(1) -ne 0 -o ! -s $(2) ]; then echo "Non-zero exit status or empty result for file '$(2)'. This may be latency, not removing it." >&2; exit 6; fi
 ## Use exactly (one line, don't forget \t and semi) as
 ## 	COMPLICATED_RECIPE ; $(call check_result, $$?, $@)
@@ -59,22 +59,22 @@ rm = $(movetotrash)			# for debugging
 ## .ONESHELL:				# pass all lines of a recipe form to one shell invocation
 
 
-.PHONY: help usage debug extra_mapping_opts sort_opts filter_opts chromsizes 
+.PHONY: help usage debug smooth extra_mapping_opts sort_opts filter_opts chromsizes 
 
 ## Following used to be separate rules, but they are always 'out-of-date' so
 ## always trigger a rebuild. Just $(call chec_var, thevariable) where needed
-## smooth:
-## 	$(call check_var, smooth)
-## 
-## chromsizes: 
-## 	$(call check_var, chromsizes)
-## 	$(call check_exists, $(chromsizes))
-## extra_mapping_opts: 
-##	$(call warn_var, extra_mapping_opts)
-## sort_opts: 
-##	$(call warn_var, sort_opts)
-## filter_opts: 
-##	$(call warn_var, filter_opts)
+smooth:
+	$(call check_var, smooth)
+
+chromsizes: 
+	$(call check_var, chromsizes)
+	$(call check_exists, $(chromsizes))
+extra_mapping_opts: 
+	$(call warn_var, extra_mapping_opts)
+sort_opts: 
+	$(call warn_var, sort_opts)
+filter_opts: 
+	$(call warn_var, filter_opts)
 
 ### -------- mapping-related stuff (formerly in SRA.makefile) -------- 
 
