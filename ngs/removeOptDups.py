@@ -19,6 +19,9 @@ import re
 import networkx as nx
 import argparse
 
+import pprint                           # debugging
+pp=pprint.PrettyPrinter(indent=2)
+
 def convertStr(s):
     """Convert string to either int or float."""
     try:
@@ -31,13 +34,9 @@ def convertStr(s):
                       
     return ret
 
-usage="""Usage: python RemoveOpticalDuplicates.py  arguments
-    The input is a SAM file sorted by chr position.  Default optical_duplicate_pixel_distance: 10
+usage="""Usage: python RemoveOpticalDuplicates.py  ARGS"""
 
-    Example: python RemoveOpticalDuplicates.py  sampleA.bwa.sorted.sam  >  sampleA.bwa.rmoptdup.sam
-    The -d argument specifies the minimum x or y-difference (in pixels). Any set of reads closer than this are considered duplicates"""
-
-def parseArgs:
+def parseArgs():
     parser=argparse.ArgumentParser(usage=usage, epilog="note that the input file must be a coordinate-sorted SAM file")
     parser.add_argument(flag="--dist", type=int, default=10,
                         ## Use around 100 pixels for later versions of the Illumina software
@@ -46,7 +45,9 @@ def parseArgs:
     parser.add_argument(flag="--uniq", nargs='?', type=argparse.FileType('w'), default=sys.stdout, help="name of output file (will be in SAM format, including the header (default: stdout)")
     parser.add_argument(flag="--repl", nargs='?', type=argparse.FileType('w'), default=sys.stdout, help="name of output file containing the replicates (default: stderr)")
     parser.print_help()
-    return parser.parse_args()
+    args=parser.parse_args()
+    pp(args)
+    return  args
     
 def output_best(dups):
     # x,y,mapq, line
@@ -132,7 +133,7 @@ def removeOpticalDuplicates(param) :
             curStartPos = startPos
             continue
 
-        if (not nextLine or chr <> curChr or startPos <> curStartPos ) :
+        if (not nextLine or chr != curChr or startPos != curStartPos ) :
             ## EOF, or found new non-duplicate, output old ones and start over
             (uniq, dup) = output_unique( dupCands_perPos )
             nuniq += uniq; ndup += dup
