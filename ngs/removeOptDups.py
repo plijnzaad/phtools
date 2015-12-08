@@ -20,7 +20,7 @@ import networkx as nx
 import argparse
 
 import pprint                           # debugging
-pp=pprint.PrettyPrinter(indent=2)
+pp=pprint.PrettyPrinter(indent=2).pprint
 
 def convertStr(s):
     """Convert string to either int or float."""
@@ -38,12 +38,12 @@ usage="""Usage: python RemoveOpticalDuplicates.py  ARGS"""
 
 def parseArgs():
     parser=argparse.ArgumentParser(usage=usage, epilog="note that the input file must be a coordinate-sorted SAM file")
-    parser.add_argument(flag="--dist", type=int, default=10,
+    parser.add_argument("--dist", dest='dist', type=int, default=10,
                         ## Use around 100 pixels for later versions of the Illumina software
                         help='Reads closer than this number of pixels are considered optical duplicates')
-    parser.add_argument(flag="--input", nargs='?', type=argparse.FileType('r'), default=sys.stdin, help="name of input file in coordinate-sorted SAM format. (default: stdout)")
-    parser.add_argument(flag="--uniq", nargs='?', type=argparse.FileType('w'), default=sys.stdout, help="name of output file (will be in SAM format, including the header (default: stdout)")
-    parser.add_argument(flag="--repl", nargs='?', type=argparse.FileType('w'), default=sys.stdout, help="name of output file containing the replicates (default: stderr)")
+    parser.add_argument("--input", dest="inFile", nargs='?', type=argparse.FileType('r'), default=sys.stdin, help="name of input file in coordinate-sorted SAM format. (default: stdout)")
+    parser.add_argument("--uniq", dest="outFile", nargs='?', type=argparse.FileType('w'), default=sys.stdout, help="name of output file (will be in SAM format, including the header (default: stdout)")
+    parser.add_argument("--repl", dest="logFile", nargs='?', type=argparse.FileType('w'), default=sys.stdout, help="name of output file containing the replicates (default: stderr)")
     parser.print_help()
     args=parser.parse_args()
     pp(args)
@@ -58,7 +58,7 @@ def output_best(dups):
         for i in range(1,len(d)-1):
             args.logFile.write("# dup: "  + d[i][3])
         
-def output_uniq(dupCands) :
+def output_uniq(dupCands, dist2) :
     # dict contains tile+cigar combinations having reads with same start
     # position
     nuniq=0
@@ -74,7 +74,7 @@ def output_uniq(dupCands) :
                 xj = reads[j][0]
                 yj = reads[j][1]
                 d2 = (xj-xi)*(xj-xi) + (yj-yi)*(yj-yi)
-                if d2 < optDist2:
+                if d2 < dist2:
                     G.add_edge(i,j)
         for comp in nx.connected_components(G):
             if len(comp) ==  1:
@@ -85,22 +85,13 @@ def output_uniq(dupCands) :
                 output_best(  [ reads[i] for i in comp ] )
     return (nuniq,ndups)
 
-def removeOpticalDuplicates(param) :
-    inFN = param.getInFN()
-    outFile = sys.stdout
-    optDist = param.getOpticalDuplicatePixelDistance()
-    optDist2= optDist*optDist # squared Euclidean distance criterion
+def main(args) :
     nuniq=0
     ndup=0
-
-    inFile = args.input
-    outFile = args.uniq
-    logFile = args.repl
-    
+    dist2 = args.dist*args.dist
     dupCands_perPos = {}            # reinitialized every pos
     curChr = ""
     curStartPos = ""
-
     PG_output = False
     line = args.inFile.readline()
     while (1) :
@@ -112,8 +103,7 @@ def removeOpticalDuplicates(param) :
             continue
         if not PG_output:
             PG_output=True
-            args.outFile.write("@PG\tID:removeOptDups.py\tPN:removeOptDups.py\tVN:0 CL:"+" ".join(param.argv)+"\n")
-
+            args.outFile.write("@PG\tID:removeOptDups.py\tPN:removeOptDups.py\tVN:0 CL:"+" ".join(args.argv)+"\n")
         tokens = line.split()
         chr = tokens[2]
         startPos = tokens[3]
@@ -126,33 +116,27 @@ def removeOpticalDuplicates(param) :
         y = subtokens[6]
         tile_cigar = tile + "_" + cigar
         read = [ convertStr(x), convertStr(y), mapq, line]
-
         if chr == "*" :
             args.outFile.write(line)
             curChr = chr
             curStartPos = startPos
             continue
-
         if (not nextLine or chr != curChr or startPos != curStartPos ) :
             ## EOF, or found new non-duplicate, output old ones and start over
-            (uniq, dup) = output_unique( dupCands_perPos )
+            (uniq, dup) = output_unique( dupCands_perPos, dist2 )
             nuniq += uniq; ndup += dup
             dupCands_perPos = {} 
             dupCands_perPos[tile_cigar] = [ read ]
         else:
             dupCands_perPos[tile_cigar] =  dupCands_perPos.get(tile_cigar, []) # make sure it exists
             dupCands_perPos[tile_cigar].append(read)
-
         curChr = chr
         curStartPos = startPos
         line = nextLine
-
     args.inFile.close()
     args.outFile.close()
 
-
 # Execute as application
 if __name__ == '__main__' :
-    args=parseArgs()
-    removeOpticalDuplicates(args) 
+    main(parseArgs()) 
 
