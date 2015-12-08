@@ -63,7 +63,7 @@ rm = $(movetotrash)			# for debugging
 
 ### -------- mapping-related stuff (formerly in SRA.makefile) -------- 
 
-### General direction is sra -> fastq -> sam -> bam -> bed -> bedGraph -> bw
+### General direction is sra -> fastq -> sam -> bam -> bedGraph -> bw
 
 ### 
 
