@@ -20,21 +20,27 @@ usage_msg="
 \n  based on the name of submitted command + arguments.
 \n
 \n  For simplicity, there is only a limited number of qsub options
-\n  available, most importantly -q (to specify which queue) and -N (to
-\n  specify the jobname). Other qsub options currently recognized are
-\n  -j, -M -m, -p and -l. More may be added in the future (feel free to
-\n  request them from plijnzaad@gmail.com). For the -p option
-\n  (which corresponds to qsub's -pe) you can specify the environment
-\n  and the number separated by '='. I.e. both -p 'threaded 4' and 
-\n  -p threaded=4 are fine (tha latter may save you quoting trouble).
+\n  available, all of them single-letter options (SGE's qsub are not
+\n  always!).  The most important ones are: -q (specifies queue) and -N
+\n  (specifies jobname). Other qsub options currently recognized are -j
+\n  (join stdout and stder), -M (mail address to use) -m (when to mail),
+\n  -p (priority) and -l (resources). For the -p option () corresponds
+\n  to qsub's \"-pe\") you can specify the environment and the number
+\n  separated by '='. I.e. both -p 'threaded 4' and -p threaded=4 are
+\n  fine (the latter may save you quoting trouble). Option -h
+\n  correpsonds to qsub's option \"-hold_jid\"; option -H to qsub's
+\n  \"-hold_jid_ad\"
 \n
 \n  Unix pipe lines can be specified as a job, but the pipeline must be
 \n  quoted as a whole, which would look like
 \n
 \n  $ qrun.sh \"cmd1 | cmd2 > out.txt\"
 \n
-\n  Be careful in this case with the dollar signs of variable references (including
-\n  things like \$1, \$2 in a one-liner awk or perl-script). Escape them to
+
+\n  Be careful in this case with the dollar signs of variable references
+\n  (including things like \$1, \$2 in a one-liner awk or
+\n  perl-script). Escape them to
+
 \n  avoid premature substitution by the invoking shell.
 \n
 \n  Due to some brain damage on the part of both CentOS and SGE, you may
@@ -100,10 +106,23 @@ while getopts "N:q:o:e:j:M:m:p:l:" opt; do
         M)
             opt_M="-M $OPTARG"
             ;;
+
+### multi-letter qsub options:
         p)
             opt_pe="-pe $OPTARG"        # sorry, -p has to be one-letter options
             opt_pe=$(echo $opt_pe | tr '=' ' ')
             ;;
+
+        h)
+            opt_hold_jid="-hold_jid $OPTARG"
+            opt_hold_jid=$(echo $opt_hold_jid | tr '=' ' ')
+            ;;
+
+        H)
+            opt_hold_jid_ad="-hold_jid $OPTARG"
+            opt_hold_jid_ad=$(echo $opt_hold_jid_ad | tr '=' ' ')
+            ;;
+
         *)
             usage
             ;;
