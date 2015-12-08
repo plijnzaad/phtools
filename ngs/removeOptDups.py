@@ -17,9 +17,7 @@ import time
 import math
 import re
 import networkx as nx
-
-print "Untested, and prolly broken"
-sys.exit(-1)
+import argparse
 
 def convertStr(s):
     """Convert string to either int or float."""
@@ -33,71 +31,31 @@ def convertStr(s):
                       
     return ret
 
-class Parameter :
-    def __init__(self, argv) :
-        self.argv = argv
-        self.inFN = ""
-        self.opticalDuplicatePixelDistance = 10
-        self.dupsFile=""
+usage="""Usage: python RemoveOpticalDuplicates.py  arguments
+    The input is a SAM file sorted by chr position.  Default optical_duplicate_pixel_distance: 10
 
-    def getOpticalDuplicatePixelDistance(self) :
-        return self.opticalDuplicatePixelDistance 
+    Example: python RemoveOpticalDuplicates.py  sampleA.bwa.sorted.sam  >  sampleA.bwa.rmoptdup.sam
+    The -d argument specifies the minimum x or y-difference (in pixels). Any set of reads closer than this are considered duplicates"""
 
-    def getInFN(self) :
-        return self.inFN
-
-    def getOutFN(self) :
-        return self.outFN
-
-    def dupsFile:
-        return self.dupsFile
-
-    # Prints usage
-    def usage(self):
-        print "Usage: python RemoveOpticalDuplicates.py  [-d pixels]  [ <input file> ] " 
-        print "where the input is a sam file sorted by chr position.  Default optical_duplicate_pixel_distance: 10"
-        print "    (Note: Use around 100 pixels for later versions of the Illumina software)"
-        print "Example: python RemoveOpticalDuplicates.py  sampleA.bwa.sorted.sam  >  sampleA.bwa.rmoptdup.sam"
-        print "The -d argument specifies the minimum x or y-difference (in pixels). Any pair of read closer than this is considered duplicates"
-
-        sys.exit(1)
+def parseArgs:
+    parser=argparse.ArgumentParser(usage=usage, epilog="note that the input file must be a coordinate-sorted SAM file")
+    parser.add_argument(flag="--dist", type=int, default=10,
+                        ## Use around 100 pixels for later versions of the Illumina software
+                        help='Reads closer than this number of pixels are considered optical duplicates')
+    parser.add_argument(flag="--input", nargs='?', type=argparse.FileType('r'), default=sys.stdin, help="name of input file in coordinate-sorted SAM format. (default: stdout)")
+    parser.add_argument(flag="--uniq", nargs='?', type=argparse.FileType('w'), default=sys.stdout, help="name of output file (will be in SAM format, including the header (default: stdout)")
+    parser.add_argument(flag="--repl", nargs='?', type=argparse.FileType('w'), default=sys.stdout, help="name of output file containing the replicates (default: stderr)")
+    parser.print_help()
+    return parser.parse_args()
     
-    def checkArgs(self) :
-        i = 1
-        argc = len(sys.argv)
-        errorMsg = ""
-        while i < argc and errorMsg == "":
-            if self.argv[i] == '-d' :
-                i += 1
-                if i < argc and not self.argv[i].startswith('-') :
-                    self.opticalDuplicatePixelDistance = convertStr(self.argv[i])
-                    if self.opticalDuplicatePixelDistance < 1 :
-                        errorMsg = 'Error: optical duplicate pixel distance must be an integer >= 1'
-                else :
-                    errorMsg = 'Error: optical duplicate pixel distance expected after -d flag'
-            elif i == argc-1 :
-                self.inFN = self.argv[i]
-            else :
-                errorMsg = 'Error: unknown flag: ' + self.argv[i]
-                
-            i += 1
-
-        if errorMsg == "" and self.inFN != "" and \
-                                         not re.match(r'.*\.sam$', self.inFN):
-            errorMsg = 'Need a SAM file'
-        
-        if errorMsg <> "" :
-            print errorMsg
-            self.usage()
-
 def output_best(dups):
     # x,y,mapq, line
-    d= sorted(dups, key=lambda x:x[2])
-    outFile.write(d[-1][3])
+    d= sorted(dups, key=lambda x:x[2], revers=True)
+    outFile.write(d[0][3])
     if outputDups:
-        dupsFile.write("# selected: "  + d[-1][3])
-        for i in range(1,len(d)):
-            dupsFile.write("# dup: "  + d[i][3])
+        args.logFile.write("# selected: "  + d[0][3])
+        for i in range(1,len(d)-1):
+            args.logFile.write("# dup: "  + d[i][3])
         
 def output_uniq(dupCands) :
     # dict contains tile+cigar combinations having reads with same start
@@ -118,7 +76,7 @@ def output_uniq(dupCands) :
                 if d2 < optDist2:
                     G.add_edge(i,j)
         for comp in nx.connected_components(G):
-            if len(comp)) ==  1:
+            if len(comp) ==  1:
                 outFile.write(reads[0][3])
                 nuniq += 1
             else:
@@ -134,31 +92,26 @@ def removeOpticalDuplicates(param) :
     nuniq=0
     ndup=0
 
-    if inFN == "":
-        inFile = sys.stdin
-    else:
-        try:
-            inFile = open(inFN, 'r')
-        except:
-            print "Unable to open file " + inFN
-            sys.exit(-1)
-
+    inFile = args.input
+    outFile = args.uniq
+    logFile = args.repl
+    
     dupCands_perPos = {}            # reinitialized every pos
     curChr = ""
     curStartPos = ""
 
     PG_output = False
-    line = inFile.readline()
+    line = args.inFile.readline()
     while (1) :
         if not line: break
-        nextLine = inFile.readline()
+        nextLine = args.inFile.readline()
         if line.startswith("@") :
-            outFile.write(line)
+            args.outFile.write(line)
             line = nextLine
             continue
         if not PG_output:
             PG_output=True
-            outFile.write("@PG\tID:removeOptDups.py\tPN:removeOptDups.py\tVN:0 CL:"+" ".join(param.argv)+"\n")
+            args.outFile.write("@PG\tID:removeOptDups.py\tPN:removeOptDups.py\tVN:0 CL:"+" ".join(param.argv)+"\n")
 
         tokens = line.split()
         chr = tokens[2]
@@ -174,7 +127,7 @@ def removeOpticalDuplicates(param) :
         read = [ convertStr(x), convertStr(y), mapq, line]
 
         if chr == "*" :
-            outFile.write(line)
+            args.outFile.write(line)
             curChr = chr
             curStartPos = startPos
             continue
@@ -193,14 +146,12 @@ def removeOpticalDuplicates(param) :
         curStartPos = startPos
         line = nextLine
 
-    inFile.close()
-    outFile.close()
+    args.inFile.close()
+    args.outFile.close()
 
 
 # Execute as application
 if __name__ == '__main__' :
-    param = Parameter(sys.argv)
-    param.checkArgs()
-
-    removeOpticalDuplicates(param) 
+    args=parseArgs()
+    removeOpticalDuplicates(args) 
 
