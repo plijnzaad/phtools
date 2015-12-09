@@ -59,8 +59,10 @@ Usage: center+smooth.pl--type [paired|single] [ --shift NUMBER ] [ --smooth NUMB
 
 Options:
 
-  --type  paired|single Indicate if the SAM file contains single-end or paired-end reads
-  --drop              Only keep the first segment ("halfpair") of each paired-end read
+  --type  paired|single Indicate if the SAM file contains single-end or 
+                        paired-end reads
+  --drop              Only keep the first segment ("halfpair") of each
+                      paired-end read
   --shift <number>    Shift all reads by this amount in their own
                       3\'-direction.  Can be negative. If not specified,
                       shifting is by half the fragmentlength found in
