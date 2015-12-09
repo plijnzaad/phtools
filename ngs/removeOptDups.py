@@ -19,10 +19,12 @@ import re
 import networkx as nx
 import argparse
 
-import pprint                           # debugging
-pp=pprint.PrettyPrinter(indent=2).pprint
+# debugging:
+import pdb
+import pprint
+pp=pprint.PrettyPrinter(indent=2).pprint # call as pp(some.object)
 
-ARGS={}                                 # global
+global ARGS
 
 def convertStr(s):
     """Convert string to either int or float."""
@@ -36,35 +38,43 @@ def convertStr(s):
                       
     return ret
 
-usage="""Usage: python RemoveOpticalDuplicates.py  ARGS"""
+usage="""Usage: python RemoveOpticalDuplicates.py  ARGS
+
+Given a SAM file (sorted by position), removes all but one of the optical duplicates.
+
+"""
+epilog="Written by plijnzaad@gmail.com, based on original by Anna Salzberg"
 
 def parseArgs():
-    parser=argparse.ArgumentParser(usage=usage, epilog="note that the input file must be a coordinate-sorted SAM file")
+    parser=argparse.ArgumentParser(usage=usage, epilog=epilog,
+                                   add_help=False)
     parser.add_argument("--dist", dest='dist', type=int, default=10,
                         ## Use around 100 pixels for later versions of the Illumina software
                         help='Reads closer than this number of pixels are considered optical duplicates')
-    parser.add_argument("--input", dest="inFile", nargs='?', type=argparse.FileType('r'), default=sys.stdin, help="name of input file in coordinate-sorted SAM format. (default: stdout)")
-    parser.add_argument("--uniq", dest="outFile", nargs='?', type=argparse.FileType('w'), default=sys.stdout, help="name of output file (will be in SAM format, including the header (default: stdout)")
-    parser.add_argument("--repl", dest="logFile", nargs='?', type=argparse.FileType('w'), default=sys.stdout, help="name of output file containing the replicates (default: stderr)")
+    parser.add_argument("--input", dest="inFile", nargs='?', type=argparse.FileType('r'), default=sys.stdin, help="name of input file in coordinate-sorted SAM format. (default: stdin)")
+    parser.add_argument("--out", dest="outFile", nargs='?', type=argparse.FileType('w'), default=sys.stdout, help="name of output file (will be in SAM format, including the header (default: stdout)")
+    parser.add_argument("--log", dest="logFile", nargs='?', type=argparse.FileType('w'), default=sys.stderr, help="name of log file. Contains the replicates (default: stderr). Use /dev/null to supress")
     parser.add_argument("--justdist", action="store_true", help="only output the distances within each position")
-    parser.add_argument("--help", action="store_true", help="obvious no?")
+    parser.add_argument("-h", "--help", action="store_true", help="obvious no?")
     args=parser.parse_args()
+    args.dist2 = args.dist*args.dist
     if args.help:
         parser.print_help()
         sys.exit(1)
-    pp(args)
-    return  args
-    
+    args.argv=sys.argv
+    return args
+## parseArgs
+
 def output_best(dups):
     # x,y,mapq, line
-    d= sorted(dups, key=lambda x:x[2], revers=True)
-    outFile.write(d[0][3])
-    if outputDups:
-        ARGS.logFile.write("# selected: "  + d[0][3])
-        for i in range(1,len(d)-1):
-            ARGS.logFile.write("# duplicate: "  + d[i][3])
-        
-def output_uniq(dupCands, dist2) :
+    d= sorted(dups, key=lambda x:x[2], reverse=True)
+    ARGS.outFile.write(d[0][3])
+    ARGS.logFile.write("# selected: "  + d[0][3]) # use /dev/null if unwanted
+    for i in range(1,len(d)-1):
+        ARGS.logFile.write("# duplicate: "  + d[i][3])
+## output_best
+
+def output_uniq(dupCands):
     # dict contains tile+cigar combinations having reads with same start
     # position. dist2 is the squared distance (for faster comparison)
     noutput=0
@@ -82,25 +92,27 @@ def output_uniq(dupCands, dist2) :
                 yj = reads[j][1]
                 d2 = (xj-xi)*(xj-xi) + (yj-yi)*(yj-yi)
                 if(ARGS.justdist):
-                    outFile.write(math.sqrt(d2))
-                if d2 < dist2:
+                    ARGS.outFile.write("%.2f\n" % math.sqrt(d2))
+                if d2 < ARGS.dist2:
                     G.add_edge(i,j)
         if not ARGS.justdist:
             for comp in nx.connected_components(G):
                 noutput +=1
                 if len(comp) ==  1:
-                    outFile.write(reads[0][3])
+                    ARGS.outFile.write(reads[0][3])
                     nuniq += 1
                 else:
                     ndups += len(comp)
                 output_best(  [ reads[i] for i in comp ] )
     return (noutput,nuniq,ndups)
+## output_uniq
 
-def main(args) :
-    nout
+
+def main():
+    pdb.set_trace()
+    nout=0
     nuniq=0
     ndup=0
-    dist2 = ARGS.dist*ARGS.dist
     dupCands_perPos = {}            # reinitialized every pos
     curChr = ""
     curStartPos = ""
@@ -115,7 +127,7 @@ def main(args) :
             continue
         if not PG_output:
             PG_output=True
-            ARGS.outFile.write("@PG\tID:removeOptDups.py\tPN:removeOptDups.py\tVN:0 CL:"+" ".join(ARGS.argv)+"\n")
+            ARGS.outFile.write("@PG\tID:removeOptDups.py\tPN:removeOptDups.py\tVN:0 CL:"+ " ".join(ARGS.argv)+"\n")
         tokens = line.split()
         chr = tokens[2]
         startPos = tokens[3]
@@ -135,7 +147,7 @@ def main(args) :
             continue
         if (not nextLine or chr != curChr or startPos != curStartPos ) :
             ## EOF, or found new non-duplicate, output old ones and start over
-            (n, u, d) = output_unique( dupCands_perPos, dist2 )
+            (n, u, d) = output_uniq( dupCands_perPos)
             nout+= n; nuniq += u; ndup += d
             dupCands_perPos = {} 
             dupCands_perPos[tile_cigar] = [ read ]
@@ -145,7 +157,7 @@ def main(args) :
         curChr = chr
         curStartPos = startPos
         line = nextLine
-    ARGS.logFile.write("Wrote " + nout + " reads, found " + nuniq  +" reads and " + ndups + "replicates")
+    ARGS.logFile.write("Wrote %d reads, found %d unique, and %d replicates\n" % (nout, nuniq, ndup))
     ARGS.inFile.close()
     ARGS.outFile.close()
     ARGS.logFile.close()
@@ -154,5 +166,6 @@ def main(args) :
 # Execute as application
 if __name__ == '__main__' :
     ARGS=parseArgs()
+    pp(ARGS)
     main() 
 
