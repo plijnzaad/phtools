@@ -22,6 +22,8 @@ import argparse
 import pprint                           # debugging
 pp=pprint.PrettyPrinter(indent=2).pprint
 
+ARGS={}                                 # global
+
 def convertStr(s):
     """Convert string to either int or float."""
     try:
@@ -44,8 +46,12 @@ def parseArgs():
     parser.add_argument("--input", dest="inFile", nargs='?', type=argparse.FileType('r'), default=sys.stdin, help="name of input file in coordinate-sorted SAM format. (default: stdout)")
     parser.add_argument("--uniq", dest="outFile", nargs='?', type=argparse.FileType('w'), default=sys.stdout, help="name of output file (will be in SAM format, including the header (default: stdout)")
     parser.add_argument("--repl", dest="logFile", nargs='?', type=argparse.FileType('w'), default=sys.stdout, help="name of output file containing the replicates (default: stderr)")
-    parser.print_help()
+    parser.add_argument("--justdist", action="store_true", help="only output the distances within each position")
+    parser.add_argument("--help", action="store_true", help="obvious no?")
     args=parser.parse_args()
+    if args.help:
+        parser.print_help()
+        sys.exit(1)
     pp(args)
     return  args
     
@@ -54,9 +60,9 @@ def output_best(dups):
     d= sorted(dups, key=lambda x:x[2], revers=True)
     outFile.write(d[0][3])
     if outputDups:
-        args.logFile.write("# selected: "  + d[0][3])
+        ARGS.logFile.write("# selected: "  + d[0][3])
         for i in range(1,len(d)-1):
-            args.logFile.write("# duplicate: "  + d[i][3])
+            ARGS.logFile.write("# duplicate: "  + d[i][3])
         
 def output_uniq(dupCands, dist2) :
     # dict contains tile+cigar combinations having reads with same start
@@ -75,15 +81,18 @@ def output_uniq(dupCands, dist2) :
                 xj = reads[j][0]
                 yj = reads[j][1]
                 d2 = (xj-xi)*(xj-xi) + (yj-yi)*(yj-yi)
+                if(ARGS.justdist):
+                    outFile.write(math.sqrt(d2))
                 if d2 < dist2:
                     G.add_edge(i,j)
-        for comp in nx.connected_components(G):
-            noutput +=1
-            if len(comp) ==  1:
-                outFile.write(reads[0][3])
-                nuniq += 1
-            else:
-                ndups += len(comp)
+        if not ARGS.justdist:
+            for comp in nx.connected_components(G):
+                noutput +=1
+                if len(comp) ==  1:
+                    outFile.write(reads[0][3])
+                    nuniq += 1
+                else:
+                    ndups += len(comp)
                 output_best(  [ reads[i] for i in comp ] )
     return (noutput,nuniq,ndups)
 
@@ -91,22 +100,22 @@ def main(args) :
     nout
     nuniq=0
     ndup=0
-    dist2 = args.dist*args.dist
+    dist2 = ARGS.dist*ARGS.dist
     dupCands_perPos = {}            # reinitialized every pos
     curChr = ""
     curStartPos = ""
     PG_output = False
-    line = args.inFile.readline()
+    line = ARGS.inFile.readline()
     while (1) :
         if not line: break
-        nextLine = args.inFile.readline()
+        nextLine = ARGS.inFile.readline()
         if line.startswith("@") :
-            args.outFile.write(line)
+            ARGS.outFile.write(line)
             line = nextLine
             continue
         if not PG_output:
             PG_output=True
-            args.outFile.write("@PG\tID:removeOptDups.py\tPN:removeOptDups.py\tVN:0 CL:"+" ".join(args.argv)+"\n")
+            ARGS.outFile.write("@PG\tID:removeOptDups.py\tPN:removeOptDups.py\tVN:0 CL:"+" ".join(ARGS.argv)+"\n")
         tokens = line.split()
         chr = tokens[2]
         startPos = tokens[3]
@@ -120,7 +129,7 @@ def main(args) :
         tile_cigar = tile + "_" + cigar
         read = [ convertStr(x), convertStr(y), mapq, line]
         if chr == "*" :
-            args.outFile.write(line)
+            ARGS.outFile.write(line)
             curChr = chr
             curStartPos = startPos
             continue
@@ -136,13 +145,14 @@ def main(args) :
         curChr = chr
         curStartPos = startPos
         line = nextLine
-    args.logFile.write("Wrote " + nout + " reads, found " + nuniq  +" reads and " + ndups + "replicates")
-    args.inFile.close()
-    args.outFile.close()
-    args.logFile.close()
+    ARGS.logFile.write("Wrote " + nout + " reads, found " + nuniq  +" reads and " + ndups + "replicates")
+    ARGS.inFile.close()
+    ARGS.outFile.close()
+    ARGS.logFile.close()
 ## main
     
 # Execute as application
 if __name__ == '__main__' :
-    main(parseArgs()) 
+    ARGS=parseArgs()
+    main() 
 
