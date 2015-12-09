@@ -36,16 +36,16 @@ usage_msg="
 \n
 \n  $ qrun.sh \"cmd1 | cmd2 > out.txt\"
 \n
-
 \n  Be careful in this case with the dollar signs of variable references
 \n  (including things like \$1, \$2 in a one-liner awk or
-\n  perl-script). Escape them to
-
-\n  avoid premature substitution by the invoking shell.
+\n  perl-script). Escape them to avoid premature substitution by the
+\n  invoking shell.
 \n
 \n  Due to some brain damage on the part of both CentOS and SGE, you may
 \n  see errors like 'sh: which: line 1: syntax error: unexpected end of
 \n  file', which are harmless.
+\n
+\n Written by Philip Lijnzaad <plijnzaad@gmail.com>
 \n"
 
 ##
