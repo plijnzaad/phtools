@@ -83,7 +83,7 @@ opt_M="-M $mail_addres"
 opt_m="-m a"
 
 jobname=""
-while getopts "N:q:o:e:j:M:m:p:l:" opt; do
+while getopts "N:q:o:e:j:M:m:p:l:h:H:" opt; do
     case $opt in
         N)
             jobname=$OPTARG
@@ -153,7 +153,7 @@ else
 fi
 echo "Using directory $logdir for stdout and stderr" >&2
 
-other_opts="$opt_j $opt_m $opt_M $opt_pe"
+other_opts="$opt_j $opt_m $opt_M $opt_pe $opt_hold_jid $opt_hold_jid_ad"
 qsub_opts="-shell no -b yes -cwd -V -o $logdir -e $logdir -q $queue -N $jobname $other_opts"
 
 ## finally, submit:
