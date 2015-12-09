@@ -60,6 +60,7 @@ Usage: center+smooth.pl--type [paired|single] [ --shift NUMBER ] [ --smooth NUMB
 Options:
 
   --type  paired|single Indicate if the SAM file contains single-end or paired-end reads
+  --drop              Only keep the first segment ("halfpair") of each paired-end read
   --shift <number>    Shift all reads by this amount in their own
                       3\'-direction.  Can be negative. If not specified,
                       shifting is by half the fragmentlength found in
@@ -96,16 +97,18 @@ my $maxlen= 200;                    # i.e. at most one nucleosome!
 my $strict=undef;
 my $auto=1;
 my $seqtype=undef;
+my $drop=undef;
 
 my @argv_copy=@ARGV;                    # eaten by GetOptions
 die $usage if  GetOptions('help'=> \$help,
-                          'type|s=s' => \$seqtype,
-                          'shift|s=i' => \$shift,
-                          'chrom_sizes|c=s' => \$chrom_sizes,
-                          'minlen|G=i' => \$minlen,
-                          'maxlen|L=i' => \$maxlen,
-                          'shift|s=i' => \$shift,
-                          'smooth|m=i' => \$smooth,
+                          'type=s' => \$seqtype,
+                          'drop' => \$drop,
+                          'shift=i' => \$shift,
+                          'chrom_sizes=s' => \$chrom_sizes,
+                          'minlen=i' => \$minlen,
+                          'maxlen=i' => \$maxlen,
+                          'shift=i' => \$shift,
+                          'smooth=i' => \$smooth,
                           'strict' => \$strict,
     ) ==0 || $help;
 
@@ -120,6 +123,7 @@ my $single= ($seqtype =~ /single/i);
 
 if ($single) {
   die "--shift argument is required for single-end reads" unless  $shift;
+  die "--drop option only valid when using --type paired" if $drop;
 }
 
 my $pg_printed=0;
@@ -180,6 +184,7 @@ LINE:
       if ($single) {  
         $s=$shift;
       } else {
+        next LINE if $drop && ($flag & 0x80);
         if (abs($tlen) < $minlen ) {
           $too_short++;
           next LINE;
