@@ -3,15 +3,22 @@
 # work with .../tools/ngs/Makefile. (name must be
 # 'do_pairedend_read_mapping')
 
-# The script takes three arguments, the two input files with reads (in fastq  or fastq.gz format) and the
-# output file (ending in .sam, not .bam ...)
-# Additional arguments can be passed as environment variable extra_mapping_opts, as
-# env extra_mapping_opts="--foo bar --this that".
-# Note that when this is done in a calling script (such as qrun.sh), you have to
-# supply an extra level of quoting. E.g.:
+# The script takes three arguments, the two input files with reads (in
+# fastq or fastq.gz format) and the output file (ending in .sam, not
+# .bam ...)  Additional arguments can be passed as environment variable
+# extra_mapping_opts, as env extra_mapping_opts="--foo bar --this that".
+# Note that when this is done in a calling script (such as qrun.sh), you
+# have to supply an extra level of quoting. E.g.:
 #
 # qrun.sh env extra_mapping_opts="'--very-fast --trim5 10'" make exptest.bam
 #
+
+## further down the location of the genome indexes is checked, you can
+## specify that here, e.g.:
+##
+## export genome=/home/gen/philip/hpc/seqdata/genomes/sacCer3-noMito/bowtie2
+##
+## or in the calling environment
 
 pwd
 
