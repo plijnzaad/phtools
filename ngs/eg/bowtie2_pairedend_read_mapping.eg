@@ -13,8 +13,6 @@
 # qrun.sh env extra_mapping_opts="'--very-fast --trim5 10'" make exptest.bam
 #
 
-require_var genome
-
 pwd
 
 check_isnotempty() { 
@@ -59,10 +57,10 @@ check_isnotempty $reads2
 ## Example options:
 ## minins="--minins 80"
 ## maxins="--maxins 200"
-## trim5="--trim5 15 "
+## trim="--trim5 15 --trim3 5 "
 ## num_aligns="-k 2"
 ## concordancy="--no-discordant --no-overlap --no-contain"
-## opts="$concordancy $minins $maxins $trim5 --end-to-end --sensitive $num_aligns "
+## opts="$concordancy $minins $maxins $trim --end-to-end --sensitive $num_aligns "
 
 bowtie2 $opts $extra_mapping_opts -x $genome -1 $reads1 -2 $reads2 -S $sam
 bowtie_status=$?
