@@ -49,7 +49,7 @@ my $pg_printed=0;
 my $chromos=undef;
 
 my ($nfirst, $nsecond, $too_short, $too_long, $unmapped,
-    $skipped_left, $skipped_right)=(0,0,0,0,0,0,0);
+    $skipped_left, $skipped_right, $nimproper)=(0,0,0,0,0,0,0, 0);
 
 my @argv_copy=@ARGV;                    # eaten by GetOptions
 die $usage if  GetOptions('help'=> \$help,
@@ -87,11 +87,19 @@ LINE:
       
       my($qname,$flag, $rname, $pos, $mapq, $cigar, $rnext, $pnext, $tlen,
          $seq, $qual, @optionals)=split("\t", $_);
-      next if $rname eq  '*';
+      if ($rname eq  '*') { 
+        $unmapped++;
+        next LINE ;
+      }
       my $chr_length=$chromos->{$rname};
       die "Unknown chromosome or chromosome length: chr='$rname', input line $.
  (SAM input file must contain the sequence lengths, e.g. from samtools view -h; otherwise, supply using --chrom_sizes option)" 
       unless $chr_length;
+
+      if (! ($flag & 0x2) ) {           # not properly aligned
+        $nimproper++;
+        next LINE;
+      }
 
       if(!$tlen) { 
         die "$0: SAM file contains no template lengths (is this paired-end data?)\n";
@@ -150,9 +158,10 @@ if ($nfirst ne $nsecond) {
 die "No inserts where written" unless $ninserts;
 warn commafy($unmapped) . " reads were unmapped and skipped\n";
 warn commafy($skipped_left) . " reads dropped off the left side, ". commafy($skipped_right) . " off the right side of the chromosome\n";
-## (non of the above should happen, really)
+warn commayf($nimproper) . " reads were skipped because not properly aligned\n";
+## (none of the above should happen, really)
 warn "Wrote ". commafy($ninserts) . " inserts\n";
-warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because too long\n";
+warn "Dropped ". commafy($too_short) . " fragments because too short,\n  ". commafy($too_long)  ." because too long\n";
 
 sub read_chromo_sizes {
     my($file)=@_;
