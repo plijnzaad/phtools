@@ -95,7 +95,14 @@ rm = $(movetotrash)			# for debugging
 	fastqc --quiet --noextract --format bam $*.bam
 	date
 	@echo Done creating $@ 1>&2
-### and likewise for other formats, but that would confuse things here.
+
+%_fastqc.zip: %.fastq.gz
+	date
+	@echo Creating $@ 1>&2
+	fastqc --quiet --noextract --format fastq $*.fastq.gz
+	date
+	@echo Done creating $@ 1>&2
+
 
 ## single read mapping (this should be done in parallel ...)
 ## NOTE: code duplication here, the rules are identical apart from prereq suffix
