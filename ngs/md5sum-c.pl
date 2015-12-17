@@ -19,6 +19,11 @@ Options:
  -p PATH Prepend files's basename with different path
  -e CMD	Edit filename contained in \$_ using perl expression, typically involving s///;
 
+To recursively check a directory tree containing md5sum files alongside
+the checksummed files, do something like
+
+  find . -name '*.md5sum' -exec md5sum-c.pl -f {} \; 
+
 ";
 
 my $help=undef;
