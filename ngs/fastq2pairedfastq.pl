@@ -30,6 +30,9 @@ Options:
 
   --unpaired FILE   Write unpaired reads here (default is $dflt_unpaired). 
 
+Maybe also have a look at 
+https://github.com/enormandeau/Scripts/blob/master/fastqCombinePairedEnd.py
+
 };
 
 $outfiles[2]=$dflt_unpaired;
