@@ -19,9 +19,11 @@
 ## PE; properly aligned; reverse strand; read1
 ## PE; properly aligned; reverse strand; read2
 
-## Written by plijnzaad@gmail.com
+## The script is not exactly fast. If you just need percentage mapped etc.,
+## better use samtools flagstats.
+## Also could benefit from using Bio::DB::Sam library.
 
-## The script is not exactly fast, might benefit from using Bio::DB::Sam ...
+## Written by plijnzaad@gmail.com
 
 use strict;
 use Digest::MD5 qw(md5_base64);
