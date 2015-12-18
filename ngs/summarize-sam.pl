@@ -1,7 +1,9 @@
 #!/bin/env perl
 
 ## simple tool to inspect a SAM file and make the flags human-readable.
-## Reads from stdin, writes to stdout
+## Reads from stdin, writes to stdout, stats to stderr.
+
+## The thing has been written with bowtie2 output/terminology in mind.
 
 ## Bowtie outputs insertlen ==0 for anything that is not 'properly aligned'.
 ## 'unmapped' means: this read, or its mate, or both are unmapped.
@@ -30,7 +32,12 @@ my $flags = ['PE',                      # 0
             'PCR or optical duplicate',      # 10
             'chimeric/supplementary alignment']; # 11
 
-sub idhash { 
+## make code slightly more readable:
+my($FPE, $Fproper, $Funmapped, $Fmateunmapped, $Frev, $Fmaterev, $Fread1, $Fread2);
+($FPE, $Fproper, $Funmapped, $Fmateunmapped, $Frev, $Fmaterev, $Fread1, $Fread2)=
+    map { 1<<$_ } 0..7;
+
+sub idhash {                            # make easier to spot what goes with what
   my ($id)=@_;
   substr(md5_base64($id), 0, 4); # 16 million possibilities
 }
@@ -65,6 +72,27 @@ sub seqsummary {
   $sum;
 }                                       # seqsummary
 
+my $stats={};
+
+sub print_stats { 
+    my($stats)=@_;
+
+    my $order=['total reads',
+               'concordant',
+               'discordant',
+               'one of mates unmapped',
+               "  of which read1 unmapped",
+               "  of which read2 unmapped",
+               'both mates unmapped',
+               'mate on other chromosome',
+        ];
+    my $ntot=$stats->{'total reads'};
+    print STDERR "# All numbers are per mate, not per readpair\n";
+    for my $key (@$order) { 
+      print STDERR join("\t", ($key, $stats->{$key}, sprintf("%.1f%%", 100*$stats->{$key}/$ntot)))."\n";
+    }
+}
+
 
 print "#idhash	chr	pos	matepos	insertlen	seqsummary	PEsummary	flags\n";
 while(<>) { 
@@ -74,13 +102,35 @@ while(<>) {
   my($qname,$flag, $rname, $pos, $mapq, $cigar, $rnext, $pnext, $tlen,
      $seq, $qual, @optionals)=split("\t", $_);
   my $PEsummary="";
-  if($flag & (1<<0)) { 
-    $PEsummary .= "; doubly unmapped" if ($flag & (1<<2)) && ($flag & (1<<3));
-    $PEsummary .= "; singly unmapped" if (!!($flag & (1<<2)) != !!($flag & (1<<3)));
-    $PEsummary .= "; discordant" if !($flag & 1<<1) && !($flag & (1<<2)) && !($flag & (1<<3));
-    $PEsummary .= '; mate on other chromosome' if $rnext ne '=' && $rname ne $rnext;
+  $stats->{'total reads'}++;
+  if($flag & $FPE) { 
+    if ( ($flag & $Funmapped) && ($flag & $Fmateunmapped) ) {
+      $PEsummary .= "; doubly unmapped"; 
+      $stats->{'both mates unmapped'}++;
+    }
+    if (!!($flag & $Funmapped) != !!($flag & $Fmateunmapped)) { 
+      $PEsummary .= "; singly unmapped";
+      $stats->{'one of mates unmapped'}++;
+      $stats->{"  of which read1 unmapped"}++ if ($flag & $Fread1 && ($flag &$Funmapped));
+      $stats->{"  of which read1 unmapped"}++ if ($flag & $Fread2 && ($flag &$Fmateunmapped));
+      $stats->{"  of which read2 unmapped"}++ if ($flag & $Fread1 && ($flag &$Fmateunmapped));
+      $stats->{"  of which read2 unmapped"}++ if ($flag & $Fread2 && ($flag &$Funmapped));
+    }
+    if ( !($flag & $Fproper) && !($flag & $Funmapped) && !($flag & $Fmateunmapped)) { 
+      $PEsummary .= "; discordant";
+      $stats->{'discordant'}++;
+    }
+    if ( $rnext ne '=' && $rname ne $rnext) { 
+      $PEsummary .= '; mate on other chromosome';
+      $stats->{'mate on other chromosome'}++;
+    };
     $PEsummary =~ s/^; //;
-    $PEsummary = "concordant" unless $PEsummary;
+    if ( !$PEsummary) { 
+      $PEsummary = "concordant";
+      $stats->{concordant}++;
+    }
   }
   print join("\t", (idhash($qname), $rname, $pos, $pnext, $tlen, seqsummary($seq),$PEsummary, explain_flags($flag))) . "\n";
-}
+}                                       # while
+
+print_stats($stats);
