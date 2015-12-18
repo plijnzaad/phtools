@@ -4,8 +4,7 @@
 ## Reads from stdin, writes to stdout, stats to stderr.
 ## 
 ## Usage e.g. 
-##
-## samtools view foo.bam  | summarize-sam.pl 2> foo.sumstat | gzip > foo.sum.gz
+##  samtools view foo.bam | summarize-sam.pl 2> foo.sumstat | gzip > foo.sum.gz
 ##
 ## The thing has been written with bowtie2 output/terminology in mind.
 
@@ -21,6 +20,8 @@
 ## PE; properly aligned; reverse strand; read2
 
 ## Written by plijnzaad@gmail.com
+
+## The script is not exactly fast, might benefit from using Bio::DB::Sam ...
 
 use strict;
 use Digest::MD5 qw(md5_base64);
