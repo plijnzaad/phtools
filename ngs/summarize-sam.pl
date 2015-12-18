@@ -2,7 +2,11 @@
 
 ## simple tool to inspect a SAM file and make the flags human-readable.
 ## Reads from stdin, writes to stdout, stats to stderr.
-
+## 
+## Usage e.g. 
+##
+## samtools view foo.bam  | summarize-sam.pl 2> foo.sumstat | gzip > foo.sum.gz
+##
 ## The thing has been written with bowtie2 output/terminology in mind.
 
 ## Bowtie outputs insertlen ==0 for anything that is not 'properly aligned'.
@@ -16,8 +20,14 @@
 ## PE; properly aligned; reverse strand; read1
 ## PE; properly aligned; reverse strand; read2
 
+## Written by plijnzaad@gmail.com
+
 use strict;
 use Digest::MD5 qw(md5_base64);
+
+use Number::Format;
+my $fmt=new Number::Format(-thousands_sep => ',');
+sub commafy {   $fmt->format_number($_[0]); }
 
 my $flags = ['PE',                      # 0
             'properly aligned',         # 1
@@ -89,7 +99,7 @@ sub print_stats {
     my $ntot=$stats->{'total reads'};
     print STDERR "# All numbers are per mate, not per readpair\n";
     for my $key (@$order) { 
-      print STDERR join("\t", ($key, $stats->{$key}, sprintf("%.1f%%", 100*$stats->{$key}/$ntot)))."\n";
+      print STDERR join("\t", ($key, commafy($stats->{$key}), sprintf("%.1f%%", 100*$stats->{$key}/$ntot)))."\n";
     }
 }
 
