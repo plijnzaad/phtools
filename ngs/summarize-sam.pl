@@ -66,14 +66,19 @@ sub seqsummary {
 }                                       # seqsummary
 
 
-print "#idhash	chr	pos	matepos	insertlen	seqsummary	flags\n";
+print "#idhash	chr	pos	matepos	insertlen	seqsummary	flagsummary	flags\n";
 while(<>) { 
   s/[\n\r]*$//;
   next if /^@/;
 
   my($qname,$flag, $rname, $pos, $mapq, $cigar, $rnext, $pnext, $tlen,
      $seq, $qual, @optionals)=split("\t", $_);
-  my $extra="";
-  $extra = '** mate on other chromosome!' if $rnext ne '=' && $rname ne $rnext;
-  print join("\t", (idhash($qname), $rname, $pos, $pnext, $tlen, seqsummary($seq),explain_flags($flag)), $extra) . "\n";
+  my $flagsummary="";
+  $flagsummary .= "; doubly unmapped" if ($flag & (1<<2)) && ($flag & (1<<3));
+  $flagsummary .= "; singly unmapped" if (!!($flag & (1<<2)) != !!($flag & (1<<3)));
+  $flagsummary .= "; discordant" if !($flag & 1<<1) && !($flag & (1<<2)) && !($flag & (1<<3));
+  $flagsummary .= '; mate on other chromosome' if $rnext ne '=' && $rname ne $rnext;
+  $flagsummary =~ s/^; //;
+  $flagsummary = "concordant" unless $flagsummary;
+  print join("\t", (idhash($qname), $rname, $pos, $pnext, $tlen, seqsummary($seq),$flagsummary, explain_flags($flag))) . "\n";
 }
