@@ -6,6 +6,8 @@
 
 ### NOTE: you may want to try the little known bash printf "%'d" 12345 ...
 
+### written by plijnzaad@gmail.com
+
 use strict;
 
 while(<>) {
