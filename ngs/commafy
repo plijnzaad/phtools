@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+
+### Add comma's to separate thousands etc., for readability. Reads from
+### stdin, writes to stdout. Anything that is not a number surrounded by
+### whitespace gets through unscathed (including spaces and tabs)
+
+### NOTE: you may want to try the little known bash printf "%'d" 12345 ...
+
+use strict;
+
+while(<>) {
+    if( ! /\d+/ ) {
+        print;
+        next;
+    }
+    chomp;
+    my @f=split(/([ \t])/);             # parens retain the whitespace
+    foreach my $f (@f) {
+        next if $f =~ /\s/;
+        next unless $f =~ /^[.0-9]+$/;  # avoid commafying run234567
+        my($i,$frac)=split("\\.", $f);
+        my $r = join('',reverse(split('',$i)));
+        $r =~ s/(\d{3})/$1,/g;
+        $r =~ s/,$//;
+        $f = join('',reverse(split('',$r)));
+        $f .=  ".$frac" if ($frac);
+    }
+    print join('', @f)."\n";
+}
+
