@@ -58,7 +58,7 @@ $other_chromo *=2;
 $other_chromo_Q5 *=2;
 $singly_unm *= 2;
 
-sub perc { sprintf("%4.1f%%", 100*$_[0]); }
+sub perc { sprintf("%6.1f%%", 100*$_[0]); }
 sub out { print join("\t", @_) . "\n"; }
 my $fmt=new Number::Format(-thousands_sep => ',');
 sub commafy {   sprintf("%12s", $fmt->format_number($_[0])); }
