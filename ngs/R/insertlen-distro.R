@@ -1,27 +1,31 @@
 #!/bin/env Rscript
 
-library(uuutils)
 library(parseArgs)
 
 invocation <- paste(commandArgs(), collapse=" ")
 
-## show complete information
-print(R.version)
-print(Sys.time())
-print(invocation)
 
 overview <- function()cat(file=stderr(),
-                         "insertlen-distro.R [ options ] FILENAMES\n\
+                         "Usage: \
+   insertlen-distro.R [ options ] FILENAMES\
+\
 If a file name argument looks like realfilename.insertlen=COLOR, that color is used; otherwise,\
 rainbow colors are used.")
-  
+
 args <- parseArgs(out="insert-length-distro.pdf",
-                  title='insert lengths distributions',
+                  title='insert length distribution',
                   maxlen=0L,
                   scales="1,2,5,10,20,50,100",
                   .overview=overview,
                   .allow.rest=TRUE
                   )
+
+## show complete information
+library(uuutils)
+print(R.version)
+print(Sys.time())
+print(invocation)
+
 
 print("Arguments:\n")
 print(args)
