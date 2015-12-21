@@ -71,7 +71,7 @@ my $factor=2;
 # use 1 for numbers based on readpair mates, 2 for numbers based on readpairs
 
 print "# pe-stats.pl $version\n";
-out("total", commafy($total/$factor), perc(1) );
+out("total pairs", commafy($total/$factor), perc(1) );
 out("  mapped", commafy($paired/$factor), perc($paired/$total) );
 out("    concordant", commafy($properly/$factor), perc($properly/$total) );
 out("    discordant", commafy($discordant/$factor), perc($discordant/$total) );
