@@ -292,6 +292,11 @@ rm = $(movetotrash)			# for debugging
 #### -------- Nucleosome data ------------------------------------------------
 
 ## Shifted Smoothed Singlebasepair reads
+%.insertlen: %.bam
+	@echo Creating $@ 1>&2
+	samtools view $(filter_opts) $< | sam-insertlengths.pl > $@
+	@echo Done creating $@ 1>&2
+
 %-cen.bam: %.bam
 	@echo Creating $@ 1>&2
 	@echo -n 'Script is: '; ls -l `pwd`/do_center_reads
@@ -360,4 +365,5 @@ debug:
 	@echo bowtie_genome: $(bowtie_genome) 
 	@echo chromsizes: $(chromsizes)
 	@echo > /dev/null
+
 
