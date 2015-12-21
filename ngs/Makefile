@@ -223,12 +223,19 @@ rm = $(movetotrash)			# for debugging
 	date
 	@echo Done creating $@ 1>&2
 
-%.stats: %.bam
+### stats:
+
+%.flagstats: %.bam
+	samtools flagstat $*.bam > $*.flagstats
+
+%.pestats: %.flagstats
+	pe-stats.pl < $*.flagstats > $*.pestats
+
+%.bamstats: %.bam %.bam.bai %.pestats 
 	@echo Creating $@ 1>&2
 	samtools stats $*.bam > $*.stats
-	samtools flagstat $*.bam > $*.flagstat
 	samtools idxstats $*.bam > $*.idxstats
-	(bamstats.pl $< ; echo '----'; bamstat $< ) > $*.bamstat
+	(bamstats.pl $< ; echo '----'; bamstat $< ) > $*.bamstats
 	@echo Done creating $@ 1>&2
 
 #### -------- coverage related things (formerly in coverage.makefile) --------
