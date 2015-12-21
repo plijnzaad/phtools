@@ -7,6 +7,7 @@
 ##  samtools view foo.bam | summarize-sam.pl 2> foo.sumstat | gzip > foo.sum.gz
 ##
 ## The thing has been written with bowtie2 output/terminology in mind.
+##
 
 ## Bowtie outputs insertlen ==0 for anything that is not 'properly aligned'.
 ## 'unmapped' means: this read, or its mate, or both are unmapped.
@@ -19,9 +20,10 @@
 ## PE; properly aligned; reverse strand; read1
 ## PE; properly aligned; reverse strand; read2
 
-## The script is not exactly fast. If you just need percentage mapped etc.,
-## better use samtools flagstats.
-## Also could benefit from using Bio::DB::Sam library.
+## The script is not exactly fast (better use Bio::DB::Sam library?). If
+## you just need the percentage mapped etc., better use samtools flagstats in
+## conjunction with pe-stats.pl (it outputs nearly the same numbers, but
+## cannot distinguish between read1 unmapped vs. read2 unmapped).
 
 ## Written by plijnzaad@gmail.com
 
