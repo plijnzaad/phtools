@@ -158,7 +158,7 @@ if ($nfirst ne $nsecond) {
 die "No inserts where written" unless $ninserts;
 warn commafy($unmapped) . " reads were unmapped and skipped\n";
 warn commafy($skipped_left) . " reads dropped off the left side, ". commafy($skipped_right) . " off the right side of the chromosome\n";
-warn commayf($nimproper) . " reads were skipped because not properly aligned\n";
+warn commafy($nimproper) . " reads were skipped because not properly aligned\n";
 ## (none of the above should happen, really)
 warn "Wrote ". commafy($ninserts) . " inserts\n";
 warn "Dropped ". commafy($too_short) . " fragments because too short,\n  ". commafy($too_long)  ." because too long\n";
