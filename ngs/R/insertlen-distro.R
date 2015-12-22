@@ -80,7 +80,7 @@ for(file in files) {
     x <- read.table(file)
     stopifnot(ncol(x)==1)
     stopifnot(is.integer(x[[1]]))
-    all.data[[name]] <- x[[1]]
+    all.data[[name]] <- x[[1]] + args$add
     colors[[name]] <- color
 }
 
