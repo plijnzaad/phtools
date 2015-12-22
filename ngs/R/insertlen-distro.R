@@ -10,16 +10,26 @@ library(parseArgs)
 
 invocation <- paste(commandArgs(), collapse=" ")
 
-
 overview <- function()cat(file=stderr(),
                          "Usage: \
    insertlen-distro.R [ options ] FILENAMES\
 \
 If a file name argument looks like realfilename.insertlen=COLOR, that color is used; otherwise,\
-rainbow colors are used.")
+rainbow colors are used.\
+\
+Options:\
+\
+--title     title of the plots\
+--out       name of output file\
+--maxlen    show distribution up to this length\
+--scales    comma-separated list of magnifications\
+--add       adjust insert lengths (e.g., when mapping was done in trimmed way)\
+
+")
 
 args <- parseArgs(out="insert-length-distro.pdf",
                   title='insert length distribution',
+                  add=0L,
                   maxlen=0L,
                   scales="1,2,5,10,20,50,100",
                   .overview=overview,
