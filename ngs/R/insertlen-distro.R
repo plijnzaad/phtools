@@ -1,9 +1,8 @@
 #!/bin/env Rscript
 
 ## issues:
-##  - legend is bit unreadable
-##  - tick lengths at the labels must be longer
-##  - allow lwd, lty too?
+##  - legend quickly unreadable
+##  
 ##
 
 library(parseArgs)
@@ -29,6 +28,7 @@ Options:\
 
 args <- parseArgs(out="insert-length-distro.pdf",
                   title='insert length distribution',
+                  cumulative=FALSE,
                   add=0L,
                   maxlen=0L,
                   scales="1,2,5,10,20,50,100",
@@ -91,8 +91,13 @@ for(n in names(colors)) {
       col[n] <- colors[[n]]
 }
 
-densities <- lapply(all.data, density)
-maxy <- max(unlist(lapply(densities,function(d)max(d$y))))
+if(args$cumulative) {
+    ecdfs <- lapply(all.data, ecdf)
+    maxy <- 1
+} else {
+    densities <- lapply(all.data, density)
+    maxy <- max(unlist(lapply(densities,function(d)max(d$y))))
+}
 
 out <- sub("\\.pdf$","", args$out)
 out <- paste0(out, ".pdf")
@@ -116,10 +121,9 @@ for(scale in scales) {
     plot(type="n", xlab="",ylab= "",
          x=c(0, maxx), y=c(0,maxy/scale),
          xaxt="n", yaxt="n")
-    s <- seq(0, maxx, 10)
-    sl <- s; sl[ sl %% 50 !=0 ] <- NA
-    axis(side=1,at=s, labels=sl)
-    axis(side=2,labels=FALSE)
+    axis(side=1,at=seq(0, maxx, 50), labels=TRUE) 
+    axis(side=1,at=seq(0, maxx, 10), labels=FALSE, tcl=-0.25) #minor ticks
+    axis(side=2,labels=args$cumulative)
     title(ylab=sprintf("density x %.0f", scale))
     
     if (abs(scale - 1) < 1e-6) {
@@ -128,11 +132,18 @@ for(scale in scales) {
                lty=1, col=col[names(all.data)])
     }
     for(sample in names(all.data)) {
-        d <- densities[[sample]]
-        d$y <-  d$y * scale
-        lines(d, col=col[sample])
+        if(args$cumulative) {
+            f <- ecdfs[[sample]]
+            x <- seq(0, maxx, length.out=500)
+            y <- f(x)*scale
+            lines(x,y, col=col[sample])
+        } else  {
+             d <- densities[[sample]]
+             d$y <-  d$y * scale
+             lines(d, col=col[sample])
+         }
     }
-}
+}                                       #for scale
 
 dev.off()
 
