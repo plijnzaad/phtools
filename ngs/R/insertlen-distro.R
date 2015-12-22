@@ -3,6 +3,7 @@
 ## issues:
 ##  - legend is bit unreadable
 ##  - tick lengths at the labels must be longer
+##  - allow lwd, lty too?
 ##
 
 library(parseArgs)
