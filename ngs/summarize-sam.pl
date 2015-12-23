@@ -34,6 +34,8 @@ use Number::Format;
 my $fmt=new Number::Format(-thousands_sep => ',');
 sub commafy {   $fmt->format_number($_[0]); }
 
+my $version="summarize-sam.pl v0.2";
+
 my $flags = ['PE',                      # 0
             'properly aligned',         # 1
             'unmapped',                 # 2
@@ -102,14 +104,18 @@ sub print_stats {
                'mate on other chromosome',
         ];
     my $ntot=$stats->{'total reads'};
-    print STDERR "# All numbers are per mate, not per readpair\n";
+    print STDERR "# $version. All numbers are per mate, not per readpair!\n";
     for my $key (@$order) { 
       print STDERR join("\t", ($key, commafy($stats->{$key}), sprintf("%.1f%%", 100*$stats->{$key}/$ntot)))."\n";
     }
 }
 
+sub pval { 
+  my($q)=@_;
+  sprintf("%4.1g", 10**(($q/-10)));
+}
 
-print "#idhash	chr	pos	matepos	insertlen	seqsummary	PEsummary	flags\n";
+print "#idhash	chr	pos	matepos	insertlen	seqsummary	pval	PEsummary	flags\n";
 while(<>) { 
   s/[\n\r]*$//;
   next if /^@/;
@@ -145,7 +151,7 @@ while(<>) {
       $stats->{concordant}++;
     }
   }
-  print join("\t", (idhash($qname), $rname, $pos, $pnext, $tlen, seqsummary($seq),$PEsummary, explain_flags($flag))) . "\n";
+  print join("\t", (idhash($qname), $rname, $pos, $pnext, $tlen, seqsummary($seq), pval($mapq), $PEsummary, explain_flags($flag))) . "\n";
 }                                       # while
 
 print_stats($stats);
