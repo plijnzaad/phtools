@@ -156,15 +156,17 @@ center <- function(reads, chromsizes, shift) {
 }                                       #center
 
 get.coverage <- function(file, chromsizes, shift=NULL) {
-  ## reads .bed file, maybe centers by shift bp in 3'-direction, and returns coverage
-  cat("reading ", file, "\n")
-  reads <-import(file, format="bed", asRangedData=FALSE)
-  if (!is.null(shift)) { 
-    cat("centering ", file, "\n")
-    reads <- center(reads=reads, chromsizes=chromsizes, shift=shift)
-  }
-  cat("calc. coverage ", file, "\n")
-  coverage(reads)
+    ## reads .bed file, maybe centers by shift bp in 3'-direction, and
+    ## returns coverage
+
+    cat("reading ", file, "\n")
+    reads <-import(file, format="bed", asRangedData=FALSE)
+    if (!is.null(shift)) { 
+        cat("centering ", file, "\n")
+        reads <- center(reads=reads, chromsizes=chromsizes, shift=shift)
+    }
+    cat("calc. coverage ", file, "\n")
+    coverage(reads)
 }                                       #get.centered.coverage
 
 igb.format <- function(grange) {
