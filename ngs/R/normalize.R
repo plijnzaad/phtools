@@ -13,7 +13,7 @@ print(invocation)
 library(parseArgs)
 
 overview <- function()cat(file=stderr(),
-"normalize.R tries to normalize chip data using NCIS to find the
+"ncis-normalize.R tries to normalize chip data using NCIS to find the
 normalization factor between the ratio between background levels in the
 chip and the input data (which should be in .bed format). dir must be
 specified; this is the working directory where the input files are to be
