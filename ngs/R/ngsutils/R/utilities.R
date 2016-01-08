@@ -157,8 +157,8 @@ center <- function(reads, chromsizes, shift) {
 
 get.coverage <- function(file, chromsizes, shift=NULL) {
     ## reads .bed file, maybe centers by shift bp in 3'-direction, and
-    ## returns coverage
-
+    ## returns coverage. 
+    warning("**** NOTE: does not yet deal with paired end data! ****\n")
     cat("reading ", file, "\n")
     reads <-import(file, format="bed", asRangedData=FALSE)
     if (!is.null(shift)) { 
