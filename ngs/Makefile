@@ -92,7 +92,8 @@ rm = $(movetotrash)			# for debugging
 %_fastqc.zip: %.bam
 	date
 	@echo Creating $@ 1>&2
-	fastqc --quiet --noextract --format bam $*.bam
+	fastqc --threads 1 --quiet --noextract --format bam $*.bam
+##	--thread 1 is useless: limits the number of files, not actual threads!!!
 	date
 	@echo Done creating $@ 1>&2
 
