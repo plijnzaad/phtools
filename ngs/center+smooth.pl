@@ -9,7 +9,7 @@ sub commafy {
 }
 
 my $usage='
-Usage: center+smooth.pl--type [paired|single] [ --shift NUMBER ] [ --smooth NUMBER ] [ options ] 
+Usage: center+smooth.pl --type [paired|single] [ --shift NUMBER ] [ --smooth NUMBER ] [ options ] 
 
   The script is aimed at MNase-seq data (used to map nucleosome positions)
   and is meant to get sharper peaks at the likely position of the
@@ -88,6 +88,11 @@ Options:
            that they do again.
 
 For more speed, see bbcfutils::bam2wig.
+
+Note that as a result of the change in read length, the coverage will also
+change. I.e., if single-end reads of 55 bp are centered to 1 bp, then
+smoothed to 31, the coverage per position will be 56% of the original.
+
 ';
 
 my $help=0;
