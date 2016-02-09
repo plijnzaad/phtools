@@ -1,7 +1,7 @@
 #!/bin/sh
 # -*- mode: sh; -*-
 
-if lsb_release -r | grep '[	 ]7'; then 
+if lsb_release -r | grep -q '[	 ]7'; then 
   queue=all.q
 else
   queue=veryshort                        # default queue
@@ -48,7 +48,7 @@ usage_msg="
 \n
 \n  Due to some brain damage on the part of both CentOS and SGE, you may
 \n  see errors like 'sh: which: line 1: syntax error: unexpected end of
-\n  file', which are harmless.
+\n  file'. These errors are harmless.
 \n
 \n Written by Philip Lijnzaad <plijnzaad@gmail.com>
 \n"
@@ -74,7 +74,8 @@ error(){
 }
 
 usage(){ 
-    error $usage_msg
+    echo -e $usage_msg
+    exit 0
 }
 
 if [ $# -eq 0 ]; then usage; fi
