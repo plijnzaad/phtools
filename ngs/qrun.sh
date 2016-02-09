@@ -1,7 +1,12 @@
 #!/bin/sh
 # -*- mode: sh; -*-
 
-queue=veryshort                        # default queue
+if lsb_release -r | grep '[	 ]7'; then 
+  queue=all.q
+else
+  queue=veryshort                        # default queue
+fi
+
 logdirname=logs                        # always relative to current dir!
 
 usage_msg="
