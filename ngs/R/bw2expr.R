@@ -84,7 +84,7 @@ strand.symbols <- c(fwd="+", rev="-", both=NA)
 for(strand in c("fwd", "rev", "both")) {
   strand.symbol <- strand.symbols[ strand ]
   track <- Sys.getenv(strand)
-  track <- import(track, asRangedData=FALSE)
+  track <- import(track)
   use <- if (is.na(strand.symbol)) TRUE else strand(genome) == strand.symbol
   l <- get.expression(track,  transcripts=genome[ use ]) 
   expr [ names(l$e) ] <- l$e
