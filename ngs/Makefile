@@ -44,6 +44,8 @@ check_result = if [ $(1) -ne 0 -o ! -s $(2) ]; then echo "Non-zero exit status o
 ## Use exactly (one line, don't forget \t and semi) as
 ## 	COMPLICATED_RECIPE ; $(call check_result, $$?, $@)
 
+## (re)definitions of commands
+
 ## nice = /bin/nice
 nice = 
 movetotrash = move-to-trash.sh		#script that moves, rather than removes
@@ -51,6 +53,10 @@ CO = 					#skip version control
 ## rm = rm -f				# production
 rm = $(movetotrash)			# for debugging
 
+bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work 
+                                        # to recompile this, replace with dummy 
+
+## misc. directives
 .SUFFIXES: 				# this deletes the traditional .c .h etc. extensions
 .SUFFIXES: .fastq .fastq.gz -dusted.fastq .sam .bam .bed .bedGraph .aln .bw
 .SECONDARY:				# means: don't remove any intermediate files
@@ -184,7 +190,7 @@ rm = $(movetotrash)			# for debugging
 ##	# is all due to samtools brain damage regarding '-T')
 	date
 	samtools index $@
-	(bamstats.pl $@ ; echo '----'; bamstat $@) > $*.bamstat
+	(bamstats.pl $@ ; echo '----'; $(bamstat) $@) > $*.bamstat
 	date
 	@echo Done creating $@ 1>&2
 
@@ -192,7 +198,7 @@ rm = $(movetotrash)			# for debugging
 	@echo Creating $@ 1>&2
 	samtools view $(filter_opts) -q2 -h -b $< > $@
 	samtools index $@
-	(bamstats.pl $@ ; echo '----'; bamstat $@) > $*Q2.bamstat
+	(bamstats.pl $@ ; echo '----'; $(bamstat) $@) > $*Q2.bamstat
 	date
 	@echo Done creating $@ 1>&2
 
@@ -203,7 +209,7 @@ rm = $(movetotrash)			# for debugging
 	samtools view -b $(filter_opts) -F20 -h $*.bam -o $@
 	date
 	samtools index $@
-	(bamstats.pl $@ ; echo '----'; bamstat $@) > $*-fwd.bamstat
+	(bamstats.pl $@ ; echo '----'; $(bamstat) $@) > $*-fwd.bamstat
 	date
 	@echo Done creating $@ 1>&2
 
@@ -211,7 +217,7 @@ rm = $(movetotrash)			# for debugging
 	@echo Creating $@ 1>&2
 	samtools view -b -f18 -F4 -h $*.bam -o $@
 	samtools index $@
-	(bamstats.pl $@ ; echo '----'; bamstat $@) > $*-rev.bamstat
+	(bamstats.pl $@ ; echo '----'; $(bamstat) $@) > $*-rev.bamstat
 	@echo Done creating $@ 1>&2
 
 
@@ -220,7 +226,7 @@ rm = $(movetotrash)			# for debugging
 	@echo Creating $@ 1>&2
 	date
 	samtools index $*.bam
-	(bamstats.pl $< ; echo '----'; bamstat $< ) > $*.bamstat
+	(bamstats.pl $< ; echo '----'; $(bamstat) $< ) > $*.bamstat
 	date
 	@echo Done creating $@ 1>&2
 
@@ -236,7 +242,7 @@ rm = $(movetotrash)			# for debugging
 	@echo Creating $@ 1>&2
 	samtools stats $*.bam > $*.stats
 	samtools idxstats $*.bam > $*.idxstats
-	(bamstats.pl $< ; echo '----'; bamstat $< ) > $*.bamstats
+	(bamstats.pl $< ; echo '----'; $(bamstat) $< ) > $*.bamstats
 	@echo Done creating $@ 1>&2
 
 #### -------- coverage related things (formerly in coverage.makefile) --------
@@ -246,7 +252,7 @@ rm = $(movetotrash)			# for debugging
 	date
 	$(call check_var, chromsizes)
 	$(call check_exists, $(chromsizes))
-	bedtools genomecov -bg -split -ibam $*.bam -g $(chromsizes) -bg > $*.bedGraph
+	bedtools genomecov -bg -split -ibam $*.bam -g $(chromsizes) -bg | env LC_COLLATE=C sort -k1,1 -k2,2n  > $*.bedGraph
 	date
 	@echo Done creating $@ 1>&2
 
