@@ -1,7 +1,8 @@
 #!/bin/env perl
 
 ## reads samtools flagstat output and reformat it to something more
-## readable, including all percentages. Geared towards bowtie2 output!
+## readable, including all percentages. only tested on output from
+## 'samtools flagstat', run on bowtie2 results.
 
 ## Written by plijnzaad@gmail.com
 
