@@ -341,7 +341,7 @@ interpolate.score <- function(granges,         # a GRanges
     for (seq in seqnames ) {
         s <- granges[ seqnames(granges)==seq ] # s for 'signal'
 
-        ## actual interpolation:
+        ## actual interpolation. First order the separate GRanges segments by their midpoints:
         x <- floor((start(s) + end(s))/2)   # in case width!=1
         o <- order(x)
         x <- x[o]
@@ -355,17 +355,14 @@ interpolate.score <- function(granges,         # a GRanges
         interp <- approx(zeroterm$x, zeroterm$y,
                          xout=floor(seq(1, len, length.out=n.out)),
                          yleft=0,yright=0)
-        ## if (packageVersion("GenomicRanges") >= "1.20.2") # not worth it
-        ##    interp$y <- Rle(interp$y)
         gr <- GRanges(seqnames=seq,
-                      ranges=IRanges(interp$x, width=1),
+                      ranges=IRanges(interp$x, width=1), # singe bp irange at the midpoint
                       strand='*',
                       seqlengths=seqlengths(granges)[seq],
                       score=interp$y
                       ## seqlevels=names(seqlengths(granges)) ### BROKEN?!
                       )
         seqlevels(gr) <- names(seqlengths(granges))
-        ## granges <- append(granges, gr) # too slow, use ordinary list
         new.granges <- c(new.granges, gr)
     }   #seq
     all <- do.call("c", args=new.granges)
