@@ -87,8 +87,7 @@ read.sgd.features <- function(file,
   cat("Reading ", file, "\n")
 
   features <- import.gff3(file, feature.type=feature.type,
-                         genome="S.cerevisiae",
-                         asRangedData=FALSE) # i.e. read GRanges
+                         genome="S.cerevisiae")
 
   ## keep the chromosome lengths:
   chromos <- features[ features$type=='chromosome',"ID"]
@@ -160,7 +159,7 @@ get.coverage <- function(file, chromsizes, shift=NULL) {
     ## returns coverage. 
     warning("**** NOTE: does not yet deal with paired end data! ****\n")
     cat("reading ", file, "\n")
-    reads <-import(file, format="bed", asRangedData=FALSE)
+    reads <-import(file, format="bed")
     if (!is.null(shift)) { 
         cat("centering ", file, "\n")
         reads <- center(reads=reads, chromsizes=chromsizes, shift=shift)
