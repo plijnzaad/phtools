@@ -2,7 +2,8 @@
 #
 # This lesspipe.sh is adapted from the /usr/bin/lesspipe.sh shipping
 # with CentOS7 (dated 3 feb 2014) It is extended to be able to read
-# .bam and .cram files. This requires the installation of samtools; if not
+# .bam and .cram files (genome alignment files used in next generation sequencing)
+# This requires the installation of samtools; if not
 # available, less will revert to the old behaviour (saying '%s may be a
 # binary file.  See it anyway?')
 #
