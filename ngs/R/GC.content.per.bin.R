@@ -5,9 +5,13 @@
 binsize <- as.integer(Sys.getenv("binsize"))
 if(is.na(binsize))
   stop("GC.concent.per.bin.R
-Calculates GC content per non-overlapping window along genome, and dumps it as GRanges object
-Usage: env binsize=100   GC.concent.per.bin.R
+Calculates GC-content per non-overlapping window along genome, and dumps it as a
+GRanges object. Note: genome is assumed to not contain any N's
+
+Usage: env [chr=chrX]  binsize=100   GC.concent.per.bin.R
 ")
+
+chr.name <- Sys.getenv("chr")
 
 options (stringsAsFactors = FALSE)
 library(rtracklayer)
@@ -18,9 +22,13 @@ library(uuutils)
 main <- function() {
     library(BSgenome.Scerevisiae.UCSC.sacCer3)
     yeast <- Scerevisiae # defined in this library
-    rda.file <- sprintf("sacCer3-GCcontent,binsize=%d.rda", binsize)
+
+    if(chr.name != "")
+      rda.file <- sprintf("sacCer3-GCcontent,%s,binsize=%d.rda", chr.name, binsize)
+    else
+      rda.file <- sprintf("sacCer3-GCcontent,binsize=%d.rda", binsize)
     warning(sprintf("Will dump yeast GC-bins as object 'GC.content' to file %s", rda.file))
-    GC.content <- GC.content.of.genome(yeast, binsize=binsize)
+    GC.content <- GC.content.of.genome(yeast, binsize=binsize,chr.name=chr.name)
     save(file=rda.file, GC.content)
 }
 
@@ -55,7 +63,7 @@ GC.content.of.genome <- function(genome, binsize=50, chr.names=NULL) {
     result <- list()
     seqinfo <- Seqinfo(seqnames=seqnames(genome), seqlengths=seqlengths(genome), genome="Saccharomyces cerevisiae")
     granges <- GRanges(seqinfo=seqinfo)
-    if(is.null(chr.names))
+    if(is.null(chr.names) || chr.names=="")
       chr.names <- names(genome)
     for(chr in chr.names) {
         gr <- GC.content.per.bin(dna=genome[[chr]],
@@ -70,3 +78,26 @@ GC.content.of.genome <- function(genome, binsize=50, chr.names=NULL) {
 }                                       #GC.content.of.genome
 
 main()
+
+### following not used directly, but useful for combining results from previous invocations
+
+chroms <- read.table("/hpc/dbg_gen/philip/seqdata/chromSizes-sacCer3.txt")[[1]]
+bins <- c(10,20, 50, 100, 200,500)
+
+for (bin in bins) {
+    gr <- NULL
+
+    for(chr in chroms) {
+        file <- sprintf("sacCer3-GCcontent,%s,binsize=%d.rda", chr, bin)
+        load(file)
+        if(is.null(gr))
+          gr <- GC.content
+        else
+          gr <- c(gr, GC.content)
+        rm(GC.content)
+    }
+    file <- sprintf("sacCer3-GCcontent,binsize=%d.rda", gr)
+    warning("dumping to ", file)
+    save(file=file, gr)
+    gr <- NULL
+}
