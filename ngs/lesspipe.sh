@@ -82,7 +82,8 @@ case "$1" in
 *.bam|*.cram) 
         if [ -x "`which samtools 2>/dev/null`" ]; then
             samtools view -h "$1"
-        else  ## Use Samtools to view a BAM ("binary sam") RNA-sequence file
+        else  ## Use Samtools to view a next generation sequencing 
+            ## genome alignment file (.bam or .cram)
 	    echo -e "$0: cannot find samtools" >&2
             exit 1
         fi ;;
