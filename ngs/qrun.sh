@@ -82,8 +82,12 @@ if [ $# -eq 0 ]; then usage; fi
 
 # default mail adres:
 user=$(id -un)
-mail_addres=$(ldapsearch -x "(& (objectClass=person)(uid=$user))" mail |  awk '/^mail/{print $2}')
-opt_M="-M $mail_addres"
+mail_address=$(ldapsearch -x "(& (objectClass=person)(uid=$user))" mail |  awk '/^mail/{print $2}')
+if [ -z "$mail_address" ]; then
+    echo "Could not find mail address for user $user, exiting" >&2
+    exit 5
+fi
+opt_M="-M $mail_address"
 
 # default: sent mail when jobs is aborted
 opt_m="-m a"
