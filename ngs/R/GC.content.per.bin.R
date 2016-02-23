@@ -79,25 +79,27 @@ GC.content.of.genome <- function(genome, binsize=50, chr.names=NULL) {
 
 main()
 
+if(FALSE) { 
 ### following not used directly, but useful for combining results from previous invocations
 
-chroms <- read.table("/hpc/dbg_gen/philip/seqdata/chromSizes-sacCer3.txt")[[1]]
-bins <- c(10,20, 50, 100, 200,500)
+    chroms <- read.table("/hpc/dbg_gen/philip/seqdata/chromSizes-sacCer3.txt")[[1]]
+    bins <- c(10,20, 50, 100, 200,500)
 
-for (bin in bins) {
-    gr <- NULL
+    for (bin in bins) {
+        gr <- NULL
 
-    for(chr in chroms) {
-        file <- sprintf("sacCer3-GCcontent,%s,binsize=%d.rda", chr, bin)
-        load(file)
-        if(is.null(gr))
-          gr <- GC.content
-        else
-          gr <- c(gr, GC.content)
-        rm(GC.content)
+        for(chr in chroms) {
+            file <- sprintf("sacCer3-GCcontent,%s,binsize=%d.rda", chr, bin)
+            load(file)
+            if(is.null(gr))
+              gr <- GC.content
+            else
+              gr <- c(gr, GC.content)
+            rm(GC.content)
+        }
+        file <- sprintf("sacCer3-GCcontent,binsize=%d.rda", gr)
+        warning("dumping to ", file)
+        save(file=file, gr)
+        gr <- NULL
     }
-    file <- sprintf("sacCer3-GCcontent,binsize=%d.rda", gr)
-    warning("dumping to ", file)
-    save(file=file, gr)
-    gr <- NULL
 }
