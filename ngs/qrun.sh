@@ -111,7 +111,7 @@ while getopts "N:q:o:e:j:M:m:p:l:h:H:" opt; do
             opt_m="-m $OPTARG"
             ;;
         l)
-            opt_m="-l $OPTARG"
+            opt_l="-l $OPTARG"
             ;;
         M)
             opt_M="-M $OPTARG"
