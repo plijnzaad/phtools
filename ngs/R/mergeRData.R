@@ -21,7 +21,8 @@ script.
 args <- parseArgs(.overview=usage,
                   out=NA,
                   regexp='.*',
-                  preeval='',
+                  dryrun=FALSE,
+##                  preeval='',
                   .allow.rest=TRUE)
 rda.files <- args$.rest
 if(is.null(rda.files)) {
@@ -46,6 +47,8 @@ check.names <- function(file, names, regexps) {
         stop("file " ,file, "regular expressions resulted in duplicated object names, ",
              dups,"Be more specific\n")
     }
+    if(is.null(found)||length(found)==0)
+      stop("In file ", file, ", no objects matching any of '", regexps, "' was found.")
     found
 }
 
@@ -61,10 +64,14 @@ for (file in rda.files) {
     tryCatch( load(file=file, env=env), silent=FALSE )
     contents <- ls(envir=env)
     names <- check.names(file, contents, regexps)
-
     if (is.null(expected)) {
         expected <- names
-        for (name in names) { 
+        if(args$dryrun) {
+            rest <- setdiff(contents, names)
+            stop("Would try to merge the following objects in each file: ",
+                 paste(names,collapse=", "), "\nand ignore: ",paste(rest, collapse=", "),"\n")
+        }
+        for (name in names) {
             obj <- get(name, envir=env)
             assign(name, obj, env=final)
         }
