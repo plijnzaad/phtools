@@ -1,7 +1,6 @@
 #!/usr/bin/env Rscript
 ## merge objects found in an .RData file into a big RData file.
 
-library(rtracklayer,  quietly=TRUE) # this should force loading of most of the relevant bioc. libs
 library(parseArgs, quietly=TRUE)
 
 usage <- function()warning("Usage mergeRData [--regexp '^.*$' ] --out totals.rda *.rda
@@ -24,6 +23,8 @@ if(is.null(rda.files)) {
     usage()
     stop()
 }
+
+library(rtracklayer,  quietly=TRUE) # this should force loading of most of the relevant bioc. libs
   
 regexps <- unlist(strsplit(args$regexp, "[,;]"))
 expected <-NULL                   #based on contents of first file
