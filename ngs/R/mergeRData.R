@@ -4,15 +4,21 @@
 library(parseArgs, quietly=TRUE)
 
 usage <- function()warning("Usage mergeRData [--regexp '^.*$' ] --out totals.rda *.rda
+Merges objects inside RData files using the c() operator. Typically used on data that was
+previously produced from split input.
 
-Note: if the resulting *.RData contains a list whose elements are of type X (say GRanges)
+Options:
+--regexp:  comma-separated list of perl regular expressions to select object names
+--out:     name of the output file (typically ending in .rda, and lacking the part
+           that distinguishes the differnt inputs)
+
+Note: if the resulting *.RData contains a *list* whose elements are of type X (say GRanges)
 rather than one big GRanges, it means that during the merging library X was not loaded.
 The solution is to add more ``library(therelevantpackage)'' statements to the top of this
 script.
 ")
 
 args <- parseArgs(.overview=usage,
-                  verbose=FALSE,
                   out=NA,
                   regexp='.*',
                   preeval='',
