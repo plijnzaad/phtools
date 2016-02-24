@@ -1,10 +1,15 @@
 #!/usr/bin/env Rscript
 ## merge objects found in an .RData file into a big RData file.
 
-
+library(rtracklayer) # this should force loading of most of the relevant bioc. libs
 library(parseArgs)
 
 usage <- function()warning("Usage mergeRData [--regexp '^.*$' ] --out totals.rda *.rda
+
+Note: if the resulting *.RData contains a list whose elements are of type X (say GRanges)
+rather than one big GRanges, it means that during the merging library X was not loaded.
+The solution is to add more ``library(therelevantpackage)'' statements to the top of this
+script.
 ")
 
 args <- parseArgs(.overview=usage,
@@ -48,6 +53,7 @@ check.sets <- function(file, expected, found) {
            "\nFound, not expected: ", setdiff(found, expected), "\n")
 }
 
+
 for (file in rda.files) {
     env <- new.env()
     tryCatch( load(file=file, env=env), silent=FALSE )
@@ -56,12 +62,15 @@ for (file in rda.files) {
 
     if (is.null(expected)) {
         expected <- names
-        for (name in names)
-          assign(name, get(name, envir=env), env=final)
+        for (name in names) { 
+            obj <- get(name, envir=env)
+            assign(name, obj, env=final)
+        }
     } else {
         check.sets(file, expected, names)
         for (name in names) {
             obj <- c(get(name, envir=final), get(name, envir=env)) # the actual merging
+            dummy <- length(obj)
             assign(name, obj, env=final)
         }
     }

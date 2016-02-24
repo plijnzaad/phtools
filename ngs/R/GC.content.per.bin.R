@@ -81,34 +81,5 @@ main()
 
 if(FALSE) { 
 ### following not used directly, but useful for combining results from previous invocations
-
-    chroms <- read.table("/hpc/dbg_gen/philip/seqdata/chromSizes-sacCer3.txt")[[1]]
-    chroms <- chroms[-grep("chrmt", chroms)]
-
-    setwd("/home/gen/philip/hpc/seqdata/MACC/GCcontent")
-    
-    bins <- c(10,20, 50, 100, 200)
-#    bins <- 200
-
-    for (bin in bins) {
-        gr <- NULL
-        GC.content <- NULL
-        for(chr in chroms) {
-            file <- sprintf("sacCer3-GCcontent,%s,binsize=%d.rda", chr, bin)
-            load(file)
-            if(is.null(gr))
-              gr <- GC.content
-            else
-              gr <- c(gr, GC.content)
-            rm(GC.content)
-        }
-
-        file <- sprintf("sacCer3-GCcontent,binsize=%d.rda", bin)
-        warning("dumping to ", file)
-        GC.content <- gr
-        save(file=file, GC.content)
-        gr <- NULL
-        GC.content <- NULL
-    }
-
+### has moved to mergeRData.R
 }
