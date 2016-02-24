@@ -564,3 +564,19 @@ align <- function(gr, ref=gr, width=NA, start=TRUE, ignore.strand=TRUE) {
     both
 }                                       #align
 
+
+decommafy <- function(x){
+  res <- as.numeric(gsub(",", "",x))
+  dim(res) <- dim(x)
+  res
+}
+
+commafy <- function(x, preserve.width="common")
+  formatC(x, format="d", big.mark=",", preserve.width=preserve.width)
+
+location2granges <- function(location) {
+    stop("not yet implemented")
+    start <- 1
+    end <- .Machine$integer.max
+    GRanges(seqnames=chr,ranges=IRanges(start,end))
+}

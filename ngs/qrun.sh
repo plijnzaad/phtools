@@ -84,7 +84,7 @@ if [ $# -eq 0 ]; then usage; fi
 user=$(id -un)
 mail_address=$(ldapsearch -x "(& (objectClass=person)(uid=$user))" mail |  awk '/^mail/{print $2}')
 if [ -z "$mail_address" ]; then
-    echo "Could not find mail address for user $user, exiting" >&2
+    echo "$0: Could not find mail address for user $user, exiting" >&2
     exit 5
 fi
 opt_M="-M $mail_address"
@@ -111,7 +111,7 @@ while getopts "N:q:o:e:j:M:m:p:l:h:H:" opt; do
             opt_m="-m $OPTARG"
             ;;
         l)
-            opt_m="-l $OPTARG"
+            opt_l="-l $OPTARG"
             ;;
         M)
             opt_M="-M $OPTARG"
