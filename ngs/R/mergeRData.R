@@ -1,0 +1,71 @@
+#!/usr/bin/env Rscript
+## merge objects found in an .RData file into a big RData file.
+
+
+library(parseArgs)
+
+usage <- function()warning("Usage mergeRData [--regexp '^.*$' ] --out totals.rda *.rda
+")
+
+args <- parseArgs(.overview=usage,
+                  verbose=FALSE,
+                  out=NA,
+                  regexp='.*',
+                  preeval='',
+                  .allow.rest=TRUE)
+rda.files <- args$.rest
+if(is.null(rda.files)) {
+    warning("No input arguments\n")
+    usage()
+    stop()
+}
+  
+
+rda.files=Sys.glob("*,chrXII*,binsize=200.rda")
+rda.files
+
+regexps <- unlist(strsplit(args$regexp, "[,;]"))
+
+expected <-NULL                   #based on contents of first file
+
+final <- new.env()
+
+check.names <- function(file, names, regexps) {
+    found <- NULL
+    for(re in regexps)
+      found <- c(found, names[grep(re, names, perl=TRUE)])
+    if(any(duplicated(found))) {
+        dups <- paste(found[duplicated(found)], sep="; ")
+        stop("file " ,file, "regular expressions resulted in duplicated object names, ",
+             dups,"Be more specific\n")
+    }
+    found
+}
+
+check.sets <- function(file, expected, found) { 
+    if (!setequal(expected, found))
+      stop("File", file, ": expected, not found: ", setdiff(expected, found),
+           "\nFound, not expected: ", setdiff(found, expected), "\n")
+}
+
+for (file in rda.files) {
+    env <- new.env()
+    tryCatch( load(file=file, env=env), silent=FALSE )
+    contents <- ls(envir=env)
+    names <- check.names(file, contents, regexps)
+
+    if (is.null(expected)) {
+        expected <- names
+        for (name in names)
+          assign(name, get(name, envir=env), env=final)
+    } else {
+        check.sets(file, expected, names)
+        for (name in names) {
+            obj <- c(get(name, envir=final), get(name, envir=env)) # the actual merging
+            assign(name, obj, env=final)
+        }
+    }
+}                                       #rda.file
+
+save(file=args$out, list=expected, envir=final)
+
