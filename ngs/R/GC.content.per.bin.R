@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+warning("Running on host ", Sys.getenv("HOSTNAME"), "\n")
+
 ### written by plijnzaad@gmail.com
 
 binsize <- as.integer(Sys.getenv("binsize"))
@@ -83,3 +85,5 @@ if(FALSE) {
 ### following not used directly, but useful for combining results from previous invocations
 ### has moved to mergeRData.R
 }
+
+sessionInfo()
