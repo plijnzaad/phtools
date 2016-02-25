@@ -1,6 +1,8 @@
 #!/usr/bin/env Rscript
 ## merge objects found in an .RData file into a big RData file.
 
+warning("Running on host ", Sys.getenv("HOSTNAME"), "\n")
+
 library(parseArgs, quietly=TRUE)
 
 usage <- function()warning("Usage mergeRData [--regexp '^.*$' ] --out totals.rda *.rda
@@ -87,3 +89,4 @@ for (file in rda.files) {
 
 save(file=args$out, list=expected, envir=final)
 
+sessionInfo()
