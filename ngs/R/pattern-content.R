@@ -81,7 +81,8 @@ perc <- as.integer(0.5 + 100*perc)
 
 gr <- GRanges(ranges=IRanges(start=1:seq.length, width=1), strand='*',
               seqnames=chr.name, score=perc)
-
-export(object=gr, con=file(paste0(outdir, "/", chr.name, ".wig")), format="wig")
-
-## cat *.wig | wigToBigWig -clip stdin $chromsizes mypattern-71bp.bw
+con <- file(paste0(outdir, "/", chr.name, ".wig"))
+warning("Writing output to ", con, "\n")
+export(object=gr, con=con, format="wig")
+warning("Done. Convert this to BigWig using something like\n\
+cat *.wig | wigToBigWig -clip stdin $chromsizes mypattern-71bp.bw\n")
