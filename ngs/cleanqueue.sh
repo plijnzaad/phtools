@@ -1,9 +1,12 @@
 #!/bin/sh
 
-hosts=`seq -f 'n%04g' 1 200`
+echo "Untested!" >&2
+exit 7
+
+hosts=`qhost |cut -f1 -d " "|grep -P "n\d{4}"`
+
 for host in $hosts; do 
-    if ping -c 1 $host > /dev/null 2>&1 ;  then
-        ssh $host find /tmp/udcCache -depth -user philip -print -exec rm -fr {} \\\;
+    qsub -shell no -b yes -l hostname=$host sh -c 'find /tmp/udcCache -depth -user philip -print -exec rm -fr {} \;'
     fi
 done
 
