@@ -574,9 +574,55 @@ decommafy <- function(x){
 commafy <- function(x, preserve.width="common")
   formatC(x, format="d", big.mark=",", preserve.width=preserve.width)
 
-location2granges <- function(location) {
-    stop("not yet implemented")
-    start <- 1
-    end <- .Machine$integer.max
-    GRanges(seqnames=chr,ranges=IRanges(start,end))
-}
+location2granges <- function(location, seqlengths=NULL, seqinfo=NULL) {
+    ### syntax: location=loc,loc,loc
+    ### loc= completechromo | chromo:start-end | chromo:start+length | chromo:start+-length
+    stopifnot(is.character(location))
+
+###    location <- "chrX,chra:10-100,chrb:100+200,chrc:1000+-100"
+    locs <- unlist(strsplit(location, "\\,"))
+
+    .complete.re <- function(s)paste0("^", s, "$")
+    chr.re <- '([a-z0-9]+)'
+    frag.re <- '([0-9]+)([-+]{1,2})([0-9]+)'
+    frag.re <- .complete.re(paste0(chr.re, ":", frag.re))
+    chr.re <-  .complete.re(chr.re)
+    
+    chrs <- regmatches(locs, regexec(chr.re, locs, ignore.case=TRUE))
+    frags <- regmatches(locs, regexec(frag.re, locs, ignore.case=TRUE))
+
+    .combine <- function(one, other, loc) {
+        if (length(one) ==0 && length(other)==0)
+          stop("Location ", loc, " has wrong syntax")
+        if (length(one) >0 && length(other)>0)
+          stop("Programmming error for (error in regexp?) ", loc, ": ", paste(collapse="\n", c(strwrap(one), strwrap(other))))
+        c(one, other)
+    }
+    
+    all <- mapply(.combine, chrs, frags, locs)
+
+    .find.length <- function(v) {
+        if(length(v)==2)
+          return(data.frame(chr=v[2], start=1L,  end=.Machine$integer.max))
+        if(length(v)!=5)
+          stop("Should not happen, error in regexp?", v[1])
+        op <- v[4]
+        se <- as.integer(v[c(3,5)])
+        if(any(is.na(se)))
+          stop("wrong syntax for coordinates: ", v[1] )
+        if (op=='-')
+          return(data.frame(chr=v[2], start=se[1],  end=se[2])) 
+        if (op=='+')
+          return(data.frame(chr=v[2], start=se[1],  end=se[1]+se[2]))
+        if (op=='+-')
+          return(data.frame(chr=v[2], start=max(1L, se[1]-se[2]),  end=se[1]+se[2]))
+        stop("Should not happen, error in regexp?", paste(collapse="\n", strwrap(v)))
+    }
+    locs2 <- dplyr::bind_rows(lapply(all, .find.length))
+
+    with(locs2,
+         GRanges(seqnames=chr,ranges=IRanges(start,end),
+                 seqlengths=seqlengths, seqinfo=seqinfo))
+}                                       #location2granges
+
+
