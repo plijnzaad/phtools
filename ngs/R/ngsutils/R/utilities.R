@@ -579,18 +579,8 @@ location2granges <- function(location, seqlengths=NULL, seqinfo=NULL) {
     ### loc= completechromo | chromo:start-end | chromo:start+length | chromo:start+-length
     stopifnot(is.character(location))
 
-    ## location <- "chrX;chra:10-100;chrb:100+200;chrc:1,000+-100"
-    locs <- unlist(strsplit(location, "\\;"))
-
     .complete.re <- function(s)paste0("^", s, "$")
-    chr.re <- '([a-z0-9]+)'
-    frag.re <- '([0-9,]+)([-+]{1,2})([0-9,]+)'
-    frag.re <- .complete.re(paste0(chr.re, ":", frag.re))
-    chr.re <-  .complete.re(chr.re)
     
-    chrs <- regmatches(locs, regexec(chr.re, locs, ignore.case=TRUE))
-    frags <- regmatches(locs, regexec(frag.re, locs, ignore.case=TRUE))
-
     .combine <- function(one, other, loc) {
         if (length(one) ==0 && length(other)==0)
           stop("Location ", loc, " has wrong syntax")
@@ -598,8 +588,6 @@ location2granges <- function(location, seqlengths=NULL, seqinfo=NULL) {
           stop("Programmming error for (error in regexp?) ", loc, ": ", paste(collapse="\n", c(strwrap(one), strwrap(other))))
         c(one, other)
     }
-    
-    all <- mapply(.combine, chrs, frags, locs)
 
     .find.length <- function(v) {
         if(length(v)==2)
@@ -618,6 +606,19 @@ location2granges <- function(location, seqlengths=NULL, seqinfo=NULL) {
           return(data.frame(chr=v[2], start=max(1L, se[1]-se[2]),  end=se[1]+se[2]))
         stop("Should not happen, error in regexp?", paste(collapse="\n", strwrap(v)))
     }
+
+    ## location <- "chrX;chra:10-100;chrb:100+200;chrc:1,000+-100"
+    locs <- unlist(strsplit(location, "\\;"))
+
+    chr.re <- '([a-z0-9]+)'
+    frag.re <- '([0-9,]+)([-+]{1,2})([0-9,]+)'
+    frag.re <- .complete.re(paste0(chr.re, ":", frag.re))
+    chr.re <-  .complete.re(chr.re)
+
+    chrs <- regmatches(locs, regexec(chr.re, locs, ignore.case=TRUE))
+    frags <- regmatches(locs, regexec(frag.re, locs, ignore.case=TRUE))
+    all <- mapply(.combine, chrs, frags, locs,
+                  SIMPLIFY=FALSE)# list[[1:n]] of c(inputstring, chr, location, operator, number)
 
     l <- lapply(all, .find.length)
     chr <- sapply(l, function(elt)elt$chr)
