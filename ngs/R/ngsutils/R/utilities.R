@@ -575,16 +575,16 @@ commafy <- function(x, preserve.width="common")
   formatC(x, format="d", big.mark=",", preserve.width=preserve.width)
 
 location2granges <- function(location, seqlengths=NULL, seqinfo=NULL) {
-    ### syntax: location=loc,loc,loc
+    ### syntax: location=loc;loc;loc
     ### loc= completechromo | chromo:start-end | chromo:start+length | chromo:start+-length
     stopifnot(is.character(location))
 
-###    location <- "chrX,chra:10-100,chrb:100+200,chrc:1000+-100"
-    locs <- unlist(strsplit(location, "\\,"))
+    ## location <- "chrX;chra:10-100;chrb:100+200;chrc:1,000+-100"
+    locs <- unlist(strsplit(location, "\\;"))
 
     .complete.re <- function(s)paste0("^", s, "$")
     chr.re <- '([a-z0-9]+)'
-    frag.re <- '([0-9]+)([-+]{1,2})([0-9]+)'
+    frag.re <- '([0-9,]+)([-+]{1,2})([0-9,]+)'
     frag.re <- .complete.re(paste0(chr.re, ":", frag.re))
     chr.re <-  .complete.re(chr.re)
     
@@ -607,7 +607,7 @@ location2granges <- function(location, seqlengths=NULL, seqinfo=NULL) {
         if(length(v)!=5)
           stop("Should not happen, error in regexp?", v[1])
         op <- v[4]
-        se <- as.integer(v[c(3,5)])
+        se <- as.integer(decommafy(v[c(3,5)]))
         if(any(is.na(se)))
           stop("wrong syntax for coordinates: ", v[1] )
         if (op=='-')
@@ -618,11 +618,14 @@ location2granges <- function(location, seqlengths=NULL, seqinfo=NULL) {
           return(data.frame(chr=v[2], start=max(1L, se[1]-se[2]),  end=se[1]+se[2]))
         stop("Should not happen, error in regexp?", paste(collapse="\n", strwrap(v)))
     }
-    locs2 <- dplyr::bind_rows(lapply(all, .find.length))
 
-    with(locs2,
-         GRanges(seqnames=chr,ranges=IRanges(start,end),
-                 seqlengths=seqlengths, seqinfo=seqinfo))
+    l <- lapply(all, .find.length)
+    chr <- sapply(l, function(elt)elt$chr)
+    start <- sapply(l, function(elt)elt$start)
+    end <- sapply(l, function(elt)elt$end)
+    
+    GRanges(seqnames=chr,ranges=IRanges(start,end),
+                 seqlengths=seqlengths, seqinfo=seqinfo)
 }                                       #location2granges
 
 
