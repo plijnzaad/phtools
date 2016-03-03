@@ -32,7 +32,7 @@ usage <- function(msg) {
     warning(msg, "\n")
     stop("pattern-content.R \n\
 Calculates percentages for fasta file or given genome+location
-Usage: env [file=foo.fa | genome=yeast location=chrX:22,000+-100] [ outdir=./] output=filename.{wig,bw,rda} ] pattern=[GC] window=NUMBER  pattern-content.R
+Usage: env [file=foo.fa | genome=yeast location=chrX:22,000+-100] [ indir=./ ] [ outdir=./] output=filename.{wig,bw,rda} ] pattern=[GC] window=NUMBER  pattern-content.R
 ")
 }
 
@@ -64,6 +64,7 @@ library(ngsutils, verbose=FALSE, quietly=TRUE)
 library(zoo, verbose=FALSE, quietly=TRUE)
 
 dna.string <- NULL
+chr <- NULL
 
 file <- Sys.getenv('fasta')
 file <- paste(indir, file, sep="/")
@@ -71,7 +72,7 @@ if ( file.exists(file)) {
     fa <- open(FaFile(file))
     idx <- scanFaIndex(fa)
     dna <- scanFa(fa,param=idx[1])
-    chr.name <- names(dna)
+    chr <- names(dna)
     dna.string <- as.character(dna) # NOTE: vector of length 1
     stopifnot(length(dna.string) ==1)
 }
@@ -108,20 +109,18 @@ perc <- rollmean(x=occurrence, k=window, fill=0)
 perc <- as.integer(0.5 + 100*perc)
 
 gr <- GRanges(ranges=IRanges(start=1:seq.length, width=1), strand='*',
-              seqnames=chr.name, score=perc)
+              seqnames=chr, score=perc)
 
 con <- file(paste0(outdir, "/", output))
 if( grepl('.rda$' , con) ) {
     save(file=con, gr)
     warning("Dumping object 'gr'  to ", con, "\nMerge by runnning mergeRda on thesefiles")
-}
-
-warning("Writing output to ", con, "\n")
-export(object=gr, con=con, format="wig")
-
-warning("Done. Convert this to BigWig using something like\n\
+} else { 
+    warning("Writing output to ", con, "\n")
+    export(con=con, object=gr)
+    warning("Done. Convert this to BigWig using something like\n\
 cat *.wig | wigToBigWig -clip stdin $chromsizes mypattern-71bp.bw\n
 or\n
 bigWigMerge *.bw out.bedGraph; bedGraphToBigWig out.bedGraph chrom.sizes out.bw\n")
-
+}
 sessionInfo()
