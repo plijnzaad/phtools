@@ -1,27 +1,10 @@
 #!/bin/env Rscript
 ##
 ## script to determine percentage of occurrence of a regular expression
-## per base-pair position, averaged over window size, given a fasta
-## file. Arguments are all passed as environment variables, invoke as
-##
-##   env file=fastafile.fa \
-##     window=somenumber outdir=somedirectory \
-##     pattern='[AG][AG][AG][AG][AG][CT][CT][CT][CT][CT]' pattern-content.R
-
-## (this, BTW, is Trivonof's R5Y5 nucleosome positioning pattern;
-## another wellknown 'pattern' would be '[GC]' for simply the GC-content)
+## per base-pair position, averaged over window size.
+## Try e.g. '[GC]' for simply the GC-content, or
+## Trivonof's R5Y5 nucleosome positioning pattern: '[AG][AG][AG][AG][AG][CT][CT][CT][CT][CT]'
 ## 
-## file: fasta file containing ONE chromosome (this is for speed)
-## window: length over which to average 
-## pattern: regular expression. The pattern will be centered.
-##          Only simple, fixed-length REs. No ambiguity codes allowed.
-##          Matching is done case-sensitively.
-## indir:  where to find fasta files (default: current dir)
-## outdir: where to leave results (default: current dir)
-##
-## This script makes GC-content.R and dinucleotide-content.R obsolete, they
-## have therefore been removed as of svn revision 1115
-##
 ## See also pub/tools/sequence/pattern2gff.pl
 ##
 
@@ -67,7 +50,8 @@ dna.string <- NULL
 chr <- NULL
 
 file <- Sys.getenv('fasta')
-file <- paste(indir, file, sep="/")
+if(file!="")
+  file <- paste(indir, file, sep="/")
 if ( file.exists(file)) { 
     fa <- open(FaFile(file))
     idx <- scanFaIndex(fa)
