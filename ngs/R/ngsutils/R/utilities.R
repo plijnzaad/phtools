@@ -625,6 +625,12 @@ location2granges <- function(location, seqinfo=NULL, seqlengths=NULL) {
         stop("Should not happen, error in regexp?", paste(collapse="\n", strwrap(v)))
     }                                   #.find.coords
 
+    .check.seqnames <- function(wanted, seqnames) {
+        d <- setdiff(wanted, seqnames)
+        if(length(d)>0)
+          stop("These chromosome(s) are not part of this genome: ", paste(d, collapse=", "), "\n")
+    }
+
     if(!is.null(seqinfo) && is.null(seqlengths))
       seqlengths <- seqlengths(seqinfo)
     
@@ -645,9 +651,12 @@ location2granges <- function(location, seqinfo=NULL, seqlengths=NULL) {
     chr <- sapply(l, function(elt)elt$chr)
     start <- sapply(l, function(elt)elt$start)
     end <- sapply(l, function(elt)elt$end)
-    
+    if(!is.null(seqinfo))
+      .check.seqnames(chr,seqnames(seqinfo))
+    if(!is.null(seqlengths))
+      .check.seqnames(chr,names(seqlengths))
     GRanges(seqnames=chr,ranges=IRanges(start,end),
-                 seqlengths=seqlengths, seqinfo=seqinfo)
+                 seqinfo=seqinfo, seqlengths=seqlengths)
 }                                       #location2granges
 
 
