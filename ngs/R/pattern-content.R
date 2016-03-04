@@ -45,8 +45,6 @@ library(Rsamtools, verbose=FALSE)
 library(rtracklayer, verbose=FALSE)
 library(ngsutils, verbose=FALSE)
 library(zoo, verbose=FALSE)
-is(location2granges)
-stop("")
 
 dna.string <- NULL
 chr <- NULL
