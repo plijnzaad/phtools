@@ -143,7 +143,7 @@ shift $((OPTIND-1))
 if [ -z "$jobname" ]; then
     jobname=$(echo $@)
 fi
-jobname=$(echo $jobname | sed 's/[ /<>|][ /<>|]*/_/g;s/^[._]*//;')
+jobname=$(echo $jobname | sed 's/[ /<>|:][ /<>|:]*/_/g;s/^[._]*//;')
 
 ### find/set up the directory for stdout and stderr logs:
 here="$(pwd -P)"
