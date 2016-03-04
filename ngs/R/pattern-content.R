@@ -49,6 +49,9 @@ library(zoo, verbose=FALSE, quietly=TRUE)
 dna.string <- NULL
 chr <- NULL
 
+seqinfo <- NULL
+seqlengths <- NULL
+
 file <- Sys.getenv('fasta')
 if(file!="")
   file <- paste(indir, file, sep="/")
@@ -66,9 +69,11 @@ if (genome != "") {
     stopifnot(genome=="yeast")
     library(BSgenome.Scerevisiae.UCSC.sacCer3, verbose=FALSE, quietly=TRUE)
     genome <- Scerevisiae
+    seqinfo <- seqinfo(genome)
+    seqlengths <- seqlengths(genome)
     location <- Sys.getenv('location')
     if(location=="")stop("if genome is specified, location is also required")
-    gr <- location2granges(location, seqinfo=seqinfo(genome), seqlengths=seqlengths(genome))
+    gr <- location2granges(location, seqinfo=seqinfo, seqlengths=seqlengths)
     chr <- as.character(seqnames(gr))
     dna.string <- as.character(genome[[chr]][ranges(gr)])
 }
@@ -93,8 +98,8 @@ perc <- rollmean(x=occurrence, k=window, fill=0)
 perc <- as.integer(0.5 + 100*perc)
 
 gr <- GRanges(ranges=IRanges(start=1:seq.length, width=1), strand='*',
-              seqnames=chr, score=perc)
-browser()
+              seqnames=chr, score=perc, seqlengths=seqlengths, seqinfo=seqinfo)
+
 file <- paste0(outdir, "/", output)
 if( grepl('.rda$' , file) ) {
     save(file=file, gr)
@@ -102,6 +107,7 @@ if( grepl('.rda$' , file) ) {
 } else { 
     warning("Writing output to ", file, "\n")
     export(con=file, object=gr)
+    ### NOTE: if exporting bigwig, needs at least the seqlengths!
     warning("Done. Convert this using something like\n\
 cat *.wig | wigToBigWig -clip stdin $chromsizes mypattern-71bp.bw\n
 or\n
