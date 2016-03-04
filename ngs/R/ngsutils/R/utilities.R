@@ -574,13 +574,12 @@ decommafy <- function(x){
 commafy <- function(x, preserve.width="common")
   formatC(x, format="d", big.mark=",", preserve.width=preserve.width)
 
-location2granges <- function(location, seqlengths=NULL, seqinfo=NULL) {
+location2granges <- function(location, seqinfo=NULL, seqlengths=NULL) {
     ### syntax: location=loc;loc;loc
     ### loc= completechromo | chromo:start-end | chromo:start+length | chromo:start+-length
     stopifnot(is.character(location))
 
     .complete.re <- function(s)paste0("^", s, "$")
-    
     .combine <- function(one, other, loc) {
         if (length(one) ==0 && length(other)==0)
           stop("Location ", loc, " has wrong syntax")
@@ -589,24 +588,46 @@ location2granges <- function(location, seqlengths=NULL, seqinfo=NULL) {
         c(one, other)
     }
 
-    .find.length <- function(v) {
-        if(length(v)==2)
-          return(data.frame(chr=v[2], start=1L,  end=.Machine$integer.max))
-        if(length(v)!=5)
-          stop("Should not happen, error in regexp?", v[1])
-        op <- v[4]
-        se <- as.integer(decommafy(v[c(3,5)]))
-        if(any(is.na(se)))
-          stop("wrong syntax for coordinates: ", v[1] )
-        if (op=='-')
-          return(data.frame(chr=v[2], start=se[1],  end=se[2])) 
-        if (op=='+')
-          return(data.frame(chr=v[2], start=se[1],  end=se[1]+se[2]))
-        if (op=='+-')
-          return(data.frame(chr=v[2], start=max(1L, se[1]-se[2]),  end=se[1]+se[2]))
-        stop("Should not happen, error in regexp?", paste(collapse="\n", strwrap(v)))
+    .check.end <- function(end, max=NULL) {
+        if (is.null(max) || is.na(max)) max <- 2000000000L
+        if (is.na(end)) {
+            warning("Length for chromosome ", chr, " unknown, using ", max, " instead, may fail")
+            return(max)
+        }
+        if (end>max) {
+            warning("Requested end larger than chromosome length ",max,"; using latter instead.\n")
+            return(max)
+        }
+        end
     }
 
+    .find.coords <- function(v) {
+        chr <- v[2]
+        chrlen <- NA
+        if(!is.null(seqlengths) )
+          chrlen <- seqlengths[chr]
+        if(length(v)==2)
+          return(data.frame(chr=chr, start=1L,  end= .check.end(end=chrlen)))
+            
+        if(length(v)!=5)
+          stop("Should not happen, error in regexp?", v[1])
+
+            op <- v[4]
+        se <- as.integer(decommafy(v[c(3,5)]))
+        if(any(is.na(se)))
+          stop("wrong syntax for coordinates (or perhaps too large): ", v[1] )
+        if (op=='-')
+          return(data.frame(chr=chr, start=se[1],  end=.check.end(se[2], max=chrlen)))
+        if (op=='+')
+          return(data.frame(chr=chr, start=se[1],  end= .check.end(se[1]+se[2], max=chrlen)))
+        if (op=='+-')
+          return(data.frame(chr=chr, start=max(1L, se[1]-se[2]),  end=.check.end(se[1]+se[2], max=chrlen)))
+        stop("Should not happen, error in regexp?", paste(collapse="\n", strwrap(v)))
+    }                                   #.find.coords
+
+    if(!is.null(seqinfo) && is.null(seqlengths))
+      seqlengths <- seqlengths(seqinfo)
+    
     ## location <- "chrX;chra:10-100;chrb:100+200;chrc:1,000+-100"
     locs <- unlist(strsplit(location, "\\;"))
 
@@ -620,7 +641,7 @@ location2granges <- function(location, seqlengths=NULL, seqinfo=NULL) {
     all <- mapply(.combine, chrs, frags, locs,
                   SIMPLIFY=FALSE)# list[[1:n]] of c(inputstring, chr, location, operator, number)
 
-    l <- lapply(all, .find.length)
+    l <- lapply(all, .find.coords)
     chr <- sapply(l, function(elt)elt$chr)
     start <- sapply(l, function(elt)elt$start)
     end <- sapply(l, function(elt)elt$end)
