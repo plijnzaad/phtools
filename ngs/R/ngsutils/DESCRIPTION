@@ -2,7 +2,7 @@ Package: ngsutils
 Type: Package
 Title: Various little things for NGS analysis
 Version: 0.7
-Date: 2015-09-9
+Date: 2016-03-04
 Author: Philip Lijnzaad <plijnzaad@gmail.com>
 Maintainer: Philip Lijnzaad <plijnzaad@gmail.com>
 Suggests: NCIS, Rsamtools
