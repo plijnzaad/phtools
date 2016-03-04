@@ -68,7 +68,7 @@ if (genome != "") {
     genome <- Scerevisiae
     location <- Sys.getenv('location')
     if(location=="")stop("if genome is specified, location is also required")
-    gr <- location2granges(location)
+    gr <- location2granges(location, seqinfo=seqinfo(genome), seqlengths=seqlengths(genome))
     chr <- as.character(seqnames(gr))
     dna.string <- as.character(genome[[chr]][ranges(gr)])
 }
@@ -95,13 +95,13 @@ perc <- as.integer(0.5 + 100*perc)
 gr <- GRanges(ranges=IRanges(start=1:seq.length, width=1), strand='*',
               seqnames=chr, score=perc)
 
-con <- file(paste0(outdir, "/", output))
-if( grepl('.rda$' , con) ) {
-    save(file=con, gr)
-    warning("Dumping object 'gr'  to ", con, "\nMerge by runnning mergeRda on thesefiles")
+file <- paste0(outdir, "/", output)
+if( grepl('.rda$' , file) ) {
+    save(file=file, gr)
+    warning("Dumping object 'gr'  to ", file, "\nMerge by runnning mergeRda on thesefiles")
 } else { 
-    warning("Writing output to ", con, "\n")
-    export(con=con, object=gr)
+    warning("Writing output to ", file, "\n")
+    export(con=file(file), object=gr)
     warning("Done. Convert this to BigWig using something like\n\
 cat *.wig | wigToBigWig -clip stdin $chromsizes mypattern-71bp.bw\n
 or\n
