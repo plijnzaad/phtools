@@ -41,10 +41,12 @@ if (  gregexpr("[^][ACGTUNacgtun]", pattern) > 0)
 window <- as.integer(Sys.getenv('window'))
 if (is.na(window))usage("no window specified")
   
-library(Rsamtools, verbose=FALSE, quietly=TRUE)
-library(rtracklayer, verbose=FALSE, quietly=TRUE)
-library(ngsutils, verbose=FALSE, quietly=TRUE)
-library(zoo, verbose=FALSE, quietly=TRUE)
+library(Rsamtools, verbose=FALSE)
+library(rtracklayer, verbose=FALSE)
+library(ngsutils, verbose=FALSE)
+library(zoo, verbose=FALSE)
+is(location2granges)
+stop("")
 
 dna.string <- NULL
 chr <- NULL
