@@ -1,36 +1,26 @@
 #!/bin/env Rscript
 ##
 ## script to determine percentage of occurrence of a regular expression
-## per base-pair position, averaged over window size, given a fasta
-## file. Arguments are all passed as environment variables, invoke as
-##
-##   env file=fastafile.fa \
-##     window=somenumber outdir=somedirectory \
-##     pattern='[AG][AG][AG][AG][AG][CT][CT][CT][CT][CT]' pattern-content.R
-
-## (this, BTW, is Trivonof's R5Y5 nucleosome positioning pattern;
-## another wellknown 'pattern' would be '[GC]' for simply the GC-content)
+## per base-pair position, averaged over window size.
+## Try e.g. '[GC]' for simply the GC-content, or
+## Trivonof's R5Y5 nucleosome positioning pattern: '[AG][AG][AG][AG][AG][CT][CT][CT][CT][CT]'
 ## 
-## file: fasta file containing ONE chromosome (this is for speed)
-## window: length over which to average 
-## pattern: regular expression. The pattern will be centered.
-##          Only simple, fixed-length REs. No ambiguity codes allowed.
-##          Matching is done case-sensitively.
-## indir:  where to find fasta files (default: current dir)
-## outdir: where to leave results (default: current dir)
-##
-## This script makes GC-content.R and dinucleotide-content.R obsolete, they
-## have therefore been removed as of svn revision 1115
-##
 ## See also pub/tools/sequence/pattern2gff.pl
 ##
 
+warning("Running on host ", Sys.getenv("HOSTNAME"), "\n")
 
-options(verbose=TRUE)
+### written by plijnzaad@gmail.com
+usage <- function(msg) { 
+    warning(msg, "\n")
+    stop("pattern-content.R \n\
+Calculates percentages for fasta file or given genome+location
+Usage: env [file=foo.fa | genome=yeast location=chrX:22,000+-100] [ indir=./ ] [ outdir=./] output=filename.{wig,bw,rda} ] pattern=[GC] window=NUMBER  pattern-content.R
+")
+}
 
-library(Rsamtools)
-library(rtracklayer)
-library(zoo)
+options(verbose=FALSE, stringsAsFactors=FALSE)
+
 
 indir <- Sys.getenv("indir")
 if (indir=="")
@@ -40,28 +30,56 @@ outdir <- Sys.getenv("outdir")
 if (outdir=="")
     outdir <- "."
 
-pattern <- Sys.getenv("pattern")
+output <- Sys.getenv("output")
+if (output=="")usage("No output specified")
 
+pattern <- Sys.getenv("pattern")
+if (pattern=="")usage("Pattern missing")
 if (  gregexpr("[^][ACGTUNacgtun]", pattern) > 0)
-  stop("Only simple, fixed-length regular expressions without ambiguity codes are allowed")
+  usage("Only simple, fixed-length regular expressions without ambiguity codes are allowed")
 
 window <- as.integer(Sys.getenv('window'))
-stopifnot(!is.na(window) && window > 0)
+if (is.na(window))usage("no window specified")
+  
+library(Rsamtools, verbose=FALSE, quietly=TRUE)
+library(rtracklayer, verbose=FALSE, quietly=TRUE)
+library(ngsutils, verbose=FALSE, quietly=TRUE)
+library(zoo, verbose=FALSE, quietly=TRUE)
 
-file <- Sys.getenv('file')
-file <- paste(indir, file, sep="/")
-stopifnot(file.exists(file))
+dna.string <- NULL
+chr <- NULL
 
-fa <- open(FaFile(file))
-idx <- scanFaIndex(fa)
-dna <- scanFa(fa,param=idx[1])
+seqinfo <- NULL
+seqlengths <- NULL
 
-chr.name <- names(dna)
+file <- Sys.getenv('fasta')
+if(file!="")
+  file <- paste(indir, file, sep="/")
+if ( file.exists(file)) { 
+    fa <- open(FaFile(file))
+    idx <- scanFaIndex(fa)
+    dna <- scanFa(fa,param=idx[1])
+    chr <- names(dna)
+    dna.string <- as.character(dna) # NOTE: vector of length 1
+    stopifnot(length(dna.string) ==1)
+}
 
-dna.string <- as.character(dna) # NOTE: vector of length 1
+genome <- Sys.getenv("genome")
+if (genome != "") {
+    stopifnot(genome=="yeast")
+    library(BSgenome.Scerevisiae.UCSC.sacCer3, verbose=FALSE, quietly=TRUE)
+    genome <- Scerevisiae
+    seqinfo <- seqinfo(genome)
+    seqlengths <- seqlengths(genome)
+    location <- Sys.getenv('location')
+    if(location=="")stop("if genome is specified, location is also required")
+    gr <- location2granges(location, seqinfo=seqinfo, seqlengths=seqlengths)
+    chr <- as.character(seqnames(gr))
+    dna.string <- as.character(genome[[chr]][ranges(gr)])
+}
+if (is.null(dna.string)) usage("Need either fasta file, or genome + location")
 
-stopifnot(length(dna.string) ==1)
-
+  
 p <- gsub('[[][^]]+[]]', 'N', pattern)  # e.g. [acg][acg]gg[gc] -> "NNggN"
 pat.length <- nchar(p) # lookahead assertion makes match.length attrib all 0!
 pattern <- paste0("(?=", pattern, ")")
@@ -80,9 +98,19 @@ perc <- rollmean(x=occurrence, k=window, fill=0)
 perc <- as.integer(0.5 + 100*perc)
 
 gr <- GRanges(ranges=IRanges(start=1:seq.length, width=1), strand='*',
-              seqnames=chr.name, score=perc)
-con <- file(paste0(outdir, "/", chr.name, ".wig"))
-warning("Writing output to ", con, "\n")
-export(object=gr, con=con, format="wig")
-warning("Done. Convert this to BigWig using something like\n\
-cat *.wig | wigToBigWig -clip stdin $chromsizes mypattern-71bp.bw\n")
+              seqnames=chr, score=perc, seqlengths=seqlengths, seqinfo=seqinfo)
+
+file <- paste0(outdir, "/", output)
+if( grepl('.rda$' , file) ) {
+    save(file=file, gr)
+    warning("Dumping object 'gr'  to ", file, "\nMerge by runnning mergeRda on thesefiles")
+} else { 
+    warning("Writing output to ", file, "\n")
+    export(con=file, object=gr)
+    ### NOTE: if exporting bigwig, needs at least the seqlengths!
+    warning("Done. Convert this using something like\n\
+cat *.wig | wigToBigWig -clip stdin $chromsizes mypattern-71bp.bw\n
+or\n
+bigWigMerge *.bw out.bedGraph; bedGraphToBigWig out.bedGraph chrom.sizes out.bw\n")
+}
+sessionInfo()
