@@ -94,15 +94,15 @@ perc <- as.integer(0.5 + 100*perc)
 
 gr <- GRanges(ranges=IRanges(start=1:seq.length, width=1), strand='*',
               seqnames=chr, score=perc)
-
+browser()
 file <- paste0(outdir, "/", output)
 if( grepl('.rda$' , file) ) {
     save(file=file, gr)
     warning("Dumping object 'gr'  to ", file, "\nMerge by runnning mergeRda on thesefiles")
 } else { 
     warning("Writing output to ", file, "\n")
-    export(con=file(file), object=gr)
-    warning("Done. Convert this to BigWig using something like\n\
+    export(con=file, object=gr)
+    warning("Done. Convert this using something like\n\
 cat *.wig | wigToBigWig -clip stdin $chromsizes mypattern-71bp.bw\n
 or\n
 bigWigMerge *.bw out.bedGraph; bedGraphToBigWig out.bedGraph chrom.sizes out.bw\n")
