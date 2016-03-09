@@ -14,6 +14,7 @@
 ##
 ##   env variable=value make -f Thismakefile file.bam
 
+## NOTE! make (or: this Makefile) has difficulty with filenames containing '='. Dont use them!
 
 ### -------- general stuff --------
 
