@@ -588,24 +588,26 @@ location2granges <- function(location, seqinfo=NULL, seqlengths=NULL) {
         c(one, other)
     }
 
-    .check.end <- function(end, max=NULL) {
-        if (is.null(max) || is.na(max)) max <- 2000000000L
-        if (is.na(end)) {
-            warning("Length for chromosome ", chr, " unknown, using ", max, " instead, may fail")
-            return(max)
-        }
-        if (end>max) {
-            warning("Requested end larger than chromosome length ",max,"; using latter instead.\n")
-            return(max)
-        }
-        end
-    }
-
     .find.coords <- function(v) {
         chr <- v[2]
         chrlen <- NA
+
+        .check.end <- function(end, max=NULL) {
+            if (is.null(max) || is.na(max)) max <- 2000000000L
+            if (is.na(end)) {
+                warning("Length for chromosome ", chr, " unknown, using ", max, " instead, may fail")
+                return(max)
+            }
+            if (end>max) {
+                warning("Requested end larger than chromosome length ",max,"; using latter instead.\n")
+                return(max)
+            }
+            end
+        }
+
         if(!is.null(seqlengths) )
           chrlen <- seqlengths[chr]
+
         if(length(v)==2)
           return(data.frame(chr=chr, start=1L,  end= .check.end(end=chrlen)))
             
@@ -629,7 +631,7 @@ location2granges <- function(location, seqinfo=NULL, seqlengths=NULL) {
         d <- setdiff(wanted, seqnames)
         if(length(d)>0)
           stop("These chromosome(s) are not part of this genome: ", paste(d, collapse=", "), "\n")
-    }
+    }                                   #.check.seqnames
 
     if(!is.null(seqinfo) && is.null(seqlengths))
       seqlengths <- seqlengths(seqinfo)
