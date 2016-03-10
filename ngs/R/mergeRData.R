@@ -3,7 +3,7 @@
 
 warning("Running on host ", Sys.getenv("HOSTNAME"), "\n")
 
-library(parseArgs, quietly=TRUE)
+library(parseArgs, verbose=FALSE)
 
 usage <- function()warning("Usage mergeRData [--regexp '^.*$' ] --out totals.rda *.rda
 Merges objects inside RData files using the c() operator. Typically used on data that was
@@ -33,7 +33,7 @@ if(is.null(rda.files)) {
     stop()
 }
 
-library(rtracklayer,  quietly=TRUE) # this should force loading of most of the relevant bioc. libs
+library(rtracklayer,  verbose=FALSE) # this should force loading of most of the relevant bioc. libs
   
 regexps <- unlist(strsplit(args$regexp, "[,;]"))
 expected <-NULL                   #based on contents of first file
