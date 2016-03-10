@@ -11,7 +11,7 @@ logdirname=logs                        # always relative to current dir!
 
 usage_msg="
 \n
-\n  Usage: $(basename $0) [qsub-options] command arg1 arg2 ...
+\n  Usage: $(basename $0) [ qsub-options ] command arg1 arg2 ...
 \n
 \n  qrun.sh is a qsub replacement for simple job submissions.  It frees
 \n  you from having to write a wrapper scripts around the simple command
