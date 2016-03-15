@@ -13,19 +13,17 @@
 #
 # (where INSTALLATIONDIRECTORY is the location of the file you're now reading)
 #
-# If you use this as part of a lmod module, do something like
+# (If you use this as part of a lmod module, do something like
 #
 #     local base = "/usr/local/src/git/phtools/ngs"
-# 
 #     prepend_path("PATH", base)
-#     prepend_path("PATH", pathJoin(base, "R"))
-# 
-#     load("samtools")
-#     setenv("LESSOPEN", "| " .. pathJoin(base, "lesspipe.sh") .. " %s")
+#     load("samtools")  # makes sure that samtools view is on the path
+#     setenv("LESSOPEN", "| " .. pathJoin(base, "lesspipe.sh") .. " %s"))
 #
 # Extension by plijnzaad@gmail.com; see https://github.com/plijnzaad/phtools/tree/master/ngs
-# 
-# The script should return zero if the output was valid and non-zero
+
+
+# Note: the script should return zero if the output was valid and non-zero
 # otherwise, so less could detect even a valid empty output
 # (for example while uncompressing gzipped empty file).
 # For backward-compatibility, this is not required by default. To turn
