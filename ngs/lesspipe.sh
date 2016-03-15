@@ -13,6 +13,16 @@
 #
 # (where INSTALLATIONDIRECTORY is the location of the file you're now reading)
 #
+# If you use this as part of a lmod module, do something like
+#
+#     local base = "/usr/local/src/git/phtools/ngs"
+# 
+#     prepend_path("PATH", base)
+#     prepend_path("PATH", pathJoin(base, "R"))
+# 
+#     load("samtools")
+#     setenv("LESSOPEN", "| " .. pathJoin(base, "lesspipe.sh") .. " %s")
+#
 # Extension by plijnzaad@gmail.com; see https://github.com/plijnzaad/phtools/tree/master/ngs
 # 
 # The script should return zero if the output was valid and non-zero
