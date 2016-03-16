@@ -57,6 +57,7 @@ my($FPE, $Fproper, $Funmapped, $Fmateunmapped, $Frev, $Fmaterev, $Fread1, $Fread
 sub idhash {                            # make easier to spot what goes with what
   my ($id)=@_;
   substr(md5_base64($id), 0, 4); # 16 million possibilities
+### for speed, consider using a checksum made of unpack('%...', $id)
 }
 
 sub explain_flags { 
