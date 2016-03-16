@@ -147,7 +147,7 @@ my $nreads=0;
 my ($trimmed_left, $trimmed_right, $skipped_left, $skipped_right)=(0,0,0,0);
 my ($unmapped, $too_short, $too_long, $no_length)=(0,0,0,0);
 
-die "smoothing window must be uneven" if ($smooth % 2);
+die "smoothing window must be uneven" unless ($smooth % 2);
 
 my $halfsmooth= int( ($smooth -1) /2);
 
@@ -202,7 +202,8 @@ LINE:
           $too_long++;
           next LINE;
         }
-        $s=int(abs($tlen)/2 +0.5);     # automatic
+###        $s=int(abs($tlen)/2 +0.5);     # old
+        $s=int(  ($tlen-1)/2);           # new
         $s = $shift if $shift;         # allow override
       }
 
