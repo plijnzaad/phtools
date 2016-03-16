@@ -180,8 +180,10 @@ LINE:
         $no_length++;
         next LINE;
       }
-      
-      my $readlen=length($seq);
+      my $tlen_sign = ($tlen <=> 0);
+      $tlen=abs($tlen);
+
+      my $readlen=length($seq); ### cannot trust this!!
       if ($flag & 0x4) {
         $unmapped++;
         next LINE;
@@ -194,16 +196,18 @@ LINE:
         $s=$shift;
       } else {
         next LINE if $drop && ($flag & 0x80); # 0x80: second half of PE read
-        if (abs($tlen) < $minlen ) {
+        if ($tlen < $minlen ) {
           $too_short++;
           next LINE;
         }
-        if (abs($tlen) > $maxlen ) {
+        if ( $tlen > $maxlen ) {
           $too_long++;
           next LINE;
         }
-###        $s=int(abs($tlen)/2 +0.5);     # old
-        $s=int(  ($tlen-1)/2);           # new
+##        $s=int($tlen/2 +0.5);     # old
+        $s=int( ($tlen-1)/2);     # exact for uneven seqs
+        $s = $s + (unpack("%B*",$seq)%2) unless ($tlen % 2); # quasi-randomly  add 1
+        # (the unpack expression is quasi-uniform hash based on sequence content)
         $s = $shift if $shift;         # allow override
       }
 
@@ -242,7 +246,7 @@ LINE:
       $qual='*';
       
       my @fields=($qname,$flag, $rname, $pos, $mapq, $cigar, $rnext, $pnext,
-                  $tlen, $seq, $qual, @optionals);
+                  $tlen_sign*$tlen, $seq, $qual, @optionals);
       
       print join("\t", @fields) . "\n";
       $nreads++;
