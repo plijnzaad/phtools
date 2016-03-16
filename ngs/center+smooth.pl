@@ -28,8 +28,8 @@ Usage: center+smooth.pl --type [paired|single] [ --shift NUMBER ] [ --smooth NUM
   including additional basepairs only smooths the data, thus decreasing
   the resolution. If this smoothing is desired, use the --smooth option
   (31 is a a reasonable value). After centering and/or smoothing, the read
-  coordinates are changed and consistent (although not sorted
-  anymore!). The resulting read "sequence" consists of only \'N\'s, the
+  coordinates are changed and consistent but not sorted
+  anymore. The resulting read "sequence" consists of only \'N\'s, the
   CIGAR string of only \'M\'s.
 
   The program is typically part of a pipeline that converts from BAM and
@@ -76,8 +76,8 @@ Options:
   --maxlen <number> Skip reads where the fragment length is greater than
                     this (default: 200)
 
-  --smooth <number> Number of basepairs to smooth over. Assumed to
-                    be uneven.
+  --smooth <number> Number of basepairs to smooth over. Must be uneven
+                    (since "middle basepair" +- n gives 2n+1)
 
   --chrom_sizes <file> tab-delimited file containing
     ^chromosome_name\\tchromosome_length$ (needed if not in header of SAM
@@ -147,10 +147,12 @@ my $nreads=0;
 my ($trimmed_left, $trimmed_right, $skipped_left, $skipped_right)=(0,0,0,0);
 my ($unmapped, $too_short, $too_long, $no_length)=(0,0,0,0);
 
+die "smoothing window must be uneven" if ($smooth % 2);
+
 my $halfsmooth= int( ($smooth -1) /2);
 
 LINE:
-    while(<>) { 
+    while(<>) {
       if (/^@/) { 
         if ( /PG.*center\+smooth.pl/ ) {
           die "Refusing to run center+smooth.pl on data that was previously centered and/or smoothed\n";
@@ -191,7 +193,7 @@ LINE:
       if ($single) {  
         $s=$shift;
       } else {
-        next LINE if $drop && ($flag & 0x80);
+        next LINE if $drop && ($flag & 0x80); # 0x80: second half of PE read
         if (abs($tlen) < $minlen ) {
           $too_short++;
           next LINE;
@@ -201,7 +203,7 @@ LINE:
           next LINE;
         }
         $s=int(abs($tlen)/2 +0.5);     # automatic
-        $s = $shift if $shift;         # can still override, also for PE
+        $s = $shift if $shift;         # allow override
       }
 
       if ($reverse_strand) { 
