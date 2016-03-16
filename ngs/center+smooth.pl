@@ -61,8 +61,8 @@ Options:
 
   --type  paired|single Indicate if the SAM file contains single-end or 
                         paired-end reads
-  --drop              Only keep the first segment ("halfpair") of each
-                      paired-end read
+  --nodrop            For paired-end reads, also keep the 2nd segment ("halfpair")
+                      for each read (probably not want you want, and coordinates may be off)
   --shift <number>    Shift all reads by this amount in their own
                       3\'-direction.  Can be negative. If not specified,
                       shifting is by half the fragmentlength found in
@@ -104,12 +104,12 @@ my $maxlen= 200;                    # i.e. at most one nucleosome!
 my $strict=undef;
 my $auto=1;
 my $seqtype=undef;
-my $drop=undef;
+my $nodrop=undef;
 
 my @argv_copy=@ARGV;                    # eaten by GetOptions
 die $usage if  GetOptions('help'=> \$help,
                           'type=s' => \$seqtype,
-                          'drop' => \$drop,
+                          'nodrop' => \$nodrop,
                           'shift=i' => \$shift,
                           'chrom_sizes=s' => \$chrom_sizes,
                           'minlen=i' => \$minlen,
@@ -130,7 +130,7 @@ my $single= ($seqtype =~ /single/i);
 
 if ($single) {
   die "--shift argument is required for single-end reads" unless  $shift;
-  die "--drop option only valid when using --type paired" if $drop;
+  die "--nodrop option only valid when using --type paired" if $nodrop;
 }
 
 my $pg_printed=0;
@@ -195,7 +195,11 @@ LINE:
       if ($single) {  
         $s=$shift;
       } else {
-        next LINE if $drop && ($flag & 0x80); # 0x80: second half of PE read
+        ### next LINE if $drop && ($flag & 0x80); # 0x80: second half of PE read
+        if ($flag & 0x80) { 
+            next LINE unless $nodrop;
+            die "not implemented properly: coordinates will be wrong for 2nd mate if there are indels ...";
+        }
         if ($tlen < $minlen ) {
           $too_short++;
           next LINE;
