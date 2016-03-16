@@ -7,10 +7,10 @@
 ##  samtools view foo.bam | summarize-sam.pl 2> foo.sumstat | gzip > foo.sum.gz
 ##
 ## The thing has been written with bowtie2 output/terminology in mind.
-##
+## For one-off inspection of flags, check https://broadinstitute.github.io/picard/explain-flags.html
 
 ## Bowtie outputs insertlen ==0 for anything that is not 'properly aligned'.
-## 'unmapped' means: this read, or its mate, or both are unmapped.
+## 'unmapped' means: this halfpair, or its mate, or both are unmapped.
 ## If one of the mates was mapped, chr, pos and matepos are that of the
 ## mapped mate (weird).
 
