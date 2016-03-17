@@ -170,7 +170,10 @@ LINE:
       
       my($qname,$flag, $rname, $pos, $mapq, $cigar, $rnext, $pnext, $tlen,
          $seq, $qual, @optionals)=split("\t", $_);
-      next if $rname eq  '*';
+      if ($rname eq  '*') { 
+        $unmapped++;
+        next LINE;
+      }
       my $chr_length=$chromos->{$rname};
       die "Unknown chromosome or chromosome length: chr='$rname', input line $.
  (SAM input file must contain the sequence lengths; otherwise, supply using --chrom_sizes option)" 
@@ -184,7 +187,7 @@ LINE:
       $tlen=abs($tlen);
 
       my $readlen=length($seq); ### cannot trust this!!
-      if ($flag & 0x4) {
+      if ($flag & 0x4) {        # note: they may have the $rname of their mate, so have yet been skipped
         $unmapped++;
         next LINE;
       }
@@ -234,14 +237,20 @@ LINE:
       # next ones straddle start or end, so trimming will salvage them:
       my $newlen=$smooth;
       if ($pos < 1 ) { 
+        if ($strict) { 
+          $skipped_left++;
+          next LINE;
+        }
         $trimmed_left++;
-        next LINE if $strict;
         $newlen=$smooth + ($pos -1);
         $pos=1;
       }
       if ( $end > $chr_length) {
+        if ($strict) { 
+          $skipped_right++;
+          next LINE;
+        }
         $trimmed_right++;
-        next LINE if $strict;
         $newlen=$smooth - ($end - $chr_length);
       }
       $cigar=sprintf('%dM', $newlen);
@@ -256,11 +265,11 @@ LINE:
       $nreads++;
 }                                       # LINE
 
-warn "Shifted ". commafy($nreads) . " reads, skipped ". commafy($unmapped). " unmapped reads\n";
+warn "Shifted and output ". commafy($nreads) . " reads, skipped ". commafy($unmapped). " unmapped reads\n";
 warn commafy($skipped_left) . " reads skipped on the left side, ". commafy($skipped_right) . " on the right side of the chromosome\n";
 warn commafy($trimmed_left) . " reads trimmed on the left side, " . commafy($trimmed_right) . " on the right side of the chromosome\n";
 if(!$single) { ## paired-end only:
-  warn "Dropped ". commafy($mate2dropped) . " mate2 lines because they are  not informative\n";
+  warn "Dropped ". commafy($mate2dropped) . " mate2 lines because uninformative\n";
   warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because to long\n";
   warn "Found " . commafy($no_length) . " unpaired reads, skipped because no --shift was specified\n";
 }
