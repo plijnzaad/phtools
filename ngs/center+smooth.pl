@@ -219,6 +219,7 @@ LINE:
       }
 
       if ($reverse_strand) { 
+        die "This is not yet properly implemented (overlooking indels" if $single;
         $pos = $pos + ($readlen -1) - $s - $halfsmooth;
       } else {
         $pos =     $pos             + $s - $halfsmooth;
