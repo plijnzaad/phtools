@@ -145,7 +145,7 @@ if ($chrom_sizes) {
 
 my $nreads=0;
 my ($trimmed_left, $trimmed_right, $skipped_left, $skipped_right)=(0,0,0,0);
-my ($unmapped, $too_short, $too_long, $no_length)=(0,0,0,0);
+my ($unmapped, $too_short, $too_long, $no_length, $mate2dropped)=(0,0,0,0,0);
 
 die "smoothing window must be uneven" unless ($smooth % 2);
 
@@ -195,10 +195,10 @@ LINE:
       if ($single) {  
         $s=$shift;
       } else {
-        ### next LINE if $drop && ($flag & 0x80); # 0x80: second half of PE read
         if ($flag & 0x80) { 
-            next LINE unless $nodrop;
-            die "not implemented properly: coordinates will be wrong for 2nd mate if there are indels ...";
+          $mate2dropped++;
+          die "not implemented properly: coordinates will be wrong for 2nd mate if there are indels ..." if $nodrop;
+          next LINE unless $nodrop;
         }
         if ($tlen < $minlen ) {
           $too_short++;
@@ -259,10 +259,11 @@ LINE:
 warn "Shifted ". commafy($nreads) . " reads, skipped ". commafy($unmapped). " unmapped reads\n";
 warn commafy($skipped_left) . " reads skipped on the left side, ". commafy($skipped_right) . " on the right side of the chromosome\n";
 warn commafy($trimmed_left) . " reads trimmed on the left side, " . commafy($trimmed_right) . " on the right side of the chromosome\n";
-## single only:
-warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because to long\n" unless $single;
-warn "Found " . commafy($no_length) . " unpaired reads, skipped because no --shift was specified\n" unless $single;
-
+if(!$single) { ## paired-end only:
+  warn "Dropped ". commafy($mate2dropped) . " mate2 lines because they are  not informative\n";
+  warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because to long\n";
+  warn "Found " . commafy($no_length) . " unpaired reads, skipped because no --shift was specified\n";
+}
 die "No reads were output!" unless $nreads > 0;
 
 sub read_chromo_sizes {
