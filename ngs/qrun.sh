@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh
 # -*- mode: sh; -*-
 
 if lsb_release -r | grep -q '[	 ]7'; then 
