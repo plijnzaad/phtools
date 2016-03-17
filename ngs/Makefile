@@ -21,7 +21,7 @@
 makefile_path := $(shell unset CDPATH && cd -P $(dir $(word 1, $(MAKEFILE_LIST))) && pwd -P)
 thismakefile := $(makefile_path)/$(word 1, $(MAKEFILE_LIST))
 
-tmpdir := /dev/shm
+tmpdir := $(TMPDIR)
 
 ## Functions
 
@@ -186,7 +186,7 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 	@echo Creating $@ 1>&2
 	$(call warn_var, filter_opts)
 	$(call warn_var, sort_opts)
-	samtools view -h $(filter_opts) -b -u $*.sam | samtools sort $(sort_opts) -T$(tmpdir)/$(USER).$$$$.$$RANDOM.samsort -Obam > $@
+	samtools view -h $(filter_opts) -b -u $*.sam | samtools sort $(sort_opts) -T$(tmpdir)/ -Obam > $@
 ##	# $RANDOM is to avoid potential clashes from parallel jobs. (This
 ##	# is all due to samtools brain damage regarding '-T')
 	date
