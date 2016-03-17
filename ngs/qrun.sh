@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 # -*- mode: sh; -*-
 
 if lsb_release -r | grep -q '[	 ]7'; then 
@@ -129,7 +129,7 @@ while getopts "N:q:o:e:j:M:m:p:l:h:H:" opt; do
             ;;
 
         H)
-            opt_hold_jid_ad="-hold_jid $OPTARG"
+            opt_hold_jid_ad="-hold_jid_ad $OPTARG"
             opt_hold_jid_ad=$(echo $opt_hold_jid_ad | tr '=' ' ')
             ;;
 
@@ -163,7 +163,7 @@ else
 fi
 echo "Using directory $logdir for stdout and stderr" >&2
 
-other_opts="$opt_j $opt_m $opt_M $opt_pe $opt_hold_jid $opt_hold_jid_ad"
+other_opts="$opt_j $opt_m $opt_l $opt_M $opt_pe $opt_hold_jid $opt_hold_jid_ad"
 qsub_opts="-shell no -b yes -cwd -V -o $logdir -e $logdir -q $queue -N $jobname $other_opts"
 
 ## finally, submit:
