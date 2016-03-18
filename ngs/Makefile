@@ -186,7 +186,7 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 	@echo Creating $@ 1>&2
 	$(call warn_var, filter_opts)
 	$(call warn_var, sort_opts)
-	samtools view -h $(filter_opts) -b -u $*.sam | samtools sort $(sort_opts) -T$(tmpdir)/ -Obam > $@
+	samtools view -h $(filter_opts) -b -u $*.sam | samtools sort $(sort_opts) -T$(tmpdir)/sort -Obam > $@
 ##	# $RANDOM is to avoid potential clashes from parallel jobs. (This
 ##	# is all due to samtools brain damage regarding '-T')
 	date
