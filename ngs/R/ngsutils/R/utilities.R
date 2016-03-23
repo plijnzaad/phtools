@@ -566,17 +566,18 @@ align <- function(gr, ref=gr, width=NA, start=TRUE, ignore.strand=TRUE) {
 
 
 decommafy <- function(x){
-  res <- as.numeric(gsub(",", "",x))
+  res <- as.integer(gsub(",", "",x))
   dim(res) <- dim(x)
   res
 }
 
-commafy <- function(x, preserve.width="common")
-  formatC(x, format="d", big.mark=",", preserve.width=preserve.width)
+commafy <- function(x, preserve.width="common") { 
+  formatC(as.integer(x), format="d", big.mark=",", preserve.width=preserve.width)
+}
 
 location2granges <- function(location, seqinfo=NULL, seqlengths=NULL) {
     ### syntax: location=loc;loc;loc
-    ### loc= completechromo | chromo:start-end | chromo:start+length | chromo:start+-length
+    ### loc= completechromo | chromo:start-end | chromo:start+length | chromo:start+-halflength
     stopifnot(is.character(location))
 
     .complete.re <- function(s)paste0("^", s, "$")
@@ -621,7 +622,7 @@ location2granges <- function(location, seqinfo=NULL, seqlengths=NULL) {
         if (op=='-')
           return(data.frame(chr=chr, start=se[1],  end=.check.end(se[2], max=chrlen)))
         if (op=='+')
-          return(data.frame(chr=chr, start=se[1],  end= .check.end(se[1]+se[2], max=chrlen)))
+          return(data.frame(chr=chr, start=se[1],  end= .check.end(se[1]+se[2]-1, max=chrlen)))
         if (op=='+-')
           return(data.frame(chr=chr, start=max(1L, se[1]-se[2]),  end=.check.end(se[1]+se[2], max=chrlen)))
         stop("Should not happen, error in regexp?", paste(collapse="\n", strwrap(v)))
@@ -636,9 +637,6 @@ location2granges <- function(location, seqinfo=NULL, seqlengths=NULL) {
     if(!is.null(seqinfo) && is.null(seqlengths))
       seqlengths <- seqlengths(seqinfo)
     
-    ## location <- "chrX;chra:10-100;chrb:100+200;chrc:1,000+-100"
-    locs <- unlist(strsplit(location, "\\;"))
-
     chr.re <- '([a-z0-9]+)'
     frag.re <- '([0-9,]+)([-+]{1,2})([0-9,]+)'
     frag.re <- .complete.re(paste0(chr.re, ":", frag.re))
