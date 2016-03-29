@@ -14,7 +14,7 @@ usage_msg="
 \n  Usage: $(basename $0) [ qsub-options ] command arg1 arg2 ...
 \n
 \n  qrun.sh is a qsub replacement for simple job submissions.  It frees
-\n  you from having to write a wrapper scripts around the simple command
+\n  you from having to write wrapper scripts around the simple command
 \n  line that you use interactively: simply put 'qrun.sh' in front of it,
 \n  and it will run on the cluster, rather than locally. The qrun.sh
 \n  script takes care of all the directories, environment variables
@@ -28,8 +28,8 @@ usage_msg="
 \n  available, all of them single-letter options (SGE's qsub are not
 \n  always!).  The most important ones are: -q (specifies queue) and -N
 \n  (specifies jobname). Other qsub options currently recognized are -j
-\n  (join stdout and stder), -M (mail address to use) -m (when to mail),
-\n  -p (priority) and -l (resources). For the -p option () corresponds
+\n  (join stdout and stderr), -M (mail address to use) -m (when to mail),
+\n  -p (priority) and -l (resources). For the -p option (corresponds
 \n  to qsub's \"-pe\") you can specify the environment and the number
 \n  separated by '='. I.e. both -p 'threaded 4' and -p threaded=4 are
 \n  fine (the latter may save you quoting trouble). Option -h
