@@ -158,7 +158,7 @@ else
     if mkdir "$logdir" ; then
         echo "Created directory $logdir for stdout and stderr" >&2
     else
-        eror "Could not create directory $logdir for stdout and stderr. Job not submitted" >&2
+        error "Could not create directory $logdir for stdout and stderr. Job not submitted" >&2
     fi
 fi
 echo "Using directory $logdir for stdout and stderr" >&2
