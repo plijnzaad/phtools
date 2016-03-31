@@ -145,6 +145,14 @@ if [ -z "$jobname" ]; then
 fi
 jobname=$(echo $jobname | sed 's/[ /<>|:][ /<>|:]*/_/g;s/^[._]*//;')
 
+## check the length
+maxlen=245 # 512 for SGE, but stdout and stderr go to files whose names have length limit of 255 chars ...
+if [[ $(echo $jobname  | wc -c) -gt $maxlen ]] ; then
+   error "Job name is longer than $maxlen. Use an explicit -N jobname argument
+The jobname (which may have been constructed from input arguments) is:
+$jobname" 
+fi
+
 ### find/set up the directory for stdout and stderr logs:
 here="$(pwd -P)"
 if [ $(basename "$here")  == $logdirname ]; then
