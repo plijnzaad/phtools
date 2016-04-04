@@ -4,6 +4,7 @@
 
 use strict;
 use Getopt::Std;
+use Text::Levenshtein qw(distance);
 
 use vars qw($opt_h $opt_l);
 
@@ -16,7 +17,6 @@ if ( !getopts("hl:") || $opt_h ) {
 
 my $limit= $opt_l || 1;
 
-use Text::Levenshtein qw(distance);
 
 my  $strings={};
 
