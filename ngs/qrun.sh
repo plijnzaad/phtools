@@ -14,7 +14,7 @@ usage_msg="
 \n  Usage: $(basename $0) [ qsub-options ] command arg1 arg2 ...
 \n
 \n  qrun.sh is a qsub replacement for simple job submissions.  It frees
-\n  you from having to write a wrapper scripts around the simple command
+\n  you from having to write wrapper scripts around the simple command
 \n  line that you use interactively: simply put 'qrun.sh' in front of it,
 \n  and it will run on the cluster, rather than locally. The qrun.sh
 \n  script takes care of all the directories, environment variables
@@ -28,8 +28,8 @@ usage_msg="
 \n  available, all of them single-letter options (SGE's qsub are not
 \n  always!).  The most important ones are: -q (specifies queue) and -N
 \n  (specifies jobname). Other qsub options currently recognized are -j
-\n  (join stdout and stder), -M (mail address to use) -m (when to mail),
-\n  -p (priority) and -l (resources). For the -p option () corresponds
+\n  (join stdout and stderr), -M (mail address to use) -m (when to mail),
+\n  -p (priority) and -l (resources). For the -p option (corresponds
 \n  to qsub's \"-pe\") you can specify the environment and the number
 \n  separated by '='. I.e. both -p 'threaded 4' and -p threaded=4 are
 \n  fine (the latter may save you quoting trouble). Option -h
@@ -145,6 +145,14 @@ if [ -z "$jobname" ]; then
 fi
 jobname=$(echo $jobname | sed 's/[ /<>|:][ /<>|:]*/_/g;s/^[._]*//;')
 
+## check the length
+maxlen=245 # 512 for SGE, but stdout and stderr go to files whose names have length limit of 255 chars ...
+if [[ $(echo $jobname  | wc -c) -gt $maxlen ]] ; then
+   error "Job name is longer than $maxlen. Use an explicit -N jobname argument
+The jobname (which may have been constructed from input arguments) is:
+$jobname" 
+fi
+
 ### find/set up the directory for stdout and stderr logs:
 here="$(pwd -P)"
 if [ $(basename "$here")  == $logdirname ]; then
@@ -158,7 +166,7 @@ else
     if mkdir "$logdir" ; then
         echo "Created directory $logdir for stdout and stderr" >&2
     else
-        eror "Could not create directory $logdir for stdout and stderr. Job not submitted" >&2
+        error "Could not create directory $logdir for stdout and stderr. Job not submitted" >&2
     fi
 fi
 echo "Using directory $logdir for stdout and stderr" >&2

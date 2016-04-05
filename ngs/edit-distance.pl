@@ -25,11 +25,13 @@ while(<>) {
   s/[\n\r]*$//g;
   s/#.*//;
   next LINE unless $_;
-  my ($name, $s)=split(' ');            # e.g. 'G7 \t CCAACAAT'
-  $s=$name unless $name;                # just one column of strings
-  $name= "(line $.)" unless $name;
-  die "duplicate string: '$s' (named '$name', line $.,)" if $strings->{$_};
-  $strings->{$s}=$name;
+  my ($name, $code)=split(' ');            # e.g. 'G7 \t CCAACAAT'
+  if (! $code) {                           # just one column of strings
+    $code=$name;
+    $name= "(line $.)";
+  }
+  die "duplicate string: '$code' (named '$name', line $.,)" if $strings->{$code};
+  $strings->{$code}=$name;
 }                                       # while
 
 my @strings = sort keys %$strings;

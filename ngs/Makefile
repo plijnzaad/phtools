@@ -22,6 +22,7 @@ makefile_path := $(shell unset CDPATH && cd -P $(dir $(word 1, $(MAKEFILE_LIST))
 thismakefile := $(makefile_path)/$(word 1, $(MAKEFILE_LIST))
 
 tmpdir := $(TMPDIR)
+# (TMPDIR is created and provided by the queueing environment at time of job startup)
 
 ## Functions
 
@@ -186,9 +187,7 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 	@echo Creating $@ 1>&2
 	$(call warn_var, filter_opts)
 	$(call warn_var, sort_opts)
-	samtools view -h $(filter_opts) -b -u $*.sam | samtools sort $(sort_opts) -T$(tmpdir)/sort -Obam > $@
-##	# $RANDOM is to avoid potential clashes from parallel jobs. (This
-##	# is all due to samtools brain damage regarding '-T')
+	samtools view -h $(filter_opts) -b -u $*.sam | samtools sort -@ 4 $(sort_opts) -T$(tmpdir)/sort -Obam > $@
 	date
 	samtools index $@
 	(bamstats.pl $@ ; echo '----'; $(bamstat) $@) > $*.bamstat
@@ -203,6 +202,21 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 	date
 	@echo Done creating $@ 1>&2
 
+%-mapped.bam: %.bam 
+	@echo Creating $@ 1>&2
+	samtools view $(filter_opts) -F4 -h -b $< > $@
+	samtools index $@
+	(bamstats.pl $@ ; echo '----'; $(bamstat) $@) > $*-mapped.bamstat
+	date
+	@echo Done creating $@ 1>&2
+
+%-unmapped.bam: %.bam 
+	@echo Creating $@ 1>&2
+	samtools view $(filter_opts) -f4 -h -b $< > $@
+	samtools index $@
+	(bamstats.pl $@ ; echo '----'; $(bamstat) $@) > $*-unmapped.bamstat
+	date
+	@echo Done creating $@ 1>&2
 
 %-fwd.bam: %.bam			#assume it's sorted!
 	@echo Creating $@ 1>&2
