@@ -21,7 +21,7 @@
 makefile_path := $(shell unset CDPATH && cd -P $(dir $(word 1, $(MAKEFILE_LIST))) && pwd -P)
 thismakefile := $(makefile_path)/$(word 1, $(MAKEFILE_LIST))
 
-tmpdir := $(TMPDIR)
+tmpdir := $(TMPDIR) # created and provided by the queueing environment at time of job startup
 
 ## Functions
 
@@ -186,9 +186,7 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 	@echo Creating $@ 1>&2
 	$(call warn_var, filter_opts)
 	$(call warn_var, sort_opts)
-	samtools view -h $(filter_opts) -b -u $*.sam | samtools sort $(sort_opts) -T$(tmpdir)/sort -Obam > $@
-##	# $RANDOM is to avoid potential clashes from parallel jobs. (This
-##	# is all due to samtools brain damage regarding '-T')
+	samtools view -h $(filter_opts) -b -u $*.sam | samtools sort -@ 4 $(sort_opts) -T$(tmpdir)/sort -Obam > $@
 	date
 	samtools index $@
 	(bamstats.pl $@ ; echo '----'; $(bamstat) $@) > $*.bamstat
@@ -202,7 +200,6 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 	(bamstats.pl $@ ; echo '----'; $(bamstat) $@) > $*Q2.bamstat
 	date
 	@echo Done creating $@ 1>&2
-
 
 %-fwd.bam: %.bam			#assume it's sorted!
 	@echo Creating $@ 1>&2
@@ -233,16 +230,20 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 
 ### stats:
 
+%.stats: %.bam
+	samtools stats $*.bam > $*.stats
+
 %.flagstats: %.bam
 	samtools flagstat $*.bam > $*.flagstats
+
+%.idxstats: %.bam
+	samtools idxstats $*.bam > $*.idxstats
 
 %.pestats: %.flagstats
 	pe-stats.pl < $*.flagstats > $*.pestats
 
-%.bamstats: %.bam %.bam.bai %.pestats 
+%.bamstats: %.bam %.bam.bai %.stats %.idxstats
 	@echo Creating $@ 1>&2
-	samtools stats $*.bam > $*.stats
-	samtools idxstats $*.bam > $*.idxstats
 	(bamstats.pl $< ; echo '----'; $(bamstat) $< ) > $*.bamstats
 	@echo Done creating $@ 1>&2
 
