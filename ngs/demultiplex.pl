@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-
+die "not yet ready";
 use strict;
 use Getopt::Std;
 use Text::Levenshtein qw(distance);
