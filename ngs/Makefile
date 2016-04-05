@@ -233,16 +233,20 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 
 ### stats:
 
+%.stats: %.bam
+	samtools stats $*.bam > $*.stats
+
 %.flagstats: %.bam
 	samtools flagstat $*.bam > $*.flagstats
+
+%.idxstats: %.bam
+	samtools idxstats $*.bam > $*.idxstats
 
 %.pestats: %.flagstats
 	pe-stats.pl < $*.flagstats > $*.pestats
 
-%.bamstats: %.bam %.bam.bai %.pestats 
+%.bamstats: %.bam %.bam.bai %.stats %.idxstats
 	@echo Creating $@ 1>&2
-	samtools stats $*.bam > $*.stats
-	samtools idxstats $*.bam > $*.idxstats
 	(bamstats.pl $< ; echo '----'; $(bamstat) $< ) > $*.bamstats
 	@echo Done creating $@ 1>&2
 
