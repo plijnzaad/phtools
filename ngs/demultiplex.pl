@@ -5,11 +5,11 @@ use Getopt::Std;
 use Text::Levenshtein qw(distance);
 use FileHandle;
 
-use vars qw($opt_h $opt_b $opt_1 $opt_2 $opt_p $opt_o);
+use vars qw($opt_h $opt_b $opt_p $opt_o);
 
-my $Usage="$0 -b barcodes.txt -1 all_R1.fastq[.gz] -2 all_R2.fastq[.gz] -p outputprefix -o outputdir";
+my $Usage="... | $0 -b barcodes.txt -p outputprefix -o outputdir";
 
-if ( !getopts("b:1:2:h") || $opt_h ) {
+if ( !getopts("b:p:o:h") || $opt_h ) {
     die $Usage; 
 }
 
@@ -32,7 +32,8 @@ sub readbarcodes {
   $bc;
 }                                       # readbarcodes
 
-sub open_infile { 
+sub open_infile {
+  die "not used nor tested";
   my($file)=@_;
   my $fh=FileHandle->new();
   if ($file =~ /\.gz/) { 
@@ -47,7 +48,6 @@ sub open_outfiles {
   my(@libs)=@_;
   my $fhs={};
 
-
   for my $lib (@libs) { 
     my $file=sprintf("%s.fastq", $lib);
     $file="$opt_p$file" if $opt_p;
@@ -59,7 +59,7 @@ sub open_outfiles {
   $fhs;
 }
 
-sub close_fies {
+sub close_outfiles {
   my($fhs)=@_;
   for my $lib (key %$fhs) {
     close($file->{$lib}) or die "could not close demultiplexed file for library $lib; investigate";
@@ -69,44 +69,33 @@ sub close_fies {
 my $codes = readbarcodes($opt_b);
 
 my @reads;
-$read[0]=open_infile($opt_1);
-$read[1]=open_infile($opt_2);
-
-my $filehandles=open_files(values %$codes);      # code maps barcode to lib name. key is e.g. AGTCAA, value is e.g. M12, output is M12.fastq
+## $read[0]=open_infile($opt_1);
+## $read[1]=open_infile($opt_2);
+my @codes=(values %$codes, 'unknown');
+my $filehandles=open_files(@codes);      # code maps barcode to lib name. key is e.g. AGTCAA, value is e.g. M12, output is M12.fastq
 
 my $nexact=0;
 my $onemismatch=0;
-my $nlost=0;
+my $nunknown=0;
 
 RECORD:
 while(1) { 
-  for() ...
-
-  my $idline=<>;
-  my $seqline=<>;
-  my $dummy=<>;
-  my $qualline=<>;
-
-  my $code= ???;
+  my $record=<>;
+  ### e.g.:  ^@NS500413:172:HVFHWBGXX:1:11101:4639:1062 1:N:0:CCGTCCAT$
+  my ($code)=(split(':', $record))[-1];
+  $record .= <>; # sequence line
+  $record .= <>; # '+'
+  $record . = <>; # quality line
+  
   my $lib=$codes->{$code};
-
+  
   if ( $lib) { 
     $nexact++;
-    print $filehandles->{$lib} $idline . $seqline . "+\n" . $qualline;
-    next RECORD;
-    DO WE relate this TO GET THIS FROM THE OTHER READ???
-  } elsif { 
-    $code=rescue();
-}
-
-}
+  } elsif() { 
+    $lib=rescue($code);
+  } else {
+    $lib='unknown';
+  }
+  print $filehandles->{$lib} $record;
+}                                       # RECORD
 close_files($filehandles);
-
-OR USE sabre:     http://www.vcru.wisc.edu/simonlab/bioinformatics/programs/sabre/README.md.txt
-
-(https://github.com/najoshi/sabre ? ) 
-
-OR Casava ? (check e.g. http://seqanswers.com/forums/showthread.php?t=18736 )
-
-OR fastx_barcode_splitter.pl (no, not paired-end)
-
