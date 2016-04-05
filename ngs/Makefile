@@ -21,7 +21,8 @@
 makefile_path := $(shell unset CDPATH && cd -P $(dir $(word 1, $(MAKEFILE_LIST))) && pwd -P)
 thismakefile := $(makefile_path)/$(word 1, $(MAKEFILE_LIST))
 
-tmpdir := $(TMPDIR) # created and provided by the queueing environment at time of job startup
+tmpdir := $(TMPDIR)
+# (TMPDIR is created and provided by the queueing environment at time of job startup)
 
 ## Functions
 
