@@ -168,4 +168,4 @@ qsub_opts="-shell no -b yes -cwd -V -o $logdir -e $logdir -q $queue -N $jobname 
 
 ## finally, submit:
 cmd=$(echo "$@")                        # remove one level of quoting ...
-qsub $qsub_opts sh -c "$cmd"
+qsub $qsub_opts sh -c "(echo -n 'Started ';date)>&2 ; $cmd;  (echo -n 'Ended ';date)>&2"
