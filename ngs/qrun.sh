@@ -82,11 +82,17 @@ if [ $# -eq 0 ]; then usage; fi
 
 # default mail adres:
 user=$(id -un)
-mail_address=$(ldapsearch -x "(& (objectClass=person)(uid=$user))" mail |  awk '/^mail/{print $2}')
-if [ -z "$mail_address" ]; then
-    echo "$0: Could not find mail address for user $user, exiting" >&2
-    exit 5
+
+if [ -f $HOME/.forward ]; then
+  mail_address=$user@localhost
+else
+    mail_address=$(ldapsearch -x "(& (objectClass=person)(uid=$user))" mail |  awk '/^mail/{print $2}')
+    if [ -z "$mail_address" ]; then
+        echo "$0: Could not find mail address for user $user (consider creating a $HOME/.forward). Exiting." >&2
+        exit 5
+    fi
 fi
+
 opt_M="-M $mail_address"
 
 # default: sent mail when jobs is aborted
