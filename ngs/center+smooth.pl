@@ -42,10 +42,10 @@ Usage: center+smooth.pl --type [paired|single] [ --shift NUMBER ] [ --smooth NUM
   Be aware of the way the mapping was done. If e.g. the first 15 bp from
   the reads were discarded to improve the mapping, the shifting should not
   be by 73 bp, but by 73-15 = 58 bp (this point is of course moot for
-  paired-end data, where the shift is inferred from the template length).
+  paired-end data, where the shift is best inferred from the template length).
   Similarly, if we would be interested in nucleosome boundaries
   (separately for the left and right side), one should in this case shift
-  by -15, to pretend that the trimmed reads did actually begin at the
+  by -15, to pretend that the trimmed reads _did_ actually begin at the
   boundary.
 
   This caution also applies to the --min and --max length: the defaults
