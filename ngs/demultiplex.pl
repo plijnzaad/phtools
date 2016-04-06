@@ -85,7 +85,7 @@ sub ambiguous {
 }
 
 my $codes = readbarcodes($opt_b);       # eg. $code->{'AGCGTT') => 'M3'
-my @files=(values %$codes, 'ambiguous', 'unknown');
+my @files=(values %$codes, 'AMBIGUOUS', 'UNKNOWN');
 my $filehandles=open_outfiles(@files);      # opens M3.fastq.gz, ambiguous.fastq.gz etc.
 
 my $nexact=0;
@@ -114,19 +114,19 @@ while(1) {
     }
     if ($mismatches_allowed == 0) {
       $nunknown++;
-      $lib='unknown';
+      $lib='UNKNOWN';
       last CASE;
     }
     $lib=rescue($code, $codes, $mismatches_allowed);
     if(!$lib) {
       $nunknown++;
-      $lib='unknown';
+      $lib='UNKNOWN';
       last CASE;
     }
     if($special) {
       # check if mismatch is in 7th bp; if so, call it ambiguous
       if (ambiguous() ) {
-        $lib='ambiguous';
+        $lib='AMBIGUOUS';
         $nambiguous++;
         last CASE;
       } else {
