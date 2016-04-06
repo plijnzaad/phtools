@@ -92,9 +92,6 @@ my $nrescued=0;                         # having at most $mismatch mismatches
 my $nunknown=0;
 my $nambiguous=0;
 
-
-
-
 RECORD:
 while(1) { 
   my $record=<>;
