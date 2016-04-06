@@ -58,7 +58,7 @@ sub open_outfiles {
     $file="$opt_p$file" if $opt_p;
     $file="$opt_o/$file" if $opt_o;
     $file = FileHandle->new("| gzip > $file") or die "library $lib, file $file: $!";
-    warn "creating file $file ...\n";
+    warn "Creating file $file ...\n";
     $fhs->{$lib}=$file;
   }
   $fhs;
@@ -79,13 +79,9 @@ sub ambiguous {
   die "to be written";
 }
 
-my $codes = readbarcodes($opt_b);
-
-my @reads;
-## $read[0]=open_infile($opt_1);
-## $read[1]=open_infile($opt_2);
-my @codes=(values %$codes, 'unknown');
-my $filehandles=open_files(@codes);      # code maps barcode to lib name. key is e.g. AGTCAA, value is e.g. M12, output is M12.fastq
+my $codes = readbarcodes($opt_b);       # eg. $code->{'AGCGTT') => 'M3'
+my @files=(values %$codes, 'ambiguous', 'unknown');
+my $filehandles=open_outfiles(@files);      # opens M3.fastq.gz, ambiguous.fastq.gz etc.
 
 my $nexact=0;
 my $nrescued=0;                         # having at most $mismatch mismatches
