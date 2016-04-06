@@ -5,13 +5,18 @@ use Getopt::Std;
 use Text::Levenshtein qw(distance);
 use FileHandle;
 
-use vars qw($opt_h $opt_b $opt_p $opt_o);
+use vars qw($opt_h $opt_b $opt_m $opt_p $opt_o);
 
-my $Usage="... | $0 -b barcodes.txt -p outputprefix -o outputdir";
+my $Usage="... | $0 -b barcodes.txt [-m mismatches] [ -p outputprefix] [ -o outputdir ] ";
 
-if ( !getopts("b:p:o:h") || $opt_h ) {
+if ( !getopts("b:p:o:m:h") || $opt_h ) {
     die $Usage; 
 }
+
+my  $mismatch = 1;
+$mismatch = $opt_m if defined($opt_m);  # 0 also possible
+
+my $special=0;
 
 sub readbarcodes {
   my ($file)=@_;
@@ -49,10 +54,10 @@ sub open_outfiles {
   my $fhs={};
 
   for my $lib (@libs) { 
-    my $file=sprintf("%s.fastq", $lib);
+    my $file=sprintf("%s.fastq.gz", $lib);
     $file="$opt_p$file" if $opt_p;
     $file="$opt_o/$file" if $opt_o;
-    $file = FileHandle->new("> $file") or die "library $lib, file $file: $!";
+    $file = FileHandle->new("| gzip > $file") or die "library $lib, file $file: $!";
     warn "creating file $file ...\n";
     $fhs->{$lib}=$file;
   }
@@ -61,9 +66,17 @@ sub open_outfiles {
 
 sub close_outfiles {
   my($fhs)=@_;
-  for my $lib (key %$fhs) {
-    close($file->{$lib}) or die "could not close demultiplexed file for library $lib; investigate";
+  for my $lib (keys %$fhs) {
+    $fhs->{$lib}->close() or die "could not close demultiplexed file for library $lib; investigate";
   }
+}
+
+sub rescue {
+  die "to be written";
+}
+
+sub ambiguous {
+  die "to be written";
 }
 
 my $codes = readbarcodes($opt_b);
@@ -75,8 +88,12 @@ my @codes=(values %$codes, 'unknown');
 my $filehandles=open_files(@codes);      # code maps barcode to lib name. key is e.g. AGTCAA, value is e.g. M12, output is M12.fastq
 
 my $nexact=0;
-my $onemismatch=0;
+my $nrescued=0;                         # having at most $mismatch mismatches
 my $nunknown=0;
+my $nambiguous=0;
+
+
+
 
 RECORD:
 while(1) { 
@@ -85,17 +102,37 @@ while(1) {
   my ($code)=(split(':', $record))[-1];
   $record .= <>; # sequence line
   $record .= <>; # '+'
-  $record . = <>; # quality line
+  $record .= <>; # quality line
   
-  my $lib=$codes->{$code};
-  
-  if ( $lib) { 
-    $nexact++;
-  } elsif() { 
-    $lib=rescue($code);
-  } else {
-    $lib='unknown';
-  }
-  print $filehandles->{$lib} $record;
+  my $lib;
+ CASE:
+  while(1) {
+    $lib=$codes->{$code};
+    if ($lib) {
+      $nexact++;
+      last CASE;
+    }
+    $lib=rescue($code, $codes, $mismatch);
+    if(!$lib) {
+      $nunknown++;
+      $lib='unknown';
+      last CASE;
+    }
+    if($special) {
+      # check if mismatch is in 7th bp; if so, call it ambiguous
+      if (ambiguous() ) {
+        $lib='ambiguous';
+        $nambiguous++;
+        last CASE;
+      } else {
+        $nrescued++;
+        last CASE;
+      }
+    }
+    die "should not reach this point";
+  }                                     # CASE
+  $filehandles->{$lib}->print($record);
 }                                       # RECORD
 close_files($filehandles);
+warn sprintf("exact: %s\nrescued:%s\nambiguous:%s\nunknown: %s\n",
+             map { commafy $_ } ($nexact, $nrescued, $nambiguous, $nunknown ));
