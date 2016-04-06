@@ -202,22 +202,6 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 	date
 	@echo Done creating $@ 1>&2
 
-%-mapped.bam: %.bam 
-	@echo Creating $@ 1>&2
-	samtools view $(filter_opts) -F4 -h -b $< > $@
-	samtools index $@
-	(bamstats.pl $@ ; echo '----'; $(bamstat) $@) > $*-mapped.bamstat
-	date
-	@echo Done creating $@ 1>&2
-
-%-unmapped.bam: %.bam 
-	@echo Creating $@ 1>&2
-	samtools view $(filter_opts) -f4 -h -b $< > $@
-	samtools index $@
-	(bamstats.pl $@ ; echo '----'; $(bamstat) $@) > $*-unmapped.bamstat
-	date
-	@echo Done creating $@ 1>&2
-
 %-fwd.bam: %.bam			#assume it's sorted!
 	@echo Creating $@ 1>&2
 	date
