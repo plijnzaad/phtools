@@ -63,7 +63,7 @@ sub open_outfiles {
     $name="$opt_p$name" if $opt_p;
     $name="$opt_o/$name" if $opt_o;
     my $fh = FileHandle->new("| gzip > $name") or die "library $lib, file $name: $!";
-    warn "Creating file $name ...\n";
+    warn "Creating/overwriting file $name ...\n";
     $fhs->{$lib}=$fh;
   }
   $fhs;
