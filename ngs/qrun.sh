@@ -46,6 +46,10 @@ usage_msg="
 \n  perl-script). Escape them to avoid premature substitution by the
 \n  invoking shell.
 \n
+\n  If your system has no ldapsearch for looking up the e-mail address, 
+\n  consider creating a file $HOME/.forward that contains the right
+\n  e-mail address (file must be unreadable to group and world).
+\n
 \n  Due to some brain damage on the part of both CentOS and SGE, you may
 \n  see errors like 'sh: which: line 1: syntax error: unexpected end of
 \n  file'. These errors are harmless.
