@@ -134,5 +134,15 @@ while(1) {
   $filehandles->{$lib}->print($record);
 }                                       # RECORD
 close_files($filehandles);
+
+sub commafy {
+  # insert comma's to separate powers of 1000
+  my($i)=@_;
+  my $r = join('',reverse(split('',$i)));
+  $r =~ s/(\d{3})/$1,/g;
+  $r =~ s/,$//;
+  join('',reverse(split('',$r)));
+}
+
 warn sprintf("exact: %s\nrescued:%s\nambiguous:%s\nunknown: %s\n",
              map { commafy $_ } ($nexact, $nrescued, $nambiguous, $nunknown ));
