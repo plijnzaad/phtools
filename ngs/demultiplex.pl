@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-die "not yet ready";
+
 use strict;
 use Getopt::Std;
 use Text::Levenshtein qw(distance);
@@ -7,14 +7,19 @@ use FileHandle;
 
 use vars qw($opt_h $opt_b $opt_m $opt_p $opt_o);
 
-my $Usage="... | $0 -b barcodes.txt [-m mismatches] [ -p outputprefix] [ -o outputdir ] ";
+my $Usage="Usage:
 
-if ( !getopts("b:p:o:m:h") || $opt_h ) {
+   ... | $0 -b barcodes.txt [-m mismatches] [ -p outputprefix] [ -o outputdir ] 
+";
+
+if ( !getopts("b:p:o:m:h") || ! $opt_b ||  $opt_h ) {
     die $Usage; 
 }
 
-my  $mismatch = 1;
-$mismatch = $opt_m if defined($opt_m);  # 0 also possible
+my  $mismatches_allowed = 1;
+$mismatches_allowed = $opt_m if defined($opt_m);  # 0 also possible
+
+die "only zero-mismatches allowed for now ..." if $mismatches_allowed >0;
 
 my $special=0;
 
@@ -54,12 +59,12 @@ sub open_outfiles {
   my $fhs={};
 
   for my $lib (@libs) { 
-    my $file=sprintf("%s.fastq.gz", $lib);
-    $file="$opt_p$file" if $opt_p;
-    $file="$opt_o/$file" if $opt_o;
-    $file = FileHandle->new("| gzip > $file") or die "library $lib, file $file: $!";
-    warn "Creating file $file ...\n";
-    $fhs->{$lib}=$file;
+    my $name=sprintf("%s.fastq.gz", $lib);
+    $name="$opt_p$name" if $opt_p;
+    $name="$opt_o/$name" if $opt_o;
+    my $fh = FileHandle->new("| gzip > $name") or die "library $lib, file $name: $!";
+    warn "Creating file $name ...\n";
+    $fhs->{$lib}=$fh;
   }
   $fhs;
 }
@@ -91,8 +96,10 @@ my $nambiguous=0;
 RECORD:
 while(1) { 
   my $record=<>;
+  last RECORD if (eof(STDIN) || !$record);
   ### e.g.:  ^@NS500413:172:HVFHWBGXX:1:11101:4639:1062 1:N:0:CCGTCCAT$
   my ($code)=(split(':', $record))[-1];
+  $code =~ s/[\n\r]*$//;
   $record .= <>; # sequence line
   $record .= <>; # '+'
   $record .= <>; # quality line
@@ -105,7 +112,12 @@ while(1) {
       $nexact++;
       last CASE;
     }
-    $lib=rescue($code, $codes, $mismatch);
+    if ($mismatches_allowed == 0) {
+      $nunknown++;
+      $lib='unknown';
+      last CASE;
+    }
+    $lib=rescue($code, $codes, $mismatches_allowed);
     if(!$lib) {
       $nunknown++;
       $lib='unknown';
@@ -126,7 +138,7 @@ while(1) {
   }                                     # CASE
   $filehandles->{$lib}->print($record);
 }                                       # RECORD
-close_files($filehandles);
+close_outfiles($filehandles);
 
 sub commafy {
   # insert comma's to separate powers of 1000
