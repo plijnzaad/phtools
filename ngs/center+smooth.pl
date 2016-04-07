@@ -211,7 +211,6 @@ LINE:
           $too_long++;
           next LINE;
         }
-##        $s=int($tlen/2 +0.5);     # old
         $s=int( ($tlen-1)/2);     # exact for uneven seqs
         $s = $s + (unpack("%B*",$seq)%2) unless ($tlen % 2); # quasi-randomly  add 1
         # (the unpack expression is quasi-uniform hash based on sequence content)
@@ -219,10 +218,10 @@ LINE:
       }
 
       if ($reverse_strand) { 
-        die "This is not yet properly implemented (overlooking indels" if $single;
+        die "Not yet properly implemented (overlooking indels)" if $single;
         $pos = $pos + ($readlen -1) - $s - $halfsmooth;
       } else {
-        $pos =     $pos             + $s - $halfsmooth;
+        $pos = $pos                 + $s - $halfsmooth;
       }
       my $end=$pos + $smooth -1;
       
