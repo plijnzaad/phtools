@@ -13,6 +13,10 @@
 
 ### VALIDATION_STRINGENCY=LENIENT is always used.
 
+echo 'Prolly obsolete with newer PicardToolses. Consider something like this (lmod specification of an alias):
+  set_alias("ptrun", "env VALIDATION_STRINGENCY=LENIENT java -Xmx4G -jar " .. pathJoin(base, "picard.jar"))' >&2
+exit 7
+
 validation='VALIDATION_STRINGENCY=LENIENT'
 
 ## avoid "ERROR: Option 'VALIDATION_STRINGENCY' cannot be specified more than once."
