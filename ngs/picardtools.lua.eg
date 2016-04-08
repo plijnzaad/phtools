@@ -2,9 +2,9 @@
 version="2.2.1"
 local base = "/usr/local/picard-tools-" .. version
 
-setenv("_pt_jar" = pathJoin(base, "picard.jar" ))
-setenv("_pt_defaults" = "VALIDATION_STRINGENCY=SILENT VERBOSITY=WARNING TMP_DIR=$TMPDIR")
-setenv("_pt_javaopts" = "-Xmx4G")
+setenv("_pt_jar", pathJoin(base, "picard.jar" ))
+setenv("_pt_defaults", "VALIDATION_STRINGENCY=SILENT VERBOSITY=WARNING TMP_DIR=$TMPDIR")
+setenv("_pt_javaopts", "-Xmx4G")
 
 always_load("Java")
 
