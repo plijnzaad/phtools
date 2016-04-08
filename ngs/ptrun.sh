@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # -*- mode: sh; -*-
 ## little wrapper script for  the picard-tools, to be used in conjunction with the alias in module.lua file
 ## (see also ptrun-lmod.lua.eg)
