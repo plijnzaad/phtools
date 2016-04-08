@@ -1,0 +1,95 @@
+-- example of an  lmod  file for using picard tools with the ptrun.sh script
+version="2.2.1"
+local base = "/usr/local/picard-tools-" .. version
+
+setenv("_pt_jar" = pathJoin(base, "picard.jar" ))
+setenv("_pt_defaults" = "VALIDATION_STRINGENCY=SILENT VERBOSITY=WARNING TMP_DIR=$TMPDIR")
+setenv("_pt_javaopts" = "-Xmx4G")
+
+always_load("Java")
+
+prepend_path("PATH", base) -- for the ptrun.sh script
+prepend_path("LD_LIBRARY_PATH", base) -- in case it needs to find libIntelDeflater.so
+prepend_path("CLASSPATH", pathJoin(base, "htsjdk-2.2.1.jar"))
+prepend_path("CLASSPATH", pathJoin(base, "picard-lib.jar"))
+prepend_path("CLASSPATH", pathJoin(base, "picard.jar"))
+
+whatis('Keywords: tools, utility, samtools')
+
+help(
+[[ 
+
+A set of command line tools (in Java) for manipulating high-throughput
+sequencing (HTS) data and formats such as SAM/BAM/CRAM and VCF.
+
+For an overview of the commands available, and documentation, see http://broadinstitute.github.io/picard/
+
+For ease of use, a shell wrapper 'ptrun.sh' is provided. If the documentation says
+
+  java -jar picard.jar CollectAlignmentSummaryMetrics \
+	REFERENCE=my_data/reference.fasta \
+	INPUT=my_data/input.bam \
+	OUTPUT=results/output.txt
+
+then you can instead simply run it as 
+
+  ptrun.sh CollectAlignmentSummaryMetrics \
+	REFERENCE=my_data/reference.fasta \
+	INPUT=my_data/input.bam \
+	OUTPUT=results/output.txt
+
+Look inside ]] .. pathJoin(base, "ptrun.sh") .. [[ to see its definition, in case you'd like to adjust things.  (The
+documentation sometimes mentions 'PicardCommandLine', which I could not
+find, but 'ptrun.sh' is essentially the same as PicardCommandLine. PL)
+
+Note 1: in many cases, the picard tools parser is very strict and
+crashes if it sees the slightest deviation from the standard. It is
+therefore useful to always specify 'VALIDATION_STRINGENCY=SILENT' as
+one of the arguments.
+
+Note 2: the sorting order for ptrun SortSam SORT_ORDER=queryname is
+different (i.e., simply lexicographical, which you typically want) from that given by samtools -n
+(which is 'natural'; you usually don't want that). See https://github.com/samtools/hts-specs/issues/5
+and  https://www.biostars.org/p/102735/#185591 )
+
+Currently available:
+
+    CheckFingerprint CollectWgsMetricsWithNonZeroCoverage
+    CrosscheckReadGroupFingerprints CreateSequenceDictionary
+    ExtractSequences NonNFastaSize NormalizeFasta CheckIlluminaDirectory
+    CollectIlluminaBasecallingMetrics CollectIlluminaLaneMetrics
+    ExtractIlluminaBarcodes IlluminaBasecallsToFastq
+    IlluminaBasecallsToSam MarkIlluminaAdapters BedToIntervalList
+    IntervalListToBed IntervalListTools LiftOverIntervalList
+    ScatterIntervalsByNs CalculateHsMetrics
+    CollectAlignmentSummaryMetrics CollectBaseDistributionByCycle
+    CollectGcBiasMetrics CollectHiSeqXPfFailMetrics CollectHsMetrics
+    CollectInsertSizeMetrics CollectJumpingLibraryMetrics
+    CollectMultipleMetrics CollectOxoGMetrics CollectQualityYieldMetrics
+    CollectRawWgsMetrics CollectRnaSeqMetrics CollectRrbsMetrics
+    CollectSequencingArtifactMetrics CollectTargetedPcrMetrics
+    CollectVariantCallingMetrics CollectWgsMetrics
+    CollectWgsMetricsFromQuerySorted CollectWgsMetricsFromSampledSites
+    CompareMetrics ConvertSequencingArtifactToOxoG
+    EstimateLibraryComplexity MeanQualityByCycle
+    QualityScoreDistribution BaitDesigner FifoBuffer AddCommentsToBam
+    AddOrReplaceReadGroups BamIndexStats BamToBfq BuildBamIndex
+    CalculateReadGroupChecksum CheckTerminatorBlock CleanSam CompareSAMs
+    DownsampleSam FastqToSam FilterSamReads FixMateInformation
+    GatherBamFiles MarkDuplicates MarkDuplicatesWithMateCigar
+    MergeBamAlignment MergeSamFiles PositionBasedDownsampleSam
+    ReorderSam ReplaceSamHeader
+    RevertOriginalBaseQualitiesAndAddMateCigar RevertSam
+    SamFormatConverter SamToFastq SortSam SplitSamByLibrary
+    ValidateSamFile ViewSam FilterVcf GatherVcfs GenotypeConcordance
+    LiftoverVcf MakeSitesOnlyVcf MergeVcfs RenameSampleInVcf SortVcf
+    SplitVcfs UpdateVcfSequenceDictionary VcfFormatConverter
+    VcfToIntervalList
+
+Downloaded from https://github.com/broadinstitute/picard/releases/tag/2.2.1
+and installed by plijnzaad 7 march 2016, 
+
+See also samtools.
+
+]])
+
