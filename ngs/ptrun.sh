@@ -4,10 +4,15 @@
 ## (see also ptrun-lmod.lua.eg)
 ## which takes care of using the right jar, memory and tmpdir
 
-if [ x$_ptjar = x -o ! -f $_ptjar ] ; then # defined in the 
-  echo "picard tools jar file not defined or not found" >&2
+if [ x$_pt_jar = x]; then
+  echo "_pt_jar variable not defined" >&2
   exit 8
 fi
 
-java $_pt_javaopts -jar $_ptjar "$@"  $_ptdefaults
+if [  ! -f "$_pt_jar" ]; then
+  echo "picard tools jar not found" >&2
+  exit 9
+fi
+
+java $_pt_javaopts -jar $_pt_jar "$@"  $_pt_defaults
 
