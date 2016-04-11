@@ -14,5 +14,5 @@ if [  ! -f "$_pt_jar" ]; then
   exit 9
 fi
 
-java $_pt_javaopts -jar $_pt_jar "$@"  $_pt_defaults
+java $_pt_javaopts -jar $_pt_jar "$@"  $_pt_defaults TMP_DIR=$TMPDIR
 
