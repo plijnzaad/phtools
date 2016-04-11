@@ -1,8 +1,8 @@
 #!/bin/sh
 # -*- mode: sh; -*-
 ## This script is just so that the queueing system can supply the $TMPDIR
-## Typically used as  
+## Typically used as e.g. 
 ## 
-##  ... | samtools sort -@ 4  -Obam > x.bam
+##  ... | samtoolssort.sh -@ 4  -n -m 8G  -Obam -o output/x.bam
 ## 
 samtools sort -T$TMPDIR/sort "$@"
