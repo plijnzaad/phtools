@@ -1,6 +1,5 @@
 #!/bin/env perl
 
-die "untested (also check samtooms view -s, btw)";
 ### NOTE: also check samtools view -s 322.15 -b file.bam > random_15%_of_file.bam, use seed 322.15
 
 use strict;
@@ -16,7 +15,7 @@ Usage:
 
    ... | random-subsample.pl  --perc percentage | ...
 
-Does approximate subsampling in one pass. Ordering will
+Does _approximate_ subsampling in one pass. Ordering will
 be the same as that of the input files. If the latter is undesirable, consider using 
 reservoir sampling, see http://alexpreynolds.github.io/sample/
 
