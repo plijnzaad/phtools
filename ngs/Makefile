@@ -255,7 +255,7 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 	date
 	$(call check_var, chromsizes)
 	$(call check_exists, $(chromsizes))
-	bedtools genomecov -bg -split -ibam $*.bam -g $(chromsizes) -bg | env LC_COLLATE=C sort -k1,1 -k2,2n  > $*.bedGraph
+	bedtools genomecov -split -ibam $*.bam -g $(chromsizes) -bg | env LC_COLLATE=C sort -k1,1 -k2,2n  > $*.bedGraph
 	date
 	@echo Done creating $@ 1>&2
 
