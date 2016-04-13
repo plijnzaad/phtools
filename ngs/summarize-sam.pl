@@ -37,7 +37,7 @@ sub commafy {   $fmt->format_number($_[0]); }
 my $version="summarize-sam.pl v0.2";
 
 my $flags = ['PE',                      # 0
-            'properly aligned',         # 1
+            'properly pair',            # 1
             'unmapped',                 # 2
             'mate unmapped',            # 3
             'reverse strand',           # 4
@@ -45,7 +45,7 @@ my $flags = ['PE',                      # 0
             'read1', # i.e. first of two halfpairs # 6
             'read2', # i.e. second of two halfpairs # 7
             'part of a secondary alignment', # 8
-            'not passing quality controls',  # 9
+            'not passing QC',                # 9
             'PCR or optical duplicate',      # 10
             'chimeric/supplementary alignment']; # 11
 
