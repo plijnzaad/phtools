@@ -34,7 +34,7 @@ use Number::Format;
 my $fmt=new Number::Format(-thousands_sep => ',');
 sub commafy {   $fmt->format_number($_[0]); }
 
-my $version="summarize-sam.pl v0.2";
+my $version="summarize-sam.pl v0.4";
 
 my $flags = ['PE',                      # 0
             'proper pair',              # 1
