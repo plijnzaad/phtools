@@ -15,9 +15,9 @@ Usage:
 
    ... | random-subsample.pl  --perc percentage | ...
 
-Does _approximate_ subsampling in one pass. Ordering will
-be the same as that of the input files. If the latter is undesirable, consider using 
-the Unix command shuf (1) and/or reservoir sampling, see http://alexpreynolds.github.io/sample/ 
+Does _approximate_ subsampling in one pass. Ordering will be the same as that of the 
+input files. If the latter is undesirable, consider using the Unix command shuf (1) 
+and/or reservoir sampling, see http://alexpreynolds.github.io/sample/
 
 Options: 
   --perc  N   Seed the random number generator with N,N (for reproduceability purposes)
