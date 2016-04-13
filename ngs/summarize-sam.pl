@@ -37,7 +37,7 @@ sub commafy {   $fmt->format_number($_[0]); }
 my $version="summarize-sam.pl v0.2";
 
 my $flags = ['PE',                      # 0
-            'properly pair',            # 1
+            'proper pair',              # 1
             'unmapped',                 # 2
             'mate unmapped',            # 3
             'reverse strand',           # 4
@@ -152,6 +152,9 @@ while(<>) {
       $stats->{concordant}++;
     }
   }
+  $pos = '?' if $flag & $Funmapped;
+  $pnext = '?' if $flag & $Fmateunmapped;
+  $tlen= '?' if $flag & ($Funmapped | $Fmateunmapped);
   print join("\t", (idhash($qname), $rname, $pos, $pnext, $tlen, seqsummary($seq), pval($mapq), $PEsummary, explain_flags($flag))) . "\n";
 }                                       # while
 
