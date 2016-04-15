@@ -91,7 +91,7 @@ case "$1" in
 *.bam|*.cram) 
         ## Use Samtools to view a next generation sequencing genome alignment file (.bam or .cram)
         if [ -x "`which samtools 2>/dev/null`" ]; then
-            samtools view -h "$1"
+            (samtools view -H "$1" | head -24; echo '(Those were first 24 header lines, now skipping to first read ...)' ; samtools view "$1")
         else 
 	    echo -e "$0: cannot find samtools" >&2
             exit 1
