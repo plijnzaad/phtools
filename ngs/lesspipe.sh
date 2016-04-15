@@ -40,7 +40,7 @@ if [ -d "$1" ] ; then
 	exit $?
 fi
 
-exec 2>/dev/null
+# exec 2>/dev/null
 
 # Allow for user defined filters
 if [ -x ~/.lessfilter ]; then
@@ -89,11 +89,19 @@ case "$1" in
 	fi ;;
 ### bioinformatics:
 *.bam|*.cram) 
+        ## Use Samtools to view a next generation sequencing genome alignment file (.bam or .cram)
         if [ -x "`which samtools 2>/dev/null`" ]; then
             samtools view -h "$1"
-        else  ## Use Samtools to view a next generation sequencing 
-            ## genome alignment file (.bam or .cram)
+        else 
 	    echo -e "$0: cannot find samtools" >&2
+            exit 1
+        fi ;;
+*.bw|*.bigwig)
+        ## Use bigWigInfo
+        if [ -x "`which bigWigInfo 2>/dev/null`" ]; then
+            bigWigInfo "$1"
+        else 
+	    echo -e "$0: cannot find bigWigInfo (part of the UCSC suite) " >&2
             exit 1
         fi ;;
 
