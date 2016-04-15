@@ -1,7 +1,6 @@
 #!/bin/env perl
 
 ### NOTE: also check samtools view -s 322.15 -b file.bam > random_15%_of_file.bam, use seed 322.15
-###
 use strict;
 
 use Getopt::Long;
@@ -13,15 +12,19 @@ use vars qw($help $seed $perc $nlines $nselected);
 my $Usage = q{
 Usage: 
 
-   ... | random-subsample.pl  --perc percentage | ...
+   ... | subsample.pl  --perc percentage | ...
 
 Does _approximate_ subsampling in one pass. Ordering will be the same as that of the 
 input files. If the latter is undesirable, consider using the Unix command shuf (1) 
-and/or reservoir sampling, see http://alexpreynolds.github.io/sample/
+and/or reservoir sampling, see https://github.com/paulgb/subsample
+and/or see http://alexpreynolds.github.io/sample/
 
 Options: 
   --perc  N   Seed the random number generator with N,N (for reproduceability purposes)
   --seed  N   Seed the random number generator with N,N (for reproduceability purposes)
+
+Note: it's prolly better to use proper reservoir samplling
+
 };
 
 
