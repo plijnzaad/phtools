@@ -14,16 +14,15 @@ Usage: center+smooth.pl --type [paired|single] [ --shift NUMBER ] [ --smooth NUM
   The script is aimed at MNase-seq data (used to map nucleosome positions)
   and is meant to get sharper peaks at the likely position of the
   nucleosome dyad. It reads a SAM file from stdin, and writes (to stdout)
-  a SAM file, all shifted into their 3\'-direction. For paired-end read
-  data, the amount of shifting is determined by the template length (field
+  a SAM file, all shifted into their 3\'-direction. For paired-end (PE) reads,
+  the amount of shifting is determined by the template length (field
   9) found in the SAM file.  It can also be specified manually using the
-  --shift paramter, typically when dealing with single-end data. Make sure
-  that the fragments in the SAM file correspond to single nucleosomes,
-  otherwise shifting by half the template length does not make sense (see
-  also the --minlen and --maxlen options).
+  --shift paramter, typically when dealing with single-end data. For PE reads,
+  only the first of the two reads is kept, and the output data is *single ended*.
 
-  For paired-end reads, the second read is skipped unless --nodrop is specified
-  (this needs work still ...)
+  Make sure that the fragments in the SAM file correspond to single
+  nucleosomes, otherwise shifting by half the template length does not
+  make sense (see also the --minlen and --maxlen options).
 
   The reads are made into "single-basepair reads". The reason for this is
   that basepair 2, 3, etc. are not additional independent evidence of the
@@ -64,8 +63,6 @@ Options:
 
   --type  paired|single Indicate if the SAM file contains single-end or 
                         paired-end reads
-  --nodrop            For paired-end reads, also keep the 2nd segment ("halfpair")
-                      for each read (probably not want you want, and coordinates may be off)
   --shift <number>    Shift all reads by this amount in their own
                       3\'-direction.  Can be negative. If not specified,
                       shifting is by half the fragmentlength found in
@@ -107,12 +104,12 @@ my $maxlen= 200;                    # i.e. at most one nucleosome!
 my $strict=undef;
 my $auto=1;
 my $seqtype=undef;
-my $nodrop=undef;
+## my $nodrop=undef;
 
 my @argv_copy=@ARGV;                    # eaten by GetOptions
 die $usage if  GetOptions('help'=> \$help,
                           'type=s' => \$seqtype,
-                          'nodrop' => \$nodrop,
+##                          'nodrop' => \$nodrop,
                           'shift=i' => \$shift,
                           'chrom_sizes=s' => \$chrom_sizes,
                           'minlen=i' => \$minlen,
@@ -133,7 +130,7 @@ my $single= ($seqtype =~ /single/i);
 
 if ($single) {
   die "--shift argument is required for single-end reads" unless  $shift;
-  die "--nodrop option only valid when using --type paired" if $nodrop;
+###  die "--nodrop option only valid when using --type paired" if $nodrop;
 }
 
 my $pg_printed=0;
@@ -195,8 +192,6 @@ LINE:
         next LINE;
       }
       
-      my $reverse_strand = ($flag & 0x10);
-
       my $s;
       if ($single) {
         die "read is paired, but you specified --type single" if ($flag & 0x1);
@@ -204,8 +199,9 @@ LINE:
       } else {
         if ($flag & 0x80) {             # looking at R2
           $mate2dropped++;
-          die "not implemented properly: coordinates will be wrong for 2nd mate if there are indels ..." if $nodrop;
-          next LINE unless $nodrop;
+          ## die "not implemented properly: coordinates will be wrong for 2nd mate if there are indels ..." if $nodrop;
+          next LINE;
+          ## note: R1 will be turned into a SE read!
         }
         if ($tlen < $minlen ) {
           $too_short++;
@@ -220,6 +216,12 @@ LINE:
         # (the unpack expression is quasi-uniform hash based on sequence content)
         $s = $shift if $shift;         # allow override
       }
+
+      $rnext='*';
+      $pnext=0;
+      $flag = ($flag & ~(1<<0));        # make R1 into a single-end read
+
+      my $reverse_strand = ($flag & 0x10);
 
       if ($reverse_strand) { 
         die "Not yet properly implemented (overlooking indels)" if $single;
