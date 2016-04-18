@@ -22,6 +22,9 @@ Usage: center+smooth.pl --type [paired|single] [ --shift NUMBER ] [ --smooth NUM
   otherwise shifting by half the template length does not make sense (see
   also the --minlen and --maxlen options).
 
+  For paired-end reads, the second read is skipped unless --nodrop is specified
+  (this needs work still ...)
+
   The reads are made into "single-basepair reads". The reason for this is
   that basepair 2, 3, etc. are not additional independent evidence of the
   nucleosome dyad being located at the 5\'-end of the current read, and
@@ -52,7 +55,7 @@ Usage: center+smooth.pl --type [paired|single] [ --shift NUMBER ] [ --smooth NUM
   correspond to single-nucleosome fragments provided the mapping was done
   without any trimming.
 
-  The script refuses to run on data that was previously output it, as it
+  The script refuses to run on data that was previously output by it, as it
   leads to intractable shifting errors (the reason is that the script
   operates essentially on the first basepair of each read, not on its
   middle).
@@ -195,10 +198,11 @@ LINE:
       my $reverse_strand = ($flag & 0x10);
 
       my $s;
-      if ($single) {  
+      if ($single) {
+        die "read is paired, but you specified --type single" if ($flag & 0x1);
         $s=$shift;
       } else {
-        if ($flag & 0x80) { 
+        if ($flag & 0x80) {             # looking at R2
           $mate2dropped++;
           die "not implemented properly: coordinates will be wrong for 2nd mate if there are indels ..." if $nodrop;
           next LINE unless $nodrop;
