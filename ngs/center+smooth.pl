@@ -186,8 +186,8 @@ LINE:
       my $tlen_sign = ($tlen <=> 0);
       $tlen=abs($tlen);
 
-      my $readlen=length($seq); ### cannot trust this!!
-      if ($flag & 0x4) {        # note: they may have the $rname of their mate, so have yet been skipped
+      my $readlen=length($seq); ### cannot trust this if there are indels!
+      if ($flag & (0x4 | 0x8) ) {        # note: they may have the $rname of their mate, so have yet been skipped
         $unmapped++;
         next LINE;
       }
