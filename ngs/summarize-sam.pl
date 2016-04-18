@@ -116,7 +116,7 @@ sub pval {
   sprintf("%4.1g", 10**(($q/-10)));
 }
 
-print "#idhash	chr	pos	matepos	insertlen	seqsummary	pval	PEsummary	flags\n";
+print "#idhash	chr	pos	matepos	inslen	seqsummary	pval	PEsummary	flags\n";
 while(<>) { 
   s/[\n\r]*$//;
   next if /^@/;
