@@ -195,7 +195,7 @@ LINE:
       }
       
       if(!$tlen && !$shift ) { 
-        die "this should not happen: unpaired read (i.e., no length), but no shift specified ...";
+        die "this should not happen: unpaired/halfmapped read (i.e., no length), but no shift specified ...";
         next LINE;
       }
 
