@@ -277,7 +277,7 @@ warn commafy($trimmed_left) . " reads trimmed on the left side, " . commafy($tri
 if(!$single) { ## paired-end only:
   warn "Dropped ". commafy($mate2dropped) . " mate2 lines because uninformative\n";
   warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because to long\n";
-  warn "Found " . commafy($no_length) . " unpaired reads, skipped because no --shift was specified\n";
+  warn "Dropped " . commafy($no_length) . " unpaired reads (no fragment length known, nor a shift specified)\n";
 }
 die "No reads were output!" unless $nreads > 0;
 
