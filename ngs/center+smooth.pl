@@ -129,6 +129,7 @@ die "--type argument required, must be 'paired' or 'single' "
 my $single= ($seqtype =~ /single/i);
 
 if ($single) {
+  die "single-end reads needs some extra checking ...";
   die "--shift argument is required for single-end reads" unless  $shift;
 ###  die "--nodrop option only valid when using --type paired" if $nodrop;
 }
@@ -145,7 +146,7 @@ if ($chrom_sizes) {
 
 my $nreads=0;
 my ($trimmed_left, $trimmed_right, $skipped_left, $skipped_right)=(0,0,0,0);
-my ($unmapped, $too_short, $too_long, $no_length, $mate2dropped)=(0,0,0,0,0);
+my ($unmapped, $too_short, $too_long, $mate2dropped, $unpaired)=(0,0,0,0,0,0);
 
 die "smoothing window must be uneven" unless ($smooth % 2);
 
@@ -180,7 +181,7 @@ LINE:
       unless $chr_length;
 
       if(!$tlen && !$shift ) { 
-        $no_length++;
+        die "this should not happen: unpaired read, but no shift specified ...";
         next LINE;
       }
       my $tlen_sign = ($tlen <=> 0);
@@ -189,6 +190,11 @@ LINE:
       my $readlen=length($seq); ### cannot trust this if there are indels!
       if ($flag & (0x4 | 0x8) ) {        # note: they may have the $rname of their mate, so have yet been skipped
         $unmapped++;
+        next LINE;
+      }
+
+      if (! ($flag & 0x1) && !$single ) { # unpaired read in a pairedend run
+        $unpaired++;
         next LINE;
       }
       
@@ -277,7 +283,7 @@ warn commafy($trimmed_left) . " reads trimmed on the left side, " . commafy($tri
 if(!$single) { ## paired-end only:
   warn "Dropped ". commafy($mate2dropped) . " mate2 lines because uninformative\n";
   warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because to long\n";
-  warn "Dropped " . commafy($no_length) . " unpaired reads (no fragment length known, nor a shift specified)\n";
+  warn "Dropped " . commafy($unpaired) . " unpaired reads in paired-end mode\n";
 }
 die "No reads were output!" unless $nreads > 0;
 
