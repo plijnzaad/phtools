@@ -36,6 +36,9 @@ usage_msg="
 \n  correpsonds to qsub's option \"-hold_jid\"; option -H to qsub's
 \n  \"-hold_jid_ad\"
 \n
+\n  For the -l option, you have to specify all resources in one string,
+\n  separated by commas. E.g.: -l \"h_rt=2:30:00,h_vmem=32G,tmpspace=100G\".
+\n
 \n  Unix pipe lines can be specified as a job, but the pipeline must be
 \n  quoted as a whole, which would look like
 \n
@@ -121,7 +124,7 @@ while getopts "N:q:o:e:j:M:m:p:l:h:H:" opt; do
             opt_m="-m $OPTARG"
             ;;
         l)
-            opt_l="-l $OPTARG"
+            opt_l="-l $OPTARG"          # note: for now, specify as one comma-separed set of resources
             ;;
         M)
             opt_M="-M $OPTARG"
