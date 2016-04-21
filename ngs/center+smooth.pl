@@ -180,10 +180,6 @@ LINE:
  (SAM input file must contain the sequence lengths; otherwise, supply using --chrom_sizes option)" 
       unless $chr_length;
 
-      if(!$tlen && !$shift ) { 
-        die "this should not happen: unpaired read, but no shift specified ...";
-        next LINE;
-      }
       my $tlen_sign = ($tlen <=> 0);
       $tlen=abs($tlen);
 
@@ -198,6 +194,11 @@ LINE:
         next LINE;
       }
       
+      if(!$tlen && !$shift ) { 
+        die "this should not happen: unpaired read (i.e., no length), but no shift specified ...";
+        next LINE;
+      }
+
       my $s;
       if ($single) {
         die "read is paired, but you specified --type single" if ($flag & 0x1);
