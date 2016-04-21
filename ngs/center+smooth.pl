@@ -146,7 +146,7 @@ if ($chrom_sizes) {
 
 my $nreads=0;
 my ($trimmed_left, $trimmed_right, $skipped_left, $skipped_right)=(0,0,0,0);
-my ($unmapped, $too_short, $too_long, $mate2dropped, $unpaired)=(0,0,0,0,0,0);
+my ($unmapped, $too_short, $too_long, $mate2dropped, $unpaired, $no_length)=(0,0,0,0,0,0);
 
 die "smoothing window must be uneven" unless ($smooth % 2);
 
@@ -195,7 +195,7 @@ LINE:
       }
       
       if(!$tlen && !$shift ) { 
-        die "this should not happen: unpaired/halfmapped read (i.e., no length), but no shift specified ...";
+        $no_length++;
         next LINE;
       }
 
@@ -285,6 +285,7 @@ if(!$single) { ## paired-end only:
   warn "Dropped ". commafy($mate2dropped) . " mate2 lines because uninformative\n";
   warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because to long\n";
   warn "Dropped " . commafy($unpaired) . " unpaired reads in paired-end mode\n";
+  warn "Dropped " . commafy($no_length) . "reads that had no length (should not happen, double-check script ...)\n";
 }
 die "No reads were output!" unless $nreads > 0;
 
