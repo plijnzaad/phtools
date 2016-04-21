@@ -19,8 +19,8 @@ usage_msg="
 \n  and it will run on the cluster, rather than locally. The qrun.sh
 \n  script takes care of all the directories, environment variables
 \n  (including the various PATHs and LIBs). Stdout and stderr go to subdir
-\n  ./$logdirname, which is created if not present in the current directory. Default
-\n  queue is $queue, but you can override this with the -q QUEUENAME
+\n  ./$logdirname, which is created if not present in the current directory. 
+\n  Default queue is $queue, but you can override this with the -q QUEUENAME
 \n  option. A job name, if not specified using -N JOBNAME, is 'invented'
 \n  based on the name of submitted command + arguments.
 \n
@@ -36,8 +36,8 @@ usage_msg="
 \n  correpsonds to qsub's option \"-hold_jid\"; option -H to qsub's
 \n  \"-hold_jid_ad\"
 \n
-\n  For the -l option, you have to specify all resources in one string,
-\n  separated by commas. E.g.: -l \"h_rt=2:30:00,h_vmem=32G,tmpspace=100G\".
+\n  For the -l option, you have to specify all resources as one 
+\n  comma-separated string, e.g.: -l \"h_rt=2:30:00,h_vmem=32G,tmpspace=100G\".
 \n
 \n  Unix pipe lines can be specified as a job, but the pipeline must be
 \n  quoted as a whole, which would look like
