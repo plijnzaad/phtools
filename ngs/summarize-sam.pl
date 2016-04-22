@@ -133,7 +133,7 @@ if (@ARGV) {
     $fh = FileHandle->new_from_fd(0, "<") or die "stdin: $!";
 }
 
-print "#idhash	chr	pos	matepos	inslen	seqsummary	pval	PEsummary	flags\n";
+print "#idhash	chr	pos	matepos	inslen	seqsummary	pval	PEsummary	flags	orig_id\n";
 while(<$fh>) { 
   s/[\n\r]*$//;
   next if /^@/;
@@ -172,7 +172,8 @@ while(<$fh>) {
   $pos = '?' if $flag & $Funmapped;
   $pnext = '?' if $flag & $Fmateunmapped;
   $tlen= '?' if $flag & ($Funmapped | $Fmateunmapped);
-  print join("\t", (idhash($qname), $rname, $pos, $pnext, $tlen, seqsummary($seq), pval($mapq), $PEsummary, explain_flags($flag))) . "\n";
+  print join("\t", (idhash($qname), $rname, $pos, $pnext, $tlen, seqsummary($seq), 
+                    pval($mapq), $PEsummary, explain_flags($flag), $qname)) . "\n";
 }                                       # while
 $fh->close();
 print_stats($stats);
