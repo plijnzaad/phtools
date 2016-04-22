@@ -7,6 +7,7 @@ my $fmt=new Number::Format(-thousands_sep => ',');
 sub commafy {
   $fmt->format_number($_[0]);
 }
+use FileHandle;
 
 my $usage='
 Usage: center+smooth.pl --type [paired|single] [ --shift NUMBER ] [ --smooth NUMBER ] [ options ] 
@@ -87,9 +88,11 @@ Options:
            within the chromosome. The default is to shorten such reads so
            that they do again.
 
-  --skip_improper   Skip reads that the mapper has marked as improper
+  --skip_improper        Skip reads that the mapper has marked as improper
+  --chimeric <file>  Save chimeric reads to file
 
-For more speed, see bbcfutils::bam2wig.
+
+For more speed, see macs2 and/or bbcfutils::bam2wig
 
 Note that as a result of the change in read length, the coverage will also
 change. I.e., if single-end reads of 55 bp are centered to 1 bp, then
@@ -107,6 +110,7 @@ my $strict=undef;
 my $auto=1;
 my $seqtype=undef;
 my $skip_improper;
+my $chimeric_file=undef;
 ## my $nodrop=undef;
 
 my @argv_copy=@ARGV;                    # eaten by GetOptions
@@ -121,6 +125,7 @@ die $usage if  GetOptions('help'=> \$help,
                           'smooth=i' => \$smooth,
                           'strict' => \$strict,
                           'skip_improper' => \$skip_improper,
+                          'chimeric=s' => \$chimeric_file
     ) ==0 || $help;
 
 my $cmdline= "$0 " . join(" ", @argv_copy);
@@ -137,6 +142,13 @@ if ($single) {
   die "--shift argument is required for single-end reads" unless  $shift;
 ###  die "--nodrop option only valid when using --type paired" if $nodrop;
 }
+
+
+if($chimeric_file) { 
+  my $fh=FileHandle->new(">$chimeric_file") or die "$chimeric_file: $!";
+  $chimeric_file=$fh;
+}
+
 
 my $pg_printed=0;
 
@@ -206,10 +218,11 @@ LINE:
       
       if(!$tlen && !$shift ) { 
         if ($rnext eq '=' || $rname eq $rnext ) { 
-          $no_length++;                 # not supposed to happen
+          $no_length++;                 # not supposed to happen!
           next LINE;
         }
         $nchimeras++;
+        print $chimeric_file  $_."\n" if $chimeric_file;
         next LINE;
       }
 
@@ -306,6 +319,8 @@ if(!$single) { ## paired-end only:
   warn "Dropped " . commafy($no_length) . " reads that had no length (should not happen, double-check script ...)\n";
 }
 die "No reads were output!" unless $nreads > 0;
+
+$chimeric_file->close() if $chimeric_file;
 
 sub read_chromo_sizes {
     my($file)=@_;
