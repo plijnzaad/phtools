@@ -90,7 +90,7 @@ Options:
 
   --skip_improper        Skip reads that the mapper has marked as improper
   --chimeric <file>  Save chimeric reads to file
-  --qual <integer>   Skip reads having a quality lower than or equal to this. Default is 10
+  --qual <integer>   Skip reads having a quality lower than this. Default is 10
 
 For more speed, see macs2 and/or bbcfutils::bam2wig
 
@@ -218,7 +218,7 @@ LINE:
         next LINE;
       }
 
-      if ( $qual <= $minqual ) {
+      if ( $qual < $minqual ) {
         $lowqual++;
         next LINE;
       }
@@ -318,7 +318,7 @@ warn commafy($skipped_left) . " $term skipped on the left side, ". commafy($skip
 warn commafy($trimmed_left) . " $term trimmed on the left side, " . commafy($trimmed_right) . " on the right side of the chromosome\n";
 my $s=($skip_improper ? "Dropped " : "Kept ") . commafy($nimproper) . " mates marked as improper\n";
 warn $s;
-warn "Dropped " . commafy($lowqual) . " $term with quality <= $minqual\n";
+warn "Dropped " . commafy($lowqual) . " $term with quality < $minqual\n";
 
 if(!$single) { ## paired-end only:
   warn "Dropped ". commafy($mate2dropped) . " mate2 lines because uninformative\n";
