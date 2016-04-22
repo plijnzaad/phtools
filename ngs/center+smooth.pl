@@ -144,7 +144,7 @@ if ($single) {
   die "--shift argument is required for single-end reads" unless  $shift;
 ###  die "--nodrop option only valid when using --type paired" if $nodrop;
 } else {
-  die "--shift is pointless for paired and data" if $shift;
+  die "--shift is pointless for paired end data" if $shift;
 }
 
 if($chimeric_file) { 
