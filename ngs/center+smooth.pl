@@ -143,8 +143,9 @@ if ($single) {
   die "single-end reads needs some extra checking ...";
   die "--shift argument is required for single-end reads" unless  $shift;
 ###  die "--nodrop option only valid when using --type paired" if $nodrop;
+} else {
+  die "--shift is a pointless  for paired and data" if $shift;
 }
-
 
 if($chimeric_file) { 
   my $fh=FileHandle->new(">$chimeric_file") or die "$chimeric_file: $!";
@@ -255,7 +256,7 @@ LINE:
         $s=int( ($tlen-1)/2);     # exact for uneven seqs
         $s = $s + (unpack("%B*",$seq)%2) unless ($tlen % 2); # quasi-randomly  add 1
         # (the unpack expression is quasi-uniform hash based on sequence content)
-        $s = $shift if $shift;         # allow override
+        ### $s = $shift if $shift;         # allow override NO: --shift now disallowed for PE data
       }
 
       $rnext='*';
