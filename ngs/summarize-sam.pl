@@ -29,10 +29,13 @@
 
 use strict;
 use Digest::MD5 qw(md5_base64);
+use FileHandle;
 
 use Number::Format;
 my $fmt=new Number::Format(-thousands_sep => ',');
 sub commafy {   $fmt->format_number($_[0]); }
+
+my $samview="samtools view";            # alternatively, specify full path, or e.g. sambamba
 
 my $version="summarize-sam.pl v0.4";
 
@@ -116,8 +119,22 @@ sub pval {
   sprintf("%4.1g", 10**(($q/-10)));
 }
 
+my $fh;
+if (@ARGV) { 
+  die "Only single file allowed " unless @ARGV==1;
+  my $f=$ARGV[0];
+  if ($f =~ /\.(b|cr)am$/) {
+    my $cmd="$samview $f |";
+    $fh = FileHandle->new($cmd) or die "$cmd: $!";
+  } else {
+    $fh = FileHandle->new("< $f") or die "$f: $!";
+  }
+} else {                                # stdin
+    $fh = FileHandle->new_from_fd(0, "<") or die "stdin: $!";
+}
+
 print "#idhash	chr	pos	matepos	inslen	seqsummary	pval	PEsummary	flags\n";
-while(<>) { 
+while(<$fh>) { 
   s/[\n\r]*$//;
   next if /^@/;
 
@@ -157,5 +174,5 @@ while(<>) {
   $tlen= '?' if $flag & ($Funmapped | $Fmateunmapped);
   print join("\t", (idhash($qname), $rname, $pos, $pnext, $tlen, seqsummary($seq), pval($mapq), $PEsummary, explain_flags($flag))) . "\n";
 }                                       # while
-
+$fh->close();
 print_stats($stats);
