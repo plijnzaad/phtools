@@ -90,7 +90,7 @@ Options:
 
   --skip_improper        Skip reads that the mapper has marked as improper
   --chimeric <file>  Save chimeric reads to file
-
+  --qual <integer>   Skip reads having a quality lower than or equal to this. Default is 10
 
 For more speed, see macs2 and/or bbcfutils::bam2wig
 
@@ -111,6 +111,7 @@ my $auto=1;
 my $seqtype=undef;
 my $skip_improper;
 my $chimeric_file=undef;
+my $minqual=10;
 ## my $nodrop=undef;
 
 my @argv_copy=@ARGV;                    # eaten by GetOptions
@@ -125,7 +126,8 @@ die $usage if  GetOptions('help'=> \$help,
                           'smooth=i' => \$smooth,
                           'strict' => \$strict,
                           'skip_improper' => \$skip_improper,
-                          'chimeric=s' => \$chimeric_file
+                          'chimeric=s' => \$chimeric_file,
+                          'qual=i' => \$minqual
     ) ==0 || $help;
 
 my $cmdline= "$0 " . join(" ", @argv_copy);
@@ -163,7 +165,7 @@ if ($chrom_sizes) {
 my $nreads=0;
 my ($trimmed_left, $trimmed_right, $skipped_left, $skipped_right)=(0,0,0,0);
 my ($unmapped, $too_short, $too_long, $mate2dropped, 
-    $unpaired, $nchimeras, $nimproper, $no_length)=(0,0,0,0,0,0,0,0);
+    $unpaired, $nchimeras, $nimproper, $no_length, $lowqual)=(0,0,0,0,0,0,0,0,0);
 
 die "smoothing window must be uneven" unless ($smooth % 2);
 
@@ -213,6 +215,11 @@ LINE:
 
       if (! ($flag & 0x1) && !$single ) { # unpaired read in a pairedend run
         $unpaired++;
+        next LINE;
+      }
+
+      if ( $qual <= $minqual ) {
+        $lowqual++;
         next LINE;
       }
       
@@ -310,6 +317,7 @@ warn commafy($skipped_left) . " reads skipped on the left side, ". commafy($skip
 warn commafy($trimmed_left) . " reads trimmed on the left side, " . commafy($trimmed_right) . " on the right side of the chromosome\n";
 my $s=($skip_improper ? "Dropped " : "Kept ") . commafy($nimproper) . " mates marked as improper\n";
 warn $s;
+warn "Dropped " . commafy($lowqual) . " reads with quality <= $minqual\n";
 
 if(!$single) { ## paired-end only:
   warn "Dropped ". commafy($mate2dropped) . " mate2 lines because uninformative\n";
