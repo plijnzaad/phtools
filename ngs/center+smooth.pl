@@ -7,6 +7,7 @@ my $fmt=new Number::Format(-thousands_sep => ',');
 sub commafy {
   $fmt->format_number($_[0]);
 }
+use FileHandle;
 
 my $usage='
 Usage: center+smooth.pl --type [paired|single] [ --shift NUMBER ] [ --smooth NUMBER ] [ options ] 
@@ -87,7 +88,11 @@ Options:
            within the chromosome. The default is to shorten such reads so
            that they do again.
 
-For more speed, see bbcfutils::bam2wig.
+  --skip_improper        Skip reads that the mapper has marked as improper
+  --chimeric <file>  Save chimeric reads to file
+  --qual <integer>   Skip reads having a quality lower than or equal to this. Default is 10
+
+For more speed, see macs2 and/or bbcfutils::bam2wig
 
 Note that as a result of the change in read length, the coverage will also
 change. I.e., if single-end reads of 55 bp are centered to 1 bp, then
@@ -104,6 +109,9 @@ my $maxlen= 200;                    # i.e. at most one nucleosome!
 my $strict=undef;
 my $auto=1;
 my $seqtype=undef;
+my $skip_improper;
+my $chimeric_file=undef;
+my $minqual=10;
 ## my $nodrop=undef;
 
 my @argv_copy=@ARGV;                    # eaten by GetOptions
@@ -117,6 +125,9 @@ die $usage if  GetOptions('help'=> \$help,
                           'shift=i' => \$shift,
                           'smooth=i' => \$smooth,
                           'strict' => \$strict,
+                          'skip_improper' => \$skip_improper,
+                          'chimeric=s' => \$chimeric_file,
+                          'qual=i' => \$minqual
     ) ==0 || $help;
 
 my $cmdline= "$0 " . join(" ", @argv_copy);
@@ -134,6 +145,13 @@ if ($single) {
 ###  die "--nodrop option only valid when using --type paired" if $nodrop;
 }
 
+
+if($chimeric_file) { 
+  my $fh=FileHandle->new(">$chimeric_file") or die "$chimeric_file: $!";
+  $chimeric_file=$fh;
+}
+
+
 my $pg_printed=0;
 
 my $chromos=undef;
@@ -146,7 +164,8 @@ if ($chrom_sizes) {
 
 my $nreads=0;
 my ($trimmed_left, $trimmed_right, $skipped_left, $skipped_right)=(0,0,0,0);
-my ($unmapped, $too_short, $too_long, $mate2dropped, $unpaired, $no_length)=(0,0,0,0,0,0);
+my ($unmapped, $too_short, $too_long, $mate2dropped, 
+    $unpaired, $nchimeras, $nimproper, $no_length, $lowqual)=(0,0,0,0,0,0,0,0,0);
 
 die "smoothing window must be uneven" unless ($smooth % 2);
 
@@ -183,6 +202,11 @@ LINE:
       my $tlen_sign = ($tlen <=> 0);
       $tlen=abs($tlen);
 
+      if ( !($flag & 0x2) ) { 
+        $nimproper++;
+        next LINE if $skip_improper;
+      }
+
       my $readlen=length($seq); ### cannot trust this if there are indels!
       if ($flag & (0x4 | 0x8) ) {        # note: they may have the $rname of their mate, so have yet been skipped
         $unmapped++;
@@ -193,9 +217,19 @@ LINE:
         $unpaired++;
         next LINE;
       }
+
+      if ( $qual <= $minqual ) {
+        $lowqual++;
+        next LINE;
+      }
       
       if(!$tlen && !$shift ) { 
-        $no_length++;
+        if ($rnext eq '=' || $rname eq $rnext ) { 
+          $no_length++;                 # not supposed to happen!
+          next LINE;
+        }
+        $nchimeras++;
+        print $chimeric_file  $_."\n" if $chimeric_file;
         next LINE;
       }
 
@@ -278,16 +312,24 @@ LINE:
       $nreads++;
 }                                       # LINE
 
-warn "Shifted and output ". commafy($nreads) . " reads, skipped ". commafy($unmapped). " unmapped reads\n";
-warn commafy($skipped_left) . " reads skipped on the left side, ". commafy($skipped_right) . " on the right side of the chromosome\n";
-warn commafy($trimmed_left) . " reads trimmed on the left side, " . commafy($trimmed_right) . " on the right side of the chromosome\n";
+my $term= $single ? "reads" : "mates";
+warn "Shifted and output ". commafy($nreads) . " $term, skipped ". commafy($unmapped). " unmapped $term\n";
+warn commafy($skipped_left) . " $term skipped on the left side, ". commafy($skipped_right) . " on the right side of the chromosome\n";
+warn commafy($trimmed_left) . " $term trimmed on the left side, " . commafy($trimmed_right) . " on the right side of the chromosome\n";
+my $s=($skip_improper ? "Dropped " : "Kept ") . commafy($nimproper) . " mates marked as improper\n";
+warn $s;
+warn "Dropped " . commafy($lowqual) . " $term with quality <= $minqual\n";
+
 if(!$single) { ## paired-end only:
   warn "Dropped ". commafy($mate2dropped) . " mate2 lines because uninformative\n";
   warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because to long\n";
-  warn "Dropped " . commafy($unpaired) . " unpaired reads in paired-end mode\n";
-  warn "Dropped " . commafy($no_length) . "reads that had no length (should not happen, double-check script ...)\n";
+  warn "Dropped " . commafy($unpaired) . " unpaired $term in paired-end mode\n";
+  warn "Dropped " . commafy($nchimeras) . " chimeras ($term with the other mate on different chromosomes)\n";
+  warn "Dropped " . commafy($no_length) . " $term that had no length (SHOULD NOT HAPPEN, double-check script ...)\n";
 }
-die "No reads were output!" unless $nreads > 0;
+die "No $term were output!" unless $nreads > 0;
+
+$chimeric_file->close() if $chimeric_file;
 
 sub read_chromo_sizes {
     my($file)=@_;
