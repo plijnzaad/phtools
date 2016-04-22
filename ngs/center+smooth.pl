@@ -17,9 +17,11 @@ Usage: center+smooth.pl --type [paired|single] [ --shift NUMBER ] [ --smooth NUM
   nucleosome dyad. It reads a SAM file from stdin, and writes (to stdout)
   a SAM file, all shifted into their 3\'-direction. For paired-end (PE) reads,
   the amount of shifting is determined by the template length (field
-  9) found in the SAM file.  It can also be specified manually using the
-  --shift paramter, typically when dealing with single-end data. For PE reads,
-  only the first of the two reads is kept, and the output data is *single ended*.
+  9) found in the SAM file. When dealing with single-end data, it  must be specified 
+  using the --shift parameter.
+
+  For PE reads, only the first of the two reads is kept, and the output
+  data is *single ended*.
 
   Make sure that the fragments in the SAM file correspond to single
   nucleosomes, otherwise shifting by half the template length does not
@@ -88,7 +90,7 @@ Options:
            within the chromosome. The default is to shorten such reads so
            that they do again.
 
-  --skip_improper        Skip reads that the mapper has marked as improper
+  --skip_improper    Skip reads that the mapper has marked as improper
   --chimeric <file>  Save chimeric reads to file
   --qual <integer>   Skip reads having a quality lower than this. Default is 10
 
