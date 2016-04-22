@@ -312,21 +312,22 @@ LINE:
       $nreads++;
 }                                       # LINE
 
-warn "Shifted and output ". commafy($nreads) . " reads, skipped ". commafy($unmapped). " unmapped reads\n";
-warn commafy($skipped_left) . " reads skipped on the left side, ". commafy($skipped_right) . " on the right side of the chromosome\n";
-warn commafy($trimmed_left) . " reads trimmed on the left side, " . commafy($trimmed_right) . " on the right side of the chromosome\n";
+my $term= $single ? "reads" : "mates";
+warn "Shifted and output ". commafy($nreads) . " $term, skipped ". commafy($unmapped). " unmapped $term\n";
+warn commafy($skipped_left) . " $term skipped on the left side, ". commafy($skipped_right) . " on the right side of the chromosome\n";
+warn commafy($trimmed_left) . " $term trimmed on the left side, " . commafy($trimmed_right) . " on the right side of the chromosome\n";
 my $s=($skip_improper ? "Dropped " : "Kept ") . commafy($nimproper) . " mates marked as improper\n";
 warn $s;
-warn "Dropped " . commafy($lowqual) . " reads with quality <= $minqual\n";
+warn "Dropped " . commafy($lowqual) . " $term with quality <= $minqual\n";
 
 if(!$single) { ## paired-end only:
   warn "Dropped ". commafy($mate2dropped) . " mate2 lines because uninformative\n";
   warn "Dropped ". commafy($too_short) . " fragments because too short, ". commafy($too_long)  ." because to long\n";
-  warn "Dropped " . commafy($unpaired) . " unpaired reads in paired-end mode\n";
-  warn "Dropped " . commafy($nchimeras) . " chimeras (reads with matepairs on different chromosomes)\n";
-  warn "Dropped " . commafy($no_length) . " reads that had no length (should not happen, double-check script ...)\n";
+  warn "Dropped " . commafy($unpaired) . " unpaired $term in paired-end mode\n";
+  warn "Dropped " . commafy($nchimeras) . " chimeras ($term with the other mate on different chromosomes)\n";
+  warn "Dropped " . commafy($no_length) . " $term that had no length (SHOULD NOT HAPPEN, double-check script ...)\n";
 }
-die "No reads were output!" unless $nreads > 0;
+die "No $term were output!" unless $nreads > 0;
 
 $chimeric_file->close() if $chimeric_file;
 
