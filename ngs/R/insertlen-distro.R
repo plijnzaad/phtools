@@ -13,16 +13,17 @@ overview <- function()cat(file=stderr(),
                          "Usage: \
    insertlen-distro.R [ options ] FILENAMES\
 \
-If a file name argument looks like realfilename.insertlen=COLOR, that color is used; otherwise,\
-rainbow colors are used.\
+The files should be tab-delimited.  If a filename argument looks like realfilename.insertlen=COLOR, \
+that color is used; otherwise, rainbow colors are used.\
 \
 Options:\
 \
---title     title of the plots\
---out       name of output file\
---maxlen    show distribution up to this length\
---scales    comma-separated list of magnifications\
---add       adjust insert lengths (e.g., when mapping was done in trimmed way)\
+--title=STRING    title of the plots\
+--out=FILE        name of output file\
+--maxlen=INTEGER  show distribution up to this length\
+--scale=STRING    comma-separated list of magnifications (default: '1,2,5,10,20,50,100')\
+--add=INTEGER     adjust insert lengths (e.g., when mapping was done in trimmed way)\
+--column=INTEGER  use this column to find the lengths (default: 1)\
 
 ")
 
@@ -32,6 +33,7 @@ args <- parseArgs(out="insert-length-distro.pdf",
                   add=0L,
                   maxlen=0L,
                   scales="1,2,5,10,20,50,100",
+                  column=1L,
                   .overview=overview,
                   .allow.rest=TRUE
                   )
@@ -78,9 +80,11 @@ for(file in files) {
     color <- fc[2]
     name <- sub("^(.*)\\.[^.]*$", "\\1", file) #strip last extension
     x <- read.table(file)
-    stopifnot(ncol(x)==1)
-    stopifnot(is.integer(x[[1]]))
-    all.data[[name]] <- x[[1]] + args$add
+    if (args$column > ncol(x) )
+      stop("asking for non-existing column")
+    if (!is.integer(x[[args$column]]))
+      stop("column should contain integers")
+    all.data[[name]] <- x[[args$column]] + args$add
     colors[[name]] <- color
 }
 
