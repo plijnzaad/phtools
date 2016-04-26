@@ -104,9 +104,9 @@ for(file in files) {
 }
 
 ncolors <- ceiling(length(all.data)/2)
-lty=rep(c(1,5), ncolors)                #alternates
+lty <- rep(c(1,5), ncolors)                #alternates
 col <- rainbow(ncolors, v=0.8)
-col <- as.vector(matrix(rep(cols,2), byrow=TRUE, nrow=2))
+col <- as.vector(matrix(rep(col,2), byrow=TRUE, nrow=2))
 
 names(col) <- names(all.data)
 names(lty) <- names(all.data)
