@@ -104,10 +104,10 @@ for(n in names(colors)) {
 if(args$cumulative) {
     ecdfs <- lapply(all.data, ecdf)
     maxy <- 1
-} else if (args$log) {
-    densities <- lapply(all.data, function(d){hist(d, nclass=1000, plot=FALSE}))
-    max(y) <- max(unlist(lapply(densities,function(d)max(d$counts))))
-} else { 
+ } else if (args$log) {
+     densities <- lapply(all.data, function(d){ hist(d, nclass=1000, plot=FALSE)})
+     maxy <- max(unlist(lapply(densities,function(d)max(d$counts))))
+ } else { 
     densities <- lapply(all.data, density)
     maxy <- max(unlist(lapply(densities,function(d)max(d$y))))
 }
@@ -143,8 +143,8 @@ for(scale in scales) {
       axis(side=2,labels=TRUE)
     else if(args$log) {
         title(ylab=sprintf("log10(reads)"))
-        yticks <- commafy(as.integer(c(1,2,5) %o% 10^(0:5)))
-        axis(side=2,at=log10(yticks),label=yticks)
+        yticks <- as.integer(c(1,2,5) %o% 10^(0:5))
+        axis(side=2,at=log10(yticks),label=commafy(yticks))
     } else {
         title(ylab=sprintf("density x %.0f", scale))
         axis(side=2,labels=FALSE)
@@ -162,7 +162,7 @@ for(scale in scales) {
             x <- seq(0, maxx, length.out=500)
             y <- f(x)*scale
             lines(x,y, col=col[sample])
-        } else if(arg$log) {
+        } else if(args$log) {
             lines(x=densities[[sample]]$mids, y=log10(densities[[sample]]$counts), col=col[sample])
         } else  {
              d <- densities[[sample]]
