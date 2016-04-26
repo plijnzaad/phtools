@@ -117,16 +117,21 @@ out <- paste0(out, ".pdf")
 title <- args$title
 
 warning("Creating file ", out)
-pdf(file = out, title = title, useDingbats = FALSE, width = 11.7, 
-    height = 8.3)
-
+if(args$log) { 
+  pdf(file = out, title = title, useDingbats = FALSE, width = 11.7, 
+      height = 8.3)
+} else  { 
+  pdf(file = out, title = title, useDingbats = FALSE, height = 11.7, 
+      width = 8.3)
+}
 scales <- as.integer(unlist(strsplit(args$scales, ",")))
 stopifnot(length(scales)>0 && sum(is.na(scales))==0)
-if(args$log)
-  scales <- 1L
 
-par(mfrow=c(length(scales), 1),
-    mar=c(1,5,1,1))
+if(args$log) { 
+    scales <- 1L
+} else { 
+    par(mfrow=c(length(scales), 1), mar=c(1,5,1,1))
+}
 
 maxx <- args$maxlen
 if(maxx==0)
@@ -134,17 +139,20 @@ if(maxx==0)
 
 for(scale in scales) { 
     plot(type="n", xlab="",ylab= "",
-         x=c(0, maxx), y=c(0, ifelse(args$log,maxy/scale, log10(maxy))),
+         x=c(0, maxx), y=c(0, ifelse(args$log,log10(maxy), maxy/scale)),
          xaxt="n", yaxt="n")
     axis(side=1,at=seq(0, maxx, 50), labels=TRUE) 
     axis(side=1,at=seq(0, maxx, 10), labels=FALSE, tcl=-0.25) #minor ticks
 
-    if(args$cumulative)
-      axis(side=2,labels=TRUE)
-    else if(args$log) {
+    if(args$cumulative) {
+        axis(side=2,labels=TRUE)
+    } else if(args$log) {
         title(ylab=sprintf("log10(reads)"))
-        yticks <- as.integer(c(1,2,5) %o% 10^(0:5))
-        axis(side=2,at=log10(yticks),label=commafy(yticks))
+#        yticks <- as.integer(c(1,2,5) %o% 10^(0:5))
+        yticks <- 10^(0:6)
+        ylabs <- parse(text=paste("10^", 0:6, sep=""))
+        axis(side=2,at=log10(yticks),labels=ylabs, las=1)
+        title(xlab="fragment length")
     } else {
         title(ylab=sprintf("density x %.0f", scale))
         axis(side=2,labels=FALSE)
