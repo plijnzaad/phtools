@@ -24,6 +24,8 @@ Options:\
 --scale=STRING    comma-separated list of magnifications (default: '1,2,5,10,20,50,100')\
 --add=INTEGER     adjust insert lengths (e.g., when mapping was done in trimmed way)\
 --column=INTEGER  use this column to find the lengths (default: 1)\
+--cumulative=BOOLEAN  Print cumulative plots\
+--log=BOOLEAN     plot one logarithmic plot, rather than several linear ones. This overrides the --scale option.\
 
 ")
 
@@ -33,10 +35,14 @@ args <- parseArgs(out="insert-length-distro.pdf",
                   add=0L,
                   maxlen=0L,
                   scales="1,2,5,10,20,50,100",
+                  log=FALSE,
                   column=1L,
                   .overview=overview,
                   .allow.rest=TRUE
                   )
+
+if(args$log && args$cumulative)
+  stop("logarithmic and cumulative prolly don't work, first check this")
 
 ## show complete information
 library(uuutils)
@@ -98,7 +104,10 @@ for(n in names(colors)) {
 if(args$cumulative) {
     ecdfs <- lapply(all.data, ecdf)
     maxy <- 1
-} else {
+} else if (args$log) {
+    densities <- lapply(all.data, function(d){hist(d, nclass=1000, plot=FALSE}))
+    max(y) <- max(unlist(lapply(densities,function(d)max(d$counts))))
+} else { 
     densities <- lapply(all.data, density)
     maxy <- max(unlist(lapply(densities,function(d)max(d$y))))
 }
@@ -113,6 +122,8 @@ pdf(file = out, title = title, useDingbats = FALSE, width = 11.7,
 
 scales <- as.integer(unlist(strsplit(args$scales, ",")))
 stopifnot(length(scales)>0 && sum(is.na(scales))==0)
+if(args$log)
+  scales <- 1L
 
 par(mfrow=c(length(scales), 1),
     mar=c(1,5,1,1))
@@ -123,24 +134,36 @@ if(maxx==0)
 
 for(scale in scales) { 
     plot(type="n", xlab="",ylab= "",
-         x=c(0, maxx), y=c(0,maxy/scale),
+         x=c(0, maxx), y=c(0, ifelse(args$log,maxy/scale, log10(maxy))),
          xaxt="n", yaxt="n")
     axis(side=1,at=seq(0, maxx, 50), labels=TRUE) 
     axis(side=1,at=seq(0, maxx, 10), labels=FALSE, tcl=-0.25) #minor ticks
-    axis(side=2,labels=args$cumulative)
-    title(ylab=sprintf("density x %.0f", scale))
+
+    if(args$cumulative)
+      axis(side=2,labels=TRUE)
+    else if(args$log) {
+        title(ylab=sprintf("log10(reads)"))
+        yticks <- commafy(as.integer(c(1,2,5) %o% 10^(0:5)))
+        axis(side=2,at=log10(yticks),label=yticks)
+    } else {
+        title(ylab=sprintf("density x %.0f", scale))
+        axis(side=2,labels=FALSE)
+    }        
     
-    if (abs(scale - 1) < 1e-6) {
+    if (abs(scale - 1) < 1e-6) {        #put legend in corner of the topmost plot
         title(main=title)
         legend(x="topright", legend=names(all.data),
                lty=1, col=col[names(all.data)])
     }
+
     for(sample in names(all.data)) {
         if(args$cumulative) {
             f <- ecdfs[[sample]]
             x <- seq(0, maxx, length.out=500)
             y <- f(x)*scale
             lines(x,y, col=col[sample])
+        } else if(arg$log) {
+            lines(x=densities[[sample]]$mids, y=log10(densities[[sample]]$counts), col=col[sample])
         } else  {
              d <- densities[[sample]]
              d$y <-  d$y * scale
