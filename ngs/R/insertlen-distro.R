@@ -6,6 +6,7 @@
 ##
 
 library(parseArgs)
+library(gplots)
 
 invocation <- paste(commandArgs(), collapse=" ")
 
@@ -103,10 +104,22 @@ for(file in files) {
 }
 
 col <- rainbow(length(all.data), v=0.8)
+ncurves <- length(all.data)
+lty <- rep(1, ncurves)
+if(ncurves>20) { 
+    ncolors <- ceiling(ncurves/2)
+    col <- rainbow(ncolors, v=0.8)
+    col <- as.vector(matrix(rep(col,2), byrow=TRUE, nrow=2))
+    lty <- rep(c(1,5), ncolors) # alternate between drawn and dashed, saving on colors
+}
+
 names(col) <- names(all.data)
+names(lty) <- names(all.data)
 for(n in names(colors)) {
-    if (colors[[n]] != "")
+    if (colors[[n]] != "") { 
       col[n] <- colors[[n]]
+      lty[n] <- 1
+  }
 }
 
 if(args$cumulative) {
@@ -172,7 +185,7 @@ for(scale in scales) {
     if (abs(scale - 1) < 1e-6) {        #put legend in corner of the topmost plot
         title(main=title)
         legend(x="topright", legend=names(all.data),
-               lty=1, col=col[names(all.data)])
+               lty=lty[names(all.data)], col=col[names(all.data)])
     }
 
     for(sample in names(all.data)) {
@@ -180,13 +193,13 @@ for(scale in scales) {
             f <- ecdfs[[sample]]
             x <- seq(0, maxx, length.out=500)
             y <- f(x)*scale
-            lines(x,y, col=col[sample])
+            lines(x,y, col=col[sample], lty=lty[sample])
         } else if(log) {
-            lines(x=densities[[sample]]$mids, y=log10(densities[[sample]]$counts), col=col[sample])
+            lines(x=densities[[sample]]$mids, y=log10(densities[[sample]]$counts), col=col[sample], lty=lty[sample])
         } else  {
              d <- densities[[sample]]
              d$y <-  d$y * scale
-             lines(d, col=col[sample])
+             lines(d, col=col[sample], lty=lty[sample])
          }
     }
 }                                       #for scale
