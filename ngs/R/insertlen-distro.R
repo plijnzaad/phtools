@@ -21,11 +21,10 @@ Options:\
 --title=STRING    title of the plots\
 --out=FILE        name of output file\
 --maxlen=INTEGER  show distribution up to this length\
---scale=STRING    comma-separated list of magnifications (default: '1,2,5,10,20,50,100')\
 --add=INTEGER     adjust insert lengths (e.g., when mapping was done in trimmed way)\
 --column=INTEGER  use this column to find the lengths (default: 1)\
 --cumulative=BOOLEAN  Print cumulative plots\
---log=BOOLEAN     plot one logarithmic plot, rather than several linear ones. This overrides the --scale option.\
+--multiscale=STRING    comma-separated list of magnifications (default is to use one logarithmic scale)\
 
 ")
 
@@ -34,14 +33,21 @@ args <- parseArgs(out="insert-length-distro.pdf",
                   cumulative=FALSE,
                   add=0L,
                   maxlen=0L,
-                  scales="1,2,5,10,20,50,100",
-                  log=FALSE,
+                  multiscale="none",
                   column=1L,
                   .overview=overview,
                   .allow.rest=TRUE
                   )
 
-if(args$log && args$cumulative)
+log <- TRUE
+if (args$multiscale == 'none') { 
+    args$scales <- "1"
+} else {
+    log <- FALSE
+    args$scales <- args$multiscale      #old name of the argument
+}
+
+if(log && args$cumulative)
   stop("logarithmic and cumulative prolly don't work, first check this")
 
 ## show complete information
@@ -49,7 +55,6 @@ library(uuutils)
 print(R.version)
 print(Sys.time())
 print(invocation)
-
 
 print("Arguments:\n")
 print(args)
@@ -104,7 +109,7 @@ for(n in names(colors)) {
 if(args$cumulative) {
     ecdfs <- lapply(all.data, ecdf)
     maxy <- 1
- } else if (args$log) {
+ } else if (log) {
      densities <- lapply(all.data, function(d){ hist(d, nclass=1000, plot=FALSE)})
      maxy <- max(unlist(lapply(densities,function(d)max(d$counts))))
  } else { 
@@ -117,7 +122,7 @@ out <- paste0(out, ".pdf")
 title <- args$title
 
 warning("Creating file ", out)
-if(args$log) { 
+if(log) { 
   pdf(file = out, title = title, useDingbats = FALSE, width = 11.7, 
       height = 8.3)
 } else  { 
@@ -127,7 +132,7 @@ if(args$log) {
 scales <- as.integer(unlist(strsplit(args$scales, ",")))
 stopifnot(length(scales)>0 && sum(is.na(scales))==0)
 
-if(args$log) { 
+if(log) { 
     scales <- 1L
 } else { 
     par(mfrow=c(length(scales), 1), mar=c(1,5,1,1))
@@ -139,17 +144,20 @@ if(maxx==0)
 
 for(scale in scales) { 
     plot(type="n", xlab="",ylab= "",
-         x=c(0, maxx), y=c(0, ifelse(args$log,log10(maxy), maxy/scale)),
+         x=c(0, maxx), y=c(0, ifelse(log,log10(maxy), maxy/scale)),
          xaxt="n", yaxt="n")
-    axis(side=1,at=seq(0, maxx, 50), labels=TRUE) 
+    axis(side=1,at=seq(0, maxx, 50), labels=TRUE)
     axis(side=1,at=seq(0, maxx, 10), labels=FALSE, tcl=-0.25) #minor ticks
-
+    abline(v=seq(0,maxx,100), col="lightgrey")
+    
     if(args$cumulative) {
         axis(side=2,labels=TRUE)
-    } else if(args$log) {
-        title(ylab=sprintf("log10(reads)"))
+        abline(v=seq(h,1,0.1), col="lightgrey")
+    } else if(log) {
+        title(ylab=sprintf("reads"))
 #        yticks <- as.integer(c(1,2,5) %o% 10^(0:5))
         yticks <- 10^(0:6)
+        abline(h=1:6, col="lightgrey")
         ylabs <- parse(text=paste("10^", 0:6, sep=""))
         axis(side=2,at=log10(yticks),labels=ylabs, las=1)
         title(xlab="fragment length")
@@ -170,7 +178,7 @@ for(scale in scales) {
             x <- seq(0, maxx, length.out=500)
             y <- f(x)*scale
             lines(x,y, col=col[sample])
-        } else if(args$log) {
+        } else if(log) {
             lines(x=densities[[sample]]$mids, y=log10(densities[[sample]]$counts), col=col[sample])
         } else  {
              d <- densities[[sample]]
