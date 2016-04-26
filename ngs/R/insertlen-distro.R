@@ -93,9 +93,12 @@ for(file in files) {
     x <- read.table(file)
     if (args$column > ncol(x) )
       stop("asking for non-existing column")
-    if (!is.integer(x[[args$column]]))
+    data <- x[[args$column]]
+    if (!is.integer(data))
       stop("column should contain integers")
-    all.data[[name]] <- x[[args$column]] + args$add
+    if (any(data<0))
+      stop("data contains negative values")
+    all.data[[name]] <- data + args$add
     colors[[name]] <- color
 }
 
