@@ -102,7 +102,7 @@ for(file in files) {
     colors[[name]] <- color
 }
 
-col <- rainbow(length(all.data))
+col <- rainbow(length(all.data), v=0.8)
 names(col) <- names(all.data)
 for(n in names(colors)) {
     if (colors[[n]] != "")
