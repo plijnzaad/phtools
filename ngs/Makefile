@@ -71,7 +71,7 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 
 ### -------- mapping-related stuff (formerly in SRA.makefile) -------- 
 
-### General direction is sra -> fastq -> sam -> bam -> bedGraph -> bw
+### General direction is sra -> fastq -> sam -> bam -> bdg (i.e. bedGraph) -> bw
 
 ### 
 
@@ -250,14 +250,14 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 
 #### -------- coverage related things (formerly in coverage.makefile) --------
 
-%.bedGraph: %.bam
-	@echo Creating $@ 1>&2
-	date
-	$(call check_var, chromsizes)
-	$(call check_exists, $(chromsizes))
-	bedtools genomecov -split -ibam $*.bam -g $(chromsizes) -bg | env LC_COLLATE=C sort -k1,1 -k2,2n  > $*.bedGraph
-	date
-	@echo Done creating $@ 1>&2
+## %.bedGraph: %.bam
+## 	@echo Creating $@ 1>&2
+## 	date
+## 	$(call check_var, chromsizes)
+## 	$(call check_exists, $(chromsizes))
+## 	bedtools genomecov -split -ibam $*.bam -g $(chromsizes) -bg | env LC_COLLATE=C sort -k1,1 -k2,2n  > $*.bedGraph
+## 	date
+## 	@echo Done creating $@ 1>&2
 
 ## same, but now using bgd extension:
 %.bdg: %.bam
@@ -269,14 +269,14 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 	date
 	@echo Done creating $@ 1>&2
 
-%.bw: %.bedGraph
-	@echo Creating $@ 1>&2
-	date
-	$(call check_var, chromsizes)
-	$(call check_exists, $(chromsizes))
-	bedGraphToBigWig $< $(chromsizes) $@; $(call check_result, $$?, $@)
-	date
-	@echo Done creating $@ 1>&2
+## %.bw: %.bedGraph
+## 	@echo Creating $@ 1>&2
+## 	date
+## 	$(call check_var, chromsizes)
+## 	$(call check_exists, $(chromsizes))
+## 	bedGraphToBigWig $< $(chromsizes) $@; $(call check_result, $$?, $@)
+## 	date
+## 	@echo Done creating $@ 1>&2
 
 %.bw: %.bdg
 	@echo Creating $@ 1>&2
