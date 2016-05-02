@@ -60,7 +60,7 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 
 ## misc. directives
 .SUFFIXES: 				# this deletes the traditional .c .h etc. extensions
-.SUFFIXES: .fastq .fastq.gz -dusted.fastq .sam .bam .bed .bedGraph .aln .bw
+.SUFFIXES: .fastq .fastq.gz -dusted.fastq .sam .bam .bed .bedGraph .bdg .aln .bw
 .SECONDARY:				# means: don't remove any intermediate files
 .DELETE_ON_ERROR:			# means: any file created by a failing recipe is deleted
 .EXPORT_ALL_VARIABLES:
@@ -259,7 +259,26 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 	date
 	@echo Done creating $@ 1>&2
 
+## same, but now using bgd extension:
+%.bdg: %.bam
+	@echo Creating $@ 1>&2
+	date
+	$(call check_var, chromsizes)
+	$(call check_exists, $(chromsizes))
+	bedtools genomecov -split -ibam $*.bam -g $(chromsizes) -bg | env LC_COLLATE=C sort -k1,1 -k2,2n  > $*.bdg
+	date
+	@echo Done creating $@ 1>&2
+
 %.bw: %.bedGraph
+	@echo Creating $@ 1>&2
+	date
+	$(call check_var, chromsizes)
+	$(call check_exists, $(chromsizes))
+	bedGraphToBigWig $< $(chromsizes) $@; $(call check_result, $$?, $@)
+	date
+	@echo Done creating $@ 1>&2
+
+%.bw: %.bdg
 	@echo Creating $@ 1>&2
 	date
 	$(call check_var, chromsizes)
