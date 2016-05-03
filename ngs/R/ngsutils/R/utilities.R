@@ -170,12 +170,12 @@ get.coverage <- function(file, chromsizes, shift=NULL) {
 
 igb.format <- function(grange) {
   ### utility to format the coordinates of a GRanges object
-  ### for copy-pasting into the coordinates field of IGB
+  ### for copy-pasting into the coordinates field of IGB or igv
   stopifnot(is(grange, "GRanges"))
   chr <- as.character(seqnames(grange))
   start <- as.vector(start(grange))
   end <- as.vector(end(grange))
-  cat(sprintf("%s : %d - %d \n", chr, start,end))
+  cat(sprintf("%s:%d-%d\n", chr, start,end))
 }
 
 .codname <- function(file)gsub("\\.[^.]*$", "", basename(file))
