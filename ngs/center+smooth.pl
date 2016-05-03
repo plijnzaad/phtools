@@ -180,7 +180,11 @@ LINE:
         if ( /PG.*center\+smooth.pl/ ) {
           die "Refusing to run center+smooth.pl on data that was previously centered and/or smoothed\n";
         }
-        print;
+        if (/^\@HD\t(VN:\S+)\t/) { 
+          print "\@HD\t$1\tSO:unsorted\n";
+        } else { 
+          print;
+        }
         if (!$chrom_sizes && /^\@SQ\s+SN:(\S+)\s+LN:(\d+)/ )  { # length record
           $chromos->{$1}=$2;
         }
