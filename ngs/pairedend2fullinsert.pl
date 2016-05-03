@@ -30,6 +30,10 @@ Options:
   --maxlen <number>  Skip reads where the fragment length (after any untrimming) is greater than this (default: 1e6)
   --chrom_sizes <file> tab-delimited file with ^chromosome_name\\tchromosome_length$ (needed if not in header of SAM file, or if those are wrong)
 
+This is typically part of a pipeline, e.g. 
+
+   sambamba -h --filter 'paired and proper_pair mapping_quality>= 40' file.bam  | pairedend2fullinsert.pl | sambamba view -h -f bam -o file-FI.bam
+
 Written by <plijnzaad\@gmail.com>
 
 ";
@@ -132,7 +136,7 @@ LINE:
         next LINE;
       }
 
-      if($tlen < 0) {                   # second of a mate
+      if($tlen < 0) {                   # second of a mate: skip, yields no extra info
         $nsecond++;
         next LINE;
       }
@@ -140,7 +144,7 @@ LINE:
       $nfirst++;                        # first of a mate
       $rnext='*';                       # i.e. not available
       $pnext=0;
-      $flag = $flag & $single_read_mask;
+      $flag = $flag & $single_read_mask; # turn into single-read 
       $cigar=sprintf('%dM', $newlen);
       $seq=  'N' x $newlen;               # whole sequence is just N's
       $qual='*';
