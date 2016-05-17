@@ -8,7 +8,9 @@ use Text::Levenshtein qw(distance);
 
 use vars qw($opt_h $opt_l);
 
-### for list of strings on standard in, print the closest distanance (and correpsonding string)
+### for list of strings on standard in, print the closest distance (and
+### corresponding string)
+
 my $Usage="$0 [ -l number ] < file > output";
 
 if ( !getopts("hl:") || $opt_h ) {
@@ -17,9 +19,9 @@ if ( !getopts("hl:") || $opt_h ) {
 
 my $limit= $opt_l || 1;
 
-
 my  $strings={};
 
+### read codes
 LINE:
 while(<>) { 
   s/[\n\r]*$//g;
