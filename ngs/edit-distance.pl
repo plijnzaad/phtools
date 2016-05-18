@@ -24,8 +24,8 @@ my  $strings={};
 ### read codes
 LINE:
 while(<>) { 
-  s/[\n\r]*$//g;
   s/#.*//;
+  s/[ \t\n\r]*$//g;
   next LINE unless $_;
   my ($name, $code)=split(' ');            # e.g. 'G7 \t CCAACAAT'
   if (! $code) {                           # just one column of strings
