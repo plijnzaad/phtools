@@ -18,15 +18,20 @@ Usage:
   yeast-aneuploidy.R  [options]  file1.bam [ file2.bam ... ]
 
 Options:
-  --unpaired=TRUE         bam files contain paired-end reads
-  --ignore=regions.bed  file with genome regions to ignore
+  --unpaired=TRUE          bam files contain paired-end reads
+  --ignore=regions.bed     file with genome regions to ignore
+  --bedoutput=regions.bed  output file with genome regions harbouring copy number variations
+### pdf???
+### what to do with full-chromosome aneuploidy (one or more data sets?) vs CNV's (requires >1 data sets)
 
 Written by plijnzaad@gmail.com
 ")
 
 args <- parseArgs(.overview=overview,
                   unpaired=FALSE,
-                  ignore=NULL, .allow.rest=TRUE)
+                  ignore=NULL,
+                  ## pdf=NULL,
+                  .allow.rest=TRUE)
 
 bamfiles <- args$.rest
 samples <- unname(sapply(bamfiles,
@@ -35,31 +40,29 @@ samples <- unname(sapply(bamfiles,
 chromos <- 1:16
 chromos <- paste0("chr", as.character(as.roman(chromos)))
 
-
-
-filter.regions <- filter(counts, iranges, mode=c('any', 'complete')) {
-    #counts as returned by cn.mops::getReadCountsFromBAM()
-}   #filter.regions
-
 counts <- getReadCountsFromBAM(BAMFiles=bamfiles,
                                mode=ifelse(args$unpaired, "unpaired", "paired"),
                                sampleNames=samples,
                                refSeqName=chromos)
 
-if(!is.null(args$ignore))
+##counts: GRanges contains the windows/bins, and mcols contains, per bam file, the counts per bin
+## (column order is by file size $%^&*)
+
+if(!is.null(args$ignore)) { 
   ignore <- import(args$ignore)
+  o <- overlapsAny(counts, ignore, ignore.strand=TRUE)
+  counts <- counts[!o]
+}
 
-counts <- filter.regions(counts, ignore, mode)
+chrom.count.stats <- function(bamcounts, which=1) {
+    ## complete-chromosome aneuploidy. Uses bamcounts as returned by
+    ## cn.mops::getReadCountsFromBAM(a_single_bam_file). The which arguments selects the sample.
+    ## (this was ordered by file size, prolly better use the name?)
 
-
-chrom.count.stats <- function(bamcounts) {
-### bamcounts as returned by cn.mops::getReadCountsFromBAM(a_single_bam_file)
     ## good rule: p < 1e-6 && medianfrac > 0.1
-    ## note: this will fail on bamfile containing the yeast RDN1 locus ...
-    ## Better filter out anything that is not perfect (bowtie2 mapqual>= 40)
-    if( ! any(values(bamcounts)[[1]]>0) )
+    if( ! any(values(bamcounts)[[which]]>0) )
       stop("only 0's in bamcounts object")
-    d <- data.frame(chr=as.factor(seqnames(bamcounts)), counts=as.numeric(values(bamcounts)[[1]]))
+    d <- data.frame(chr=as.factor(seqnames(bamcounts)), counts=as.numeric(values(bamcounts)[[which]]))
     d <- d[ !is.na(d$counts) & d$counts >0 ,]
     grandmean <- mean(d$counts)
     grandmedian <- median(d$counts)
@@ -83,5 +86,18 @@ chrom.count.stats <- function(bamcounts) {
 
 res <- haplocn.mops(counts)
 res <- calcIntegerCopyNumbers(res)
+nregions <- length(cnvr(res))
 
-#export bed? --bedoutput=
+## Following does not work, properly, always opens a new device @#$%^&*
+## if(args$pdf) {
+##     pdf(pdf)
+##     for(i in 1:n)
+##       plot(res.f, which=i)
+##     dev.off()
+## }
+
+res.f <- haplocn.mops(counts.f)
+res.f <- calcIntegerCopyNumbers(res.f)
+
+if (!is.null(args$bedoutput))
+  export(object=???, con=file(args$bedoutput), format="bed")
