@@ -61,89 +61,23 @@ n.bams <- length(bamfiles)
 chromos <- 1:16
 chromos <- paste0("chr", as.character(as.roman(chromos)))
 
-counts <- getreadcountsfrombam(bamfiles=bamfiles,
+counts <- getReadCountsFromBAM(BAMFiles=bamfiles,
                                mode=ifelse(args$unpaired, "unpaired", "paired"),
-                               samplenames=samples,
-                               refseqname=chromos)
+                               sampleNames=samples,
+                               refSeqName=chromos)
 
-##counts: granges contains the windows/bins, and mcols contains, per bam file, the counts per bin
-## (column order is by file size $%^&*)
-
-
-if(!is.null(args$ignore)) { 
-  ignore <- import(args$ignore)
-  o <- overlapsany(counts, ignore, ignore.strand=true)
-  counts <- counts[!o]
-}
-
-chrom.count.stats <- function(bamcounts, which=1) {
-    ## complete-chromosome aneuploidy. uses bamcounts as returned by
-    ## cn.mops::getreadcountsfrombam(a_single_bam_file). the which arguments selects the sample.
-    ## Note: they were ordered by file size, better use the name!!
-
-    ## good rule: p < 1e-6 && medianfrac > 0.1
-    if( ! any(values(bamcounts)[[which]]>0) )
-      stop("only 0's in bamcounts object")
-    d <- data.frame(chr=as.factor(seqnames(bamcounts)), counts=as.numeric(values(bamcounts)[[which]]))
-    d <- d[ !is.na(d$counts) & d$counts >0 ,]
-    grandmean <- mean(d$counts)
-    grandmedian <- median(d$counts)
-    
-    res <- data.frame(pvalue=NA, n=NA, mean=NA, meandiff=NA, median=NA, mediandiff=NA, meanfrac=NA, medianfrac=NA)[0,]
-    for(chr in levels(d$chr)) {
-        x <- d[d$chr==chr, "counts"]
-        n <- length(x)
-        t <- wilcox.test(x=(x-grandmedian)) # should use Poisson here? NO
-        pval <- p.adjust(t$p.value, method="BH")
-        mean <- mean(x)
-        meandiff <- mean-grandmean
-        meanfrac<- meandiff/grandmean
-        md <- median(x)
-        mediandiff <- median(x-grandmedian)
-        medianfrac <- mediandiff/grandmedian
-        res[chr,] <- list(pval, n, mean, meandiff, md, mediandiff, meanfrac,medianfrac)
-    }
-    res
-}                                       # chrom.count.stats
-
-pval.cutoff <- 1e-6,
-medianfrac.cutoff <- 0.1
-
-for(i in 1:n.bams) {
-    smp <- samples[i]
-    s <- chrom.count.stats(counts, which=smp)
-    aneup <- s[ with(s, pvalue < args$pval_cutoff & medianfrac>args$medianfrac_cutoff), ]
-    if(nrow(s)==0)
-      cat("Sample ", smp, " seems euploid\n")
-    else {
-      cat(sprintf("Sample %s appears aneuploid for chromosomes %s:\n", smp, paste(rownames(aneup),collapse=",")))
-      print(aneup)
-    }
-}
-
-if(n.bams ==1 )
-  stop("Only one bamfile given, cannot determinr copy number variations\n")
-
-
-res <- haplocn.mops(counts)
-res <- calcIntegerCopyNumbers(res)
-counts <- getreadcountsfrombam(bamfiles=bamfiles,
-                               mode=ifelse(args$unpaired, "unpaired", "paired"),
-                               samplenames=samples,
-                               refseqname=chromos)
-
-##counts: granges contains the windows/bins, and mcols contains, per bam file, the counts per bin
+##counts: GRanges contains the windows/bins, and mcols contains, per bam file, the counts per bin
 ## (column order is by file size $%^&*)
 
 if(!is.null(args$ignore)) { 
   ignore <- import(args$ignore)
-  o <- overlapsany(counts, ignore, ignore.strand=true)
+  o <- overlapsAny(counts, ignore, ignore.strand=TRUE)
   counts <- counts[!o]
 }
 
 chrom.count.stats <- function(bamcounts, which=1) {
-    ## complete-chromosome aneuploidy. uses bamcounts as returned by
-    ## cn.mops::getreadcountsfrombam(a_single_bam_file). the which arguments selects the sample.
+    ## complete-chromosome aneuploidy. Uses bamcounts as returned by
+    ## cn.mops::getReadCountsFromBAM(a_single_bam_file). The which arguments selects the sample.
     ## (this was ordered by file size, prolly better use the name?)
 
     ## good rule: p < 1e-6 && medianfrac > 0.1
