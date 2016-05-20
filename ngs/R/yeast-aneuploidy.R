@@ -19,6 +19,7 @@ Options:
   --bedoutput=regions.bed  output file with genome regions harbouring copy number variations
   --pval_cutoff=value      used to call whole-chromosome aneuploidy
   --medianfrac_cutoff=value used to call whole-chromosome aneuploidy
+  --verbose=FALSE           wether to be verbose
 
 Written by plijnzaad@gmail.com
 ")
@@ -29,6 +30,7 @@ args <- parseArgs(.overview=overview,
                   bedoutput="",
                   pval_cutoff=1e-6,
                   medianfrac_cutoff=0.10,
+                  verbose=FALSE,
                   .allow.rest=TRUE)
 
 suppressWarnings(suppressMessages(library(cn.mops)))
@@ -41,7 +43,7 @@ if(FALSE )  {
     args <- list(ignore="/hpc/local/CentOS7/gen/data/genomes/sacCer3/ignoreRegions/all.bed",
                  unpaired=FALSE)
     setwd("/hpc/dbg_gen/philip/seqdata/marian/gro977/gcn4")
-    samples <- sprintf("G%d", 4)
+    samples <- sprintf("G%d", c(6,5))
     bamfiles <- paste0(samples, ".bam")
     args$.rest <- bamfiles
     args$bedoutput <- 'out.bed'
@@ -112,16 +114,20 @@ for(i in 1:n.bams) {
       cat("Sample ", smp, " seems euploid\n")
     else {
       cat(sprintf("Sample %s appears aneuploid for chromosomes %s:\n", smp, paste(rownames(aneup),collapse=",")))
+      options(width=1000)
       print(aneup)
+      cat("\n")
     }
 }
+
+cat("\n")
 
 if(n.bams ==1 ){ 
   cat("Only one bamfile given, will not determine copy number variations\n")
   quit(save="no")
 }
 
-res <- haplocn.mops(counts)
+res <- suppressMessages(suppressWarnings(haplocn.mops(counts)))
 res <- calcIntegerCopyNumbers(res)
 
 states <- sort(unique(cnvs(res)$CN))
@@ -140,11 +146,11 @@ cat(sprintf("Found %d deviating copy number levels in %d regions:\n%s\n",
 ##     dev.off()
 ## }
 
-if (!is.null(args$bedoutput)) {
+if (args$bedoutput!="") {
     g <- cnvr(res)
     g$name <- 'CNV'
     export(g, con=args$bedoutput)
 }
 
 if(args$verbose)
-  session(Info)
+  sessionInfo()
