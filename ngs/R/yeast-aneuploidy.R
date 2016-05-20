@@ -69,9 +69,9 @@ counts <- getReadCountsFromBAM(BAMFiles=bamfiles,
 ##counts: GRanges contains the windows/bins, and mcols contains, per bam file, the counts per bin
 ## (column order is by file size $%^&*)
 
-if(!is.null(args$ignore)) { 
+if(!is.null(args$ignore)) {             # get rid of bins that must be ignored
   ignore <- import(args$ignore)
-  o <- overlapsAny(counts, ignore, ignore.strand=TRUE)
+  o <- overlapsany(counts, ignore, ignore.strand=true)
   counts <- counts[!o]
 }
 
@@ -104,6 +104,21 @@ chrom.count.stats <- function(bamcounts, which=1) {
     }
     res
 }                                       # chrom.count.stats
+
+for(i in 1:n.bams) {
+    smp <- samples[i]                   # use name, they have been reordered
+    s <- chrom.count.stats(counts, which=smp)
+    aneup <- s[ with(s, pvalue < args$pval_cutoff & medianfrac>args$medianfrac_cutoff), ]
+    if(nrow(s)==0)
+      cat("Sample ", smp, " seems euploid\n")
+    else {
+      cat(sprintf("Sample %s appears aneuploid for chromosomes %s:\n", smp, paste(rownames(aneup),collapse=",")))
+      print(aneup)
+    }
+}
+
+if(n.bams ==1 )
+  stop("Only one bamfile given, will not determine copy number variations\n")
 
 res <- haplocn.mops(counts)
 res <- calcIntegerCopyNumbers(res)
