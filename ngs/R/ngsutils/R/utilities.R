@@ -173,9 +173,9 @@ igb.format <- function(grange) {
   ### for copy-pasting into the coordinates field of IGB or igv
   stopifnot(is(grange, "GRanges"))
   chr <- as.character(seqnames(grange))
-  start <- as.vector(start(grange))
-  end <- as.vector(end(grange))
-  cat(sprintf("%s:%d-%d\n", chr, start,end))
+  start <- commafy(as.vector(start(grange)))
+  end <- commafy(as.vector(end(grange)))
+  gsub(" ","", sprintf("%s:%s-%s", chr, start,end))
 }
 
 .codname <- function(file)gsub("\\.[^.]*$", "", basename(file))
