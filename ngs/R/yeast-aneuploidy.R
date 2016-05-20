@@ -1,10 +1,6 @@
 #!/usr/bin/env Rscript
 
-library(cn.mops)
 library(parseArgs)
-library(uuutils)
-library(ngsutils)
-library(rtracklayer)
 
 overview <- function()cat("
 Determine whole-chromosome aneuploidy and, if more than one BAM file
@@ -21,17 +17,24 @@ Options:
   --unpaired=TRUE          bam files contain paired-end reads
   --ignore=regions.bed     file with genome regions to ignore
   --bedoutput=regions.bed  output file with genome regions harbouring copy number variations
-### pdf???
-### what to do with full-chromosome aneuploidy (one or more data sets?) vs CNV's (requires >1 data sets)
+  --pval_cutoff=value      used to call whole-chromosome aneuploidy
+  --medianfrac_cutoff=value used to call whole-chromosome aneuploidy
 
 Written by plijnzaad@gmail.com
 ")
 
 args <- parseArgs(.overview=overview,
                   unpaired=FALSE,
-                  ignore=NULL,
-                  ## pdf=NULL,
+                  ignore="",
+                  bedoutput="",
+                  pval_cutoff=1e-6,
+                  medianfrac_cutoff=0.10,
                   .allow.rest=TRUE)
+
+library(cn.mops)
+library(uuutils)
+library(ngsutils)
+library(rtracklayer)
 
 if(FALSE )  {
 
@@ -40,14 +43,20 @@ if(FALSE )  {
     setwd("/hpc/dbg_gen/philip/seqdata/marian/gro977/gcn4")
     samples <- sprintf("G%d", 4:7)
     bamfiles <- paste0(samples, ".bam")
+
     args$.rest <- bamfiles
     args$bedoutput <- 'out.bed'
+    args$pval_cutoff <- 1e-6
+    args$medianfrac_cutoff <- 0.10
+
 }
 
 bamfiles <- args$.rest
 
 samples <- unname(sapply(bamfiles,
                          function(x)paste(rev(rev(unlist(strsplit(basename(x), "\\.")))[-1]),collapse=".")))
+
+n.bams <- length(bamfiles)
 
 chromos <- 1:16
 chromos <- paste0("chr", as.character(as.roman(chromos)))
@@ -70,7 +79,7 @@ if(!is.null(args$ignore)) {
 chrom.count.stats <- function(bamcounts, which=1) {
     ## complete-chromosome aneuploidy. uses bamcounts as returned by
     ## cn.mops::getreadcountsfrombam(a_single_bam_file). the which arguments selects the sample.
-    ## (this was ordered by file size, prolly better use the name?)
+    ## Note: they were ordered by file size, better use the name!!
 
     ## good rule: p < 1e-6 && medianfrac > 0.1
     if( ! any(values(bamcounts)[[which]]>0) )
@@ -97,6 +106,25 @@ chrom.count.stats <- function(bamcounts, which=1) {
     res
 }                                       # chrom.count.stats
 
+pval.cutoff <- 1e-6,
+medianfrac.cutoff <- 0.1
+
+for(i in 1:n.bams) {
+    smp <- samples[i]
+    s <- chrom.count.stats(counts, which=smp)
+    aneup <- s[ with(s, pvalue < args$pval_cutoff & medianfrac>args$medianfrac_cutoff), ]
+    if(nrow(s)==0)
+      cat("Sample ", smp, " seems euploid\n")
+    else {
+      cat(sprintf("Sample %s appears aneuploid for chromosomes %s:\n", smp, paste(rownames(aneup),collapse=",")))
+      print(aneup)
+    }
+}
+
+if(n.bams ==1 )
+  stop("Only one bamfile given, cannot determinr copy number variations\n")
+
+
 res <- haplocn.mops(counts)
 res <- calcIntegerCopyNumbers(res)
 counts <- getreadcountsfrombam(bamfiles=bamfiles,
@@ -106,7 +134,6 @@ counts <- getreadcountsfrombam(bamfiles=bamfiles,
 
 ##counts: granges contains the windows/bins, and mcols contains, per bam file, the counts per bin
 ## (column order is by file size $%^&*)
-
 
 if(!is.null(args$ignore)) { 
   ignore <- import(args$ignore)
