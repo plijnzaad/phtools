@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-library(parseArgs)
+suppressWarnings(suppressMessages(library(parseArgs)))
 
 overview <- function()cat("
 Determine whole-chromosome aneuploidy and, if more than one BAM file
@@ -31,19 +31,18 @@ args <- parseArgs(.overview=overview,
                   medianfrac_cutoff=0.10,
                   .allow.rest=TRUE)
 
-library(cn.mops)
-library(uuutils)
-library(ngsutils)
-library(rtracklayer)
+suppressWarnings(suppressMessages(library(cn.mops)))
+suppressWarnings(suppressMessages(library(uuutils)))
+suppressWarnings(suppressMessages(library(ngsutils)))
+suppressWarnings(suppressMessages(library(rtracklayer)))
 
 if(FALSE )  {
 
     args <- list(ignore="/hpc/local/CentOS7/gen/data/genomes/sacCer3/ignoreRegions/all.bed",
                  unpaired=FALSE)
     setwd("/hpc/dbg_gen/philip/seqdata/marian/gro977/gcn4")
-    samples <- sprintf("G%d", 4:7)
+    samples <- sprintf("G%d", 4)
     bamfiles <- paste0(samples, ".bam")
-
     args$.rest <- bamfiles
     args$bedoutput <- 'out.bed'
     args$pval_cutoff <- 1e-6
@@ -69,9 +68,9 @@ counts <- getReadCountsFromBAM(BAMFiles=bamfiles,
 ##counts: GRanges contains the windows/bins, and mcols contains, per bam file, the counts per bin
 ## (column order is by file size $%^&*)
 
-if(!is.null(args$ignore)) {             # get rid of bins that must be ignored
+if(args$ignore!="") {             # get rid of bins that must be ignored
   ignore <- import(args$ignore)
-  o <- overlapsany(counts, ignore, ignore.strand=true)
+  o <- overlapsAny(counts, ignore, ignore.strand=TRUE)
   counts <- counts[!o]
 }
 
@@ -109,7 +108,7 @@ for(i in 1:n.bams) {
     smp <- samples[i]                   # use name, they have been reordered
     s <- chrom.count.stats(counts, which=smp)
     aneup <- s[ with(s, pvalue < args$pval_cutoff & medianfrac>args$medianfrac_cutoff), ]
-    if(nrow(s)==0)
+    if(nrow(aneup)==0)
       cat("Sample ", smp, " seems euploid\n")
     else {
       cat(sprintf("Sample %s appears aneuploid for chromosomes %s:\n", smp, paste(rownames(aneup),collapse=",")))
@@ -117,8 +116,10 @@ for(i in 1:n.bams) {
     }
 }
 
-if(n.bams ==1 )
-  stop("Only one bamfile given, will not determine copy number variations\n")
+if(n.bams ==1 ){ 
+  cat("Only one bamfile given, will not determine copy number variations\n")
+  quit(save="no")
+}
 
 res <- haplocn.mops(counts)
 res <- calcIntegerCopyNumbers(res)
@@ -144,3 +145,6 @@ if (!is.null(args$bedoutput)) {
     g$name <- 'CNV'
     export(g, con=args$bedoutput)
 }
+
+if(args$verbose)
+  session(Info)
