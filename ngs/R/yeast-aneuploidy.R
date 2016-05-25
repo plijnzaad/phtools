@@ -14,7 +14,7 @@ Usage:
   yeast-aneuploidy.R  [options]  file1.bam [ file2.bam ... ]
 
 Options:
-  --unpaired=TRUE          bam files contain paired-end reads
+  --unpaired=TRUE          bam files contain paired-end reads (default FALSE)
   --ignore=regions.bed     file with genome regions to ignore
   --bedoutput=regions.bed  output file with genome regions harbouring copy number variations
   --pval_cutoff=value      used to call whole-chromosome aneuploidy
