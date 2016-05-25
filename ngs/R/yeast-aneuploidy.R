@@ -152,5 +152,7 @@ if (args$bedoutput!="") {
     export(g, con=args$bedoutput)
 }
 
-if(args$verbose)
-  sessionInfo()
+if(args$verbose) { 
+    sink(file=stderr())
+    sessionInfo()
+}
