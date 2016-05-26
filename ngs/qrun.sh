@@ -36,9 +36,6 @@ usage_msg="
 \n  correpsonds to qsub's option \"-hold_jid\"; option -H to qsub's
 \n  \"-hold_jid_ad\"
 \n
-\n  For the -l option, you have to specify all resources as one 
-\n  comma-separated string, e.g.: -l \"h_rt=2:30:00,h_vmem=32G,tmpspace=100G\".
-\n
 \n  Unix pipe lines can be specified as a job, but the pipeline must be
 \n  quoted as a whole, which would look like
 \n
@@ -102,10 +99,11 @@ fi
 
 opt_M="-M $mail_address"
 
-# default: sent mail when jobs is aborted
+# default: only sent mail when jobs is aborted
 opt_m="-m a"
 
 jobname=""
+resources=""
 while getopts "N:q:o:e:j:M:m:p:l:h:H:" opt; do
     case $opt in
         N)
@@ -118,16 +116,16 @@ while getopts "N:q:o:e:j:M:m:p:l:h:H:" opt; do
             error "You cannot use the -o and -e options; output always goes to ./$logdirname/ (relative to current diretory)"
             ;;
         j)
-            opt_j="-j $OPTARG"
+            opt_j="-j $OPTARG"          # join stdout and stderr
             ;;
         m)
-            opt_m="-m $OPTARG"
-            ;;
-        l)
-            opt_l="-l $OPTARG"          # note: for now, specify as one comma-separed set of resources
+            opt_m="-m $OPTARG"          # when to send mail
             ;;
         M)
-            opt_M="-M $OPTARG"
+            opt_M="-M $OPTARG"          # where to send mail
+            ;;
+        l)                              # specifies resources. comma-separated or repeated
+            resources="$resources -l $OPTARG"
             ;;
 
 ### multi-letter qsub options:
@@ -137,11 +135,11 @@ while getopts "N:q:o:e:j:M:m:p:l:h:H:" opt; do
             ;;
 
         h)
-            opt_hold_jid="-hold_jid $OPTARG"
+            opt_hold_jid="-hold_jid $OPTARG" # comma-separated list of job ids to wait for
             opt_hold_jid=$(echo $opt_hold_jid | tr '=' ' ')
             ;;
 
-        H)
+        H)                              # comma-separated list of job array ids to wait for
             opt_hold_jid_ad="-hold_jid_ad $OPTARG"
             opt_hold_jid_ad=$(echo $opt_hold_jid_ad | tr '=' ' ')
             ;;
@@ -151,6 +149,7 @@ while getopts "N:q:o:e:j:M:m:p:l:h:H:" opt; do
             ;;
     esac
 done
+opt_l=$resources
 shift $((OPTIND-1))
 
 if [ -z "$jobname" ]; then
