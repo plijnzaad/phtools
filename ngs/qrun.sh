@@ -44,7 +44,10 @@ usage_msg="
 \n  Be careful in this case with the dollar signs of variable references
 \n  (including things like \$1, \$2 in a one-liner awk or
 \n  perl-script). Escape them to avoid premature substitution by the
-\n  invoking shell.
+\n  invoking shell. If the commands use arguments that must be quoted
+\n  (spaces and shell meta-characters), use escaped double quotes:
+\n
+\n qrun.sh \"sambamba view --filter=\\\"mapping_quality >= 40\\\" M1.bam | center+smooth.pl --type paired > M1-cen.bam \"
 \n
 \n  If your system has no ldapsearch for looking up the e-mail address, 
 \n  consider creating a file $HOME/.forward that contains the right
