@@ -2,3 +2,4 @@
 # -*- mode: sh; -*-
 ## drop-in replacement of sambamba sort that makes use of the proper local TMPDIR on the compute node
 sambamba sort --tmpdir=$TMPDIR "$@"
+## (NOTE: needs a bam file, not a sam file!)
