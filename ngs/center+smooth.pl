@@ -113,7 +113,7 @@ my $auto=1;
 my $seqtype=undef;
 my $skip_improper;
 my $chimeric_file=undef;
-my $minqual=10;
+## my $minqual=10;
 ## my $nodrop=undef;
 
 my @argv_copy=@ARGV;                    # eaten by GetOptions
@@ -128,8 +128,8 @@ die $usage if  GetOptions('help'=> \$help,
                           'smooth=i' => \$smooth,
                           'strict' => \$strict,
                           'skip_improper' => \$skip_improper,
-                          'chimeric=s' => \$chimeric_file,
-                          'qual=i' => \$minqual
+                          'chimeric=s' => \$chimeric_file
+##                           'qual=i' => \$minqual
     ) ==0 || $help;
 
 my $cmdline= "$0 " . join(" ", @argv_copy);
@@ -225,10 +225,10 @@ LINE:
         next LINE;
       }
 
-      if ( $qual < $minqual ) {
-        $lowqual++;
-        next LINE;
-      }
+##       if ( $qual < $minqual ) {
+##         $lowqual++;
+##         next LINE;
+##       }
       
       if(!$tlen && !$shift ) { 
         if ($rnext eq '=' || $rname eq $rnext ) { 
@@ -325,7 +325,7 @@ warn commafy($skipped_left) . " $term skipped on the left side, ". commafy($skip
 warn commafy($trimmed_left) . " $term trimmed on the left side, " . commafy($trimmed_right) . " on the right side of the chromosome\n";
 my $s=($skip_improper ? "Dropped " : "Kept ") . commafy($nimproper) . " mates marked as improper\n";
 warn $s;
-warn "Dropped " . commafy($lowqual) . " $term with quality < $minqual\n";
+## warn "Dropped " . commafy($lowqual) . " $term with quality < $minqual\n";
 
 if(!$single) { ## paired-end only:
   warn "Dropped ". commafy($mate2dropped) . " mate2 lines because uninformative\n";
