@@ -225,7 +225,7 @@ LINE:
         next LINE;
       }
 
-##       if ( $qual < $minqual ) {
+##       if ( $mapq < $minqual ) {
 ##         $lowqual++;
 ##         next LINE;
 ##       }
