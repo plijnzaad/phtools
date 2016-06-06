@@ -332,7 +332,7 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 	@echo '============================================================'
 	cat do_center_reads
 	@echo '============================================================'
-	sambamba view $(filter_opts) -h $< | ./do_center_reads > $@; $(call check_result, $$?, $@)
+	sambamba view -h $< | ./do_center_reads > $@; $(call check_result, $$?, $@)
 	samtools index $@
 	@echo Done creating $@ 1>&2
 
