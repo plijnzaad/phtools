@@ -29,7 +29,7 @@ warn "allowing mismatches, untested yet ..." if $mismatches_allowed >0;
 
 our $barcodes = {};        # eg. $barcodes->{'AGCGTT') => 'M3'
 our $mismatch_REs = {};    # eg. $mismatch_REs->{'AG.GTT') => 'M3'
-our $compiled_REs = {};    # eg. $compiled_REs->{'AG.GTT') => REGEXP(0x25a7788)
+our $compiled_REs = {};    # eg. $compiled_REs->{'AG.GTT') => REGEXP(0x25a7788)### get rid if works
 our @all_REs=();
 
 if ($reopt) { 
@@ -79,9 +79,8 @@ LINE:
     if($reopt) { 
       my $r='^'.join("|", @res).'$';
       $r=$o->optimize(qr/$r/);
-      $compiled_REs->{$code}= $r;    # just one!
-    } 
-    else { 
+      $mismatch_REs->{$code}= $r;    # just one big regexp!
+    } else { 
       for my $re (@res) { 
         die "Mismatch RE '$re' for code $code with $mismatches_allowed mismatches (library $lib) is not unique" if $mismatch_REs->{$re};
         $mismatch_REs->{$re}=$lib;
@@ -91,7 +90,7 @@ LINE:
     }
   }                                     # while LINE
 
-  @all_REs = keys %$mismatch_REs;
+  @all_REs = keys %$mismatch_REs;       # just all codes in case of $reopt
 
   close(FILE);
   undef;
@@ -101,8 +100,12 @@ sub rescue {
   my($code)=@_;
 
   if($reopt) { 
-    die "not ready";
+    foreach my $code (@all_REs) {       # @@@@ get rid of @all_RE's if it works
+      my $re=$mismatch_REs->{$code};
+      return  $barcodes->{$code} if $code =~ $re;
+    }
   }
+  
   foreach my $re (@all_REs) { 
     return $mismatch_REs->{$re} if $code =~ $compiled_REs->{$re};
   }
