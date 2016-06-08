@@ -9,7 +9,7 @@ use vars qw($opt_h $opt_b $opt_m $opt_p $opt_o);
 
 my $Usage="Usage:
 
-   ... | $0 -b barcodes.txt [-m mismatches] [ -p outputprefix] [ -o outputdir ] 
+   ... | $0 -b barcodes.txt [-m mismatches] [ -p outputprefix ] [ -o outputdir ] 
 ";
 
 if ( !getopts("b:p:o:m:h") || ! $opt_b ||  $opt_h ) {
@@ -24,10 +24,13 @@ warn "allowing mismatches, untested yet ..." if $mismatches_allowed >0;
 our $barcodes = {};        # eg. $barcodes->{'AGCGTT') => 'M3'
 our $mismatch_REs = {};    # eg. $mismatch_REs->{'AG.GTT') => 'M3'
 our $compiled_REs = {};    # eg. $compiled_REs->{'AG.GTT') => REGEXP(0x25a7788)
-our @all_REs;
+our @all_REs=();
 
 sub getmismatch_REs {
+  ## set up regular expressions to allow mismatches
   my($code, $max_mm)=@_;
+  
+  return () if ! $max_mm;
 
   my @mmcodes=();
   my(@code)=split(//, $code);
@@ -45,6 +48,8 @@ sub getmismatch_REs {
 }                                       # getmismatch_REs
 
 sub readbarcodes {
+  ## sets following globals:
+  ## $barcodes, $mismatches_REs, $compiled_REs and @all_REs
   my ($file)=@_;
   my $libs={};
 
@@ -58,9 +63,8 @@ LINE:
     die "Library '$lib' not unique" if $libs->{$lib}++;
     die "Barcode '$code' not unique" if $barcodes->{$code};
     $barcodes->{$code}=$lib;
-    next LINE if $mismatches_allowed==0;
 
-    my @res=getmismatch_REs($code, $mismatches_allowed);
+    my @res=getmismatch_REs($code, $mismatches_allowed); # may be empty
 
     for my $re (@res) { 
       die "Mismatch RE '$re' for code $code with $mismatches_allowed mismatches ( library $lib) is not unique" if $mismatch_REs->{$re};
@@ -69,6 +73,8 @@ LINE:
       $compiled_REs->{$re}=  qr/$r/;
     }
   }
+  @all_REs = keys %$mismatch_REs;
+
   close(FILE);
   undef;
 }                                       # readbarcodes
@@ -118,7 +124,6 @@ sub close_outfiles {
 
 readbarcodes($opt_b);
 
-@all_REs = keys %$mismatch_REs;
 
 my @files=(values %$barcodes, 'AMBIGUOUS', 'UNKNOWN');
 my $filehandles=open_outfiles(@files);      # opens M3.fastq.gz, ambiguous.fastq.gz etc.
@@ -141,17 +146,17 @@ while(1) {
   my $lib;
  CASE:
   while(1) {
-    $lib=$barcodes->{$code};
+    $lib=$barcodes->{$code};            # majority of cases
     if ($lib) {
       $nexact++;
       last CASE;
     }
-    if ($mismatches_allowed == 0) {
+    if (! $mismatches_allowed) {
       $nunknown++;
       $lib='UNKNOWN';
       last CASE;
     }
-    $lib=rescue($code);
+    $lib=rescue($code);                 # takes longish (regexp matching)
     if($lib) {
       $nmismatched++;
       last CASE;
@@ -175,4 +180,4 @@ sub commafy {
   join('',reverse(split('',$r)));
 }
 
-warn sprintf("exact: %s\nrescued:%s\nambiguous:%s\nunknown: %s\n", map { commafy $_ } ($nexact, $nmismatched, $nunknown ));
+warn sprintf("exact: %s\nrescued:%s\nmismatched:%s\nunknown: %s\n", map { commafy $_ } ($nexact, $nmismatched, $nunknown ));
