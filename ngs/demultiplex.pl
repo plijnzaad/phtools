@@ -21,9 +21,12 @@ $mismatches_allowed = $opt_m if defined($opt_m);  # 0 also possible
 
 warn "allowing mismatches, untested yet ..." if $mismatches_allowed >0;
 
-my $special=0;
+our $barcodes = {};        # eg. $barcodes->{'AGCGTT') => 'M3'
+our $mismatch_REs = {};    # eg. $mismatch_REs->{'AG.GTT') => 'M3'
+our $compiled_REs = {};    # eg. $compiled_REs->{'AG.GTT') => REGEXP(0x25a7788)
+our @all_REs;
 
-sub getmismatches {
+sub getmismatch_REs {
   my($code, $max_mm)=@_;
 
   my @mmcodes=();
@@ -34,17 +37,15 @@ sub getmismatches {
     my @combs = combine(($i+1), 0..$#code);
     foreach my $comb ( @combs ) { 
       my @mm=@code;
-      @mm[ @$comb ] = split(//, 'o' x int(@$comb) );
+      @mm[ @$comb ] = split(//, '.' x int(@$comb) ); # yay, splicing
       push(@mmcodes, [@mm]);
     }
   }
-  @mmcodes = map {join("", @$_);} @mmcodes;
-  [@mmcodes];
-}                                       # getmismatches
+  map { join("", @$_);} @mmcodes;
+}                                       # getmismatch_REs
 
 sub readbarcodes {
   my ($file)=@_;
-  my $bc={};
   my $libs={};
 
   open(FILE, "$file") or die "Barcode '$file': $!";
@@ -55,19 +56,31 @@ LINE:
     next LINE unless $_;
     my ($lib, $code)=split(' ');            # e.g. 'G7 \t CCAACAAT'
     die "Library '$lib' not unique" if $libs->{$lib}++;
-    die "Barcode '$code' not unique" if $bc->{$code};
-    $bc->{$code}=$lib;
+    die "Barcode '$code' not unique" if $barcodes->{$code};
+    $barcodes->{$code}=$lib;
     next LINE if $mismatches_allowed==0;
 
-    my $mmcodes=getmismatches($code, $mismatches_allowed);
-    for my $mm (@$mmcodes) {
-      die "Barcode '$mm' for code $code with $mismatches_allowed mismatches ( library $lib) is not unique" if $bc->{$mm};  
-      $bc->{$mm}=$lib;    
+    my @res=getmismatch_REs($code, $mismatches_allowed);
+
+    for my $re (@res) { 
+      die "Mismatch RE '$re' for code $code with $mismatches_allowed mismatches ( library $lib) is not unique" if $mismatch_REs->{$re};
+      $mismatch_REs->{$re}=$lib;
+      my $r="^$re\$";
+      $compiled_REs->{$re}=  qr/$r/;
     }
   }
   close(FILE);
-  $bc;
+  undef;
 }                                       # readbarcodes
+
+sub rescue { 
+  my($code)=@_;
+ 
+  foreach my $re (@all_REs) { 
+    return $mismatch_REs->{$re} if  $code =~ $compiled_REs->{$re};
+  }
+  return undef;
+}                                       # rescue
 
 sub open_infile {
   die "not used nor tested";
@@ -94,7 +107,7 @@ sub open_outfiles {
     $fhs->{$lib}=$fh;
   }
   $fhs;
-}
+}                                       # open_outfiles
 
 sub close_outfiles {
   my($fhs)=@_;
@@ -103,22 +116,16 @@ sub close_outfiles {
   }
 }
 
-sub rescue {
-  die "to be written";
-}
+readbarcodes($opt_b);
 
-sub ambiguous {
-  die "to be written";
-}
+@all_REs = keys %$mismatch_REs;
 
-my $codes = readbarcodes($opt_b);       # eg. $code->{'AGCGTT') => 'M3'
-my @files=(values %$codes, 'AMBIGUOUS', 'UNKNOWN');
+my @files=(values %$barcodes, 'AMBIGUOUS', 'UNKNOWN');
 my $filehandles=open_outfiles(@files);      # opens M3.fastq.gz, ambiguous.fastq.gz etc.
 
 my $nexact=0;
-my $nrescued=0;                         # having at most $mismatch mismatches
+my $nmismatched=0;                         # having at most $mismatch mismatches
 my $nunknown=0;
-my $nambiguous=0;
 
 RECORD:
 while(1) { 
@@ -134,7 +141,7 @@ while(1) {
   my $lib;
  CASE:
   while(1) {
-    $lib=$codes->{$code};
+    $lib=$barcodes->{$code};
     if ($lib) {
       $nexact++;
       last CASE;
@@ -144,22 +151,14 @@ while(1) {
       $lib='UNKNOWN';
       last CASE;
     }
-    $lib=rescue($code, $codes, $mismatches_allowed);
-    if(!$lib) {
+    $lib=rescue($code);
+    if($lib) {
+      $nmismatched++;
+      last CASE;
+    } else { 
       $nunknown++;
       $lib='UNKNOWN';
       last CASE;
-    }
-    if($special) {
-      # check if mismatch is in 7th bp; if so, call it ambiguous
-      if (ambiguous() ) {
-        $lib='AMBIGUOUS';
-        $nambiguous++;
-        last CASE;
-      } else {
-        $nrescued++;
-        last CASE;
-      }
     }
     die "should not reach this point";
   }                                     # CASE
@@ -176,5 +175,4 @@ sub commafy {
   join('',reverse(split('',$r)));
 }
 
-warn sprintf("exact: %s\nrescued:%s\nambiguous:%s\nunknown: %s\n",
-             map { commafy $_ } ($nexact, $nrescued, $nambiguous, $nunknown ));
+warn sprintf("exact: %s\nrescued:%s\nambiguous:%s\nunknown: %s\n", map { commafy $_ } ($nexact, $nmismatched, $nunknown ));
