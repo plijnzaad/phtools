@@ -69,7 +69,7 @@ LINE:
     my @res=getmismatch_REs($code, $mismatches_allowed); # may be empty
 
     for my $re (@res) { 
-      die "Mismatch RE '$re' for code $code with $mismatches_allowed mismatches ( library $lib) is not unique" if $mismatch_REs->{$re};
+      die "Mismatch RE '$re' for code $code with $mismatches_allowed mismatches (library $lib) is not unique" if $mismatch_REs->{$re};
       $mismatch_REs->{$re}=$lib;
       my $r="^$re\$";
       $compiled_REs->{$re}=  qr/$r/;
