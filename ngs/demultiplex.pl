@@ -4,6 +4,10 @@ use strict;
 use Getopt::Std;
 use FileHandle;
 use Math::Combinatorics;
+use Regexp::Optimizer;
+
+my $reopt=1;
+my $o;
 
 ## written <plijnzaad@gmail.com>
 
@@ -27,6 +31,10 @@ our $barcodes = {};        # eg. $barcodes->{'AGCGTT') => 'M3'
 our $mismatch_REs = {};    # eg. $mismatch_REs->{'AG.GTT') => 'M3'
 our $compiled_REs = {};    # eg. $compiled_REs->{'AG.GTT') => REGEXP(0x25a7788)
 our @all_REs=();
+
+if ($reopt) { 
+  $o=Regexp::Optimizer->new;
+}
 
 sub getmismatch_REs {
   ## set up regular expressions to allow mismatches
@@ -68,13 +76,21 @@ LINE:
 
     my @res=getmismatch_REs($code, $mismatches_allowed); # may be empty
 
-    for my $re (@res) { 
-      die "Mismatch RE '$re' for code $code with $mismatches_allowed mismatches (library $lib) is not unique" if $mismatch_REs->{$re};
-      $mismatch_REs->{$re}=$lib;
-      my $r="^$re\$";
-      $compiled_REs->{$re}=  qr/$r/;
+    if($reopt) { 
+      my $r='^'.join("|", @res).'$';
+      $r=$o->optimize(qr/$r/);
+      $compiled_REs->{$code}= $r;    # just one!
+    } 
+    else { 
+      for my $re (@res) { 
+        die "Mismatch RE '$re' for code $code with $mismatches_allowed mismatches (library $lib) is not unique" if $mismatch_REs->{$re};
+        $mismatch_REs->{$re}=$lib;
+        my $r="^$re\$";
+        $compiled_REs->{$re}=  qr/$r/;
+      }
     }
-  }
+  }                                     # while LINE
+
   @all_REs = keys %$mismatch_REs;
 
   close(FILE);
@@ -83,9 +99,12 @@ LINE:
 
 sub rescue { 
   my($code)=@_;
- 
+
+  if($reopt) { 
+    die "not ready";
+  }
   foreach my $re (@all_REs) { 
-    return $mismatch_REs->{$re} if  $code =~ $compiled_REs->{$re};
+    return $mismatch_REs->{$re} if $code =~ $compiled_REs->{$re};
   }
   return undef;
 }                                       # rescue
