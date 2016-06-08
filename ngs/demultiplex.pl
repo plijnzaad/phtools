@@ -2,8 +2,8 @@
 
 use strict;
 use Getopt::Std;
-use Text::Levenshtein qw(distance);
 use FileHandle;
+use Math::Combinatorics;
 
 use vars qw($opt_h $opt_b $opt_m $opt_p $opt_o);
 
@@ -19,9 +19,28 @@ if ( !getopts("b:p:o:m:h") || ! $opt_b ||  $opt_h ) {
 my  $mismatches_allowed = 1;
 $mismatches_allowed = $opt_m if defined($opt_m);  # 0 also possible
 
-die "only zero-mismatches allowed for now ..." if $mismatches_allowed >0;
+warn "allowing mismatches, untested yet ..." if $mismatches_allowed >0;
 
 my $special=0;
+
+sub getmismatches {
+  my($code, $max_mm)=@_;
+
+  my @mmcodes=();
+  my(@code)=split(//, $code);
+
+  ## set up array of arrays with '.' where to do the replacements:
+  for(my $i=0; $i<$max_mm; $i++) { 
+    my @combs = combine(($i+1), 0..$#code);
+    foreach my $comb ( @combs ) { 
+      my @mm=@code;
+      @mm[ @$comb ] = split(//, 'o' x int(@$comb) );
+      push(@mmcodes, [@mm]);
+    }
+  }
+  @mmcodes = map {join("", @$_);} @mmcodes;
+  [@mmcodes];
+}                                       # getmismatches
 
 sub readbarcodes {
   my ($file)=@_;
@@ -29,6 +48,7 @@ sub readbarcodes {
   my $libs={};
 
   open(FILE, "$file") or die "Barcode '$file': $!";
+LINE:
   while(<FILE>) {
     s/[\n\r]*$//g;
     s/#.*//;
@@ -37,6 +57,13 @@ sub readbarcodes {
     die "Library '$lib' not unique" if $libs->{$lib}++;
     die "Barcode '$code' not unique" if $bc->{$code};
     $bc->{$code}=$lib;
+    next LINE if $mismatches_allowed==0;
+
+    my $mmcodes=getmismatches($code, $mismatches_allowed);
+    for my $mm (@$mmcodes) {
+      die "Barcode '$mm' for code $code with $mismatches_allowed mismatches ( library $lib) is not unique" if $bc->{$mm};  
+      $bc->{$mm}=$lib;    
+    }
   }
   close(FILE);
   $bc;
