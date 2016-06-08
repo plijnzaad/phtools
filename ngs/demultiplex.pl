@@ -43,10 +43,10 @@ sub getmismatch_REs {
     foreach my $comb ( @combs ) { 
       my @mm=@code;
       @mm[ @$comb ] = split(//, '.' x int(@$comb) ); # yay, splicing
-      push(@mmcodes, [@mm]);
+      push(@mmcodes, join("", @mm));
     }
   }
-  map { join("", @$_);} @mmcodes;
+  @mmcodes;
 }                                       # getmismatch_REs
 
 sub readbarcodes {
@@ -125,7 +125,6 @@ sub close_outfiles {
 }
 
 readbarcodes($opt_b);
-
 
 my @files=(values %$barcodes, 'AMBIGUOUS', 'UNKNOWN');
 my $filehandles=open_outfiles(@files);      # opens M3.fastq.gz, ambiguous.fastq.gz etc.
