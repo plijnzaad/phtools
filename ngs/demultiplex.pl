@@ -5,6 +5,8 @@ use Getopt::Std;
 use FileHandle;
 use Math::Combinatorics;
 
+## written <plijnzaad@gmail.com>
+
 use vars qw($opt_h $opt_b $opt_m $opt_p $opt_o);
 
 my $Usage="Usage:
