@@ -1,15 +1,11 @@
 #!/usr/bin/env perl
+## written <plijnzaad@gmail.com>
 
 use strict;
 use Getopt::Std;
 use FileHandle;
 use Math::Combinatorics;
 use Regexp::Optimizer;
-
-my $reopt=0;
-my $o;
-
-## written <plijnzaad@gmail.com>
 
 use vars qw($opt_h $opt_b $opt_m $opt_p $opt_o);
 
@@ -29,16 +25,11 @@ if ( !getopts("b:p:o:m:h") || ! $opt_b ||  $opt_h ) {
 my  $mismatches_allowed = 1;
 $mismatches_allowed = $opt_m if defined($opt_m);  # 0 also possible
 
-warn "allowing mismatches, untested yet ..." if $mismatches_allowed >0;
+my $o=Regexp::Optimizer->new;
 
 our $barcodes = {};        # eg. $barcodes->{'AGCGTT') => 'M3'
-our $mismatch_REs = {};    # eg. $mismatch_REs->{'AG.GTT') => 'M3'
-our $compiled_REs = {};    # eg. $compiled_REs->{'AG.GTT') => REGEXP(0x25a7788)### get rid if works
-our @all_REs=();
-
-if ($reopt) { 
-  $o=Regexp::Optimizer->new;
-}
+our $mismatch_REs = {};    # eg. $mismatch_REs->{'AGCGTT') =>  REGEXP(0x25a7788)
+our @all_codes=();
 
 sub getmismatch_REs {
   ## set up regular expressions to allow mismatches
@@ -63,7 +54,7 @@ sub getmismatch_REs {
 
 sub readbarcodes {
   ## sets following globals:
-  ## $barcodes, $mismatches_REs, $compiled_REs and @all_REs
+  ## $barcodes, $mismatches_REs, $compiled_REs and @all_codes
   my ($file)=@_;
   my $libs={};
 
@@ -78,23 +69,14 @@ LINE:
     die "Barcode '$code' not unique" if $barcodes->{$code};
     $barcodes->{$code}=$lib;
 
-    my @res=getmismatch_REs($code, $mismatches_allowed); # may be empty
+    my @res=getmismatch_REs($code, $mismatches_allowed); # empty if $mismatches_allowed==0
 
-    if($reopt) { 
-      my $r='^'.join("|", @res).'$';
-      $r=$o->optimize(qr/$r/);
-      $mismatch_REs->{$code}= $r;    # just one big regexp!
-    } else { 
-      for my $re (@res) { 
-        die "Mismatch RE '$re' for code $code with $mismatches_allowed mismatches (library $lib) is not unique" if $mismatch_REs->{$re};
-        $mismatch_REs->{$re}=$lib;
-        my $r="^$re\$";
-        $compiled_REs->{$re}=  qr/$r/;
-      }
-    }
+    my $r='^'.join("|", @res).'$';
+    $r=$o->optimize(qr/$r/);
+    $mismatch_REs->{$code}= $r;         # just one big regexp!
   }                                     # while LINE
 
-  @all_REs = keys %$mismatch_REs;       # just all codes in case of $reopt
+  @all_codes = keys %$mismatch_REs;       # just all codes in case of $reopt
 
   close(FILE);
   undef;
@@ -103,15 +85,9 @@ LINE:
 sub rescue { 
   my($foundcode)=@_;
 
-  if($reopt) { 
-    foreach my $knowncode (@all_REs) {       # @@@@ get rid of @all_RE's if it works
-      my $re=$mismatch_REs->{$knowncode};
-      return  $barcodes->{$knowncode} if $foundcode =~ $re;
-    }
-  }
-  
-  foreach my $re (@all_REs) { 
-    return $mismatch_REs->{$re} if $foundcode =~ $compiled_REs->{$re};
+  foreach my $knowncode (@all_codes) {
+    my $re=$mismatch_REs->{$knowncode};
+    return  $barcodes->{$knowncode} if $foundcode =~ $re;
   }
   return undef;
 }                                       # rescue
