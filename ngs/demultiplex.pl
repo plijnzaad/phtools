@@ -114,7 +114,7 @@ sub open_outfiles {
     $name="$opt_p$name" if $opt_p;
     $name="$opt_o/$name" if $opt_o;
 ##    my $fh = FileHandle->new("| gzip > $name") or die "library $lib, file $name: $!";
-    my $fh = FileHandle->new(" > $name") or die "library $lib, file $name: $!";
+    my $fh = FileHandle->new(" > $name") or die "library $lib, file $name: $! (did you create the output directory?)";
     warn "Creating/overwriting file $name ...\n";
     $fhs->{$lib}=$fh;
   }
@@ -185,4 +185,5 @@ sub commafy {
   join('',reverse(split('',$r)));
 }
 
-warn sprintf("exact: %s\nrescued:%s\nmismatched:%s\nunknown: %s\n", map { commafy $_ } ($nexact, $nmismatched, $nunknown ));
+warn sprintf("exact: %s\nmismatched:%s\nunknown: %s\n", 
+             map { commafy $_ } ($nexact, $nmismatched, $nunknown ));
