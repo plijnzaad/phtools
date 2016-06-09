@@ -6,7 +6,7 @@ use FileHandle;
 use Math::Combinatorics;
 use Regexp::Optimizer;
 
-my $reopt=1;
+my $reopt=0;
 my $o;
 
 ## written <plijnzaad@gmail.com>
@@ -16,6 +16,10 @@ use vars qw($opt_h $opt_b $opt_m $opt_p $opt_o);
 my $Usage="Usage:
 
    ... | $0 -b barcodes.txt [-m mismatches] [ -p outputprefix ] [ -o outputdir ] 
+
+NOTE: the script doesn't check if mismatched barcodes are unambiguous, 
+use edit-distance.pl and/or edit-distance-matrix.pl for that.
+
 ";
 
 if ( !getopts("b:p:o:m:h") || ! $opt_b ||  $opt_h ) {
@@ -97,17 +101,17 @@ LINE:
 }                                       # readbarcodes
 
 sub rescue { 
-  my($code)=@_;
+  my($foundcode)=@_;
 
   if($reopt) { 
-    foreach my $code (@all_REs) {       # @@@@ get rid of @all_RE's if it works
-      my $re=$mismatch_REs->{$code};
-      return  $barcodes->{$code} if $code =~ $re;
+    foreach my $knowncode (@all_REs) {       # @@@@ get rid of @all_RE's if it works
+      my $re=$mismatch_REs->{$knowncode};
+      return  $barcodes->{$knowncode} if $foundcode =~ $re;
     }
   }
   
   foreach my $re (@all_REs) { 
-    return $mismatch_REs->{$re} if $code =~ $compiled_REs->{$re};
+    return $mismatch_REs->{$re} if $foundcode =~ $compiled_REs->{$re};
   }
   return undef;
 }                                       # rescue
@@ -129,10 +133,12 @@ sub open_outfiles {
   my $fhs={};
 
   for my $lib (@libs) { 
-    my $name=sprintf("%s.fastq.gz", $lib);
+##    my $name=sprintf("%s.fastq.gz", $lib);
+    my $name=sprintf("%s.fastq", $lib);
     $name="$opt_p$name" if $opt_p;
     $name="$opt_o/$name" if $opt_o;
-    my $fh = FileHandle->new("| gzip > $name") or die "library $lib, file $name: $!";
+##    my $fh = FileHandle->new("| gzip > $name") or die "library $lib, file $name: $!";
+    my $fh = FileHandle->new(" > $name") or die "library $lib, file $name: $!";
     warn "Creating/overwriting file $name ...\n";
     $fhs->{$lib}=$fh;
   }
@@ -148,7 +154,7 @@ sub close_outfiles {
 
 readbarcodes($opt_b);
 
-my @files=(values %$barcodes, 'AMBIGUOUS', 'UNKNOWN');
+my @files=(values %$barcodes, 'UNKNOWN');
 my $filehandles=open_outfiles(@files);      # opens M3.fastq.gz, ambiguous.fastq.gz etc.
 
 my $nexact=0;
@@ -160,8 +166,8 @@ while(1) {
   my $record=<>;
   last RECORD if (eof(STDIN) || !$record);
   ### e.g.:  ^@NS500413:172:HVFHWBGXX:1:11101:4639:1062 1:N:0:CCGTCCAT$
-  my ($code)=(split(':', $record))[-1];
-  $code =~ s/[\n\r]*$//;
+  my ($foundcode)=(split(':', $record))[-1];
+  $foundcode =~ s/[\n\r]*$//;
   $record .= <>; # sequence line
   $record .= <>; # '+'
   $record .= <>; # quality line
@@ -169,7 +175,7 @@ while(1) {
   my $lib;
  CASE:
   while(1) {
-    $lib=$barcodes->{$code};            # majority of cases
+    $lib=$barcodes->{$foundcode};            # majority of cases
     if ($lib) {
       $nexact++;
       last CASE;
@@ -179,7 +185,7 @@ while(1) {
       $lib='UNKNOWN';
       last CASE;
     }
-    $lib=rescue($code);                 # takes longish (regexp matching)
+    $lib=rescue($foundcode);                 # takes longish (regexp matching)
     if($lib) {
       $nmismatched++;
       last CASE;
