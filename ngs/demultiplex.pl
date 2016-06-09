@@ -109,12 +109,12 @@ sub open_outfiles {
   my $fhs={};
 
   for my $lib (@libs) { 
-##    my $name=sprintf("%s.fastq.gz", $lib);
-    my $name=sprintf("%s.fastq", $lib);
+    my $name=sprintf("%s.fastq.gz", $lib);
+##    my $name=sprintf("%s.fastq", $lib);
     $name="$opt_p$name" if $opt_p;
     $name="$opt_o/$name" if $opt_o;
-##    my $fh = FileHandle->new("| gzip > $name") or die "library $lib, file $name: $!";
-    my $fh = FileHandle->new(" > $name") or die "library $lib, file $name: $! (did you create the output directory?)";
+    my $fh = FileHandle->new("| gzip > $name") or die "library $lib, file $name: $!";
+##    my $fh = FileHandle->new(" > $name") or die "library $lib, file $name: $! (did you create the output directory?)";
     warn "Creating/overwriting file $name ...\n";
     $fhs->{$lib}=$fh;
   }
