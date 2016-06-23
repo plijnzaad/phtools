@@ -185,5 +185,5 @@ sub commafy {
   join('',reverse(split('',$r)));
 }
 
-warn sprintf("exact: %s\nmismatched:%s\nunknown: %s\n", 
+warn sprintf("exact: %s\nmismatched: %s\nunknown: %s\n", 
              map { commafy $_ } ($nexact, $nmismatched, $nunknown ));
