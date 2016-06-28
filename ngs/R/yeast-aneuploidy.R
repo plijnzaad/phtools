@@ -5,7 +5,9 @@ suppressWarnings(suppressMessages(library(parseArgs)))
 overview <- function()cat("
 Determine whole-chromosome aneuploidy and, if more than one BAM file
 is given, determine any 'copy number variations', i.e. regions with
-more/fewer reads than expected using cn.mops.
+more/fewer reads than expected using cn.mops. Note: if deviating
+copy number levels are found, the region(s) but not the sample(s)
+are given, since any sample may be deviating differently.
 
 Note: this is yeast specific, with chromosome names like 'chrVI'
 
@@ -14,7 +16,7 @@ Usage:
   yeast-aneuploidy.R  [options]  file1.bam [ file2.bam ... ]
 
 Options:
-  --unpaired=TRUE          bam files contain paired-end reads (default FALSE)
+  --unpaired=TRUE          bam files contain single-end reads (default FALSE)
   --ignore=regions.bed     file with genome regions to ignore
   --bedoutput=regions.bed  output file with genome regions harbouring copy number variations
   --pval_cutoff=value      used to call whole-chromosome aneuploidy
@@ -133,7 +135,7 @@ res <- calcIntegerCopyNumbers(res)
 states <- sort(unique(cnvs(res)$CN))
 nregions <- length(cnvr(res))
             
-cat(sprintf("Found %d deviating copy number levels in %d regions:\n%s\n",
+cat(sprintf("Found %d deviating copy number levels in %d regions (check visually):\n%s\n",
             length(states), nregions,
             paste(igb.format(cnvr(res)), collapse="\n")
             ))
