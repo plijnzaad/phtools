@@ -659,4 +659,9 @@ location2granges <- function(location, seqinfo=NULL, seqlengths=NULL) {
                  seqinfo=seqinfo, seqlengths=seqlengths)
 }                                       #location2granges
 
-
+read.macs2xls <- function(file, seqlengths=NULL, ...) {
+    peaks <- read.table(file, header=TRUE)
+    mcols <- peaks[ , setdiff(names(peaks), c('chr', 'start', 'end', 'length'))]
+    colnames(mcols)[c(3,5)] <- paste0('minlog10.', c("p","q"), "val")
+    with(peaks,GRanges(ranges=IRanges(start=start, end=end), seqnames=chr, strand='*', mcols, ...))
+}
