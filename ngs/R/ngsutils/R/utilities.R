@@ -642,9 +642,9 @@ location2granges <- function(location, seqinfo=NULL, seqlengths=NULL) {
     frag.re <- .complete.re(paste0(chr.re, ":", frag.re))
     chr.re <-  .complete.re(chr.re)
 
-    chrs <- regmatches(locs, regexec(chr.re, locs, ignore.case=TRUE))
-    frags <- regmatches(locs, regexec(frag.re, locs, ignore.case=TRUE))
-    all <- mapply(.combine, chrs, frags, locs,
+    chrs <- regmatches(location, regexec(chr.re, location, ignore.case=TRUE))
+    frags <- regmatches(location, regexec(frag.re, location, ignore.case=TRUE))
+    all <- mapply(.combine, chrs, frags, location,
                   SIMPLIFY=FALSE)# list[[1:n]] of c(inputstring, chr, location, operator, number)
 
     l <- lapply(all, .find.coords)
