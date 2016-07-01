@@ -5,9 +5,9 @@
 }
 \description{
 
-  The peakcalling program MACS2 (see reference) produces a number of output file, one of which
+  The peakcalling program MACS2 (see reference) produces a number of output files, one of which
 is the tab delimited file of peaks, summits, fold-enrichment and
-p-values is (confusingly) called NAME.xls. This function reads that file
+p-values, and is (confusingly) called NAME.xls. This function reads that file,
 and returns it as a \code{\link{GRanges}} object.
 
 \code{\link{GRanges}} object.
