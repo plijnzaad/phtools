@@ -95,7 +95,7 @@ chrom.count.stats <- function(bamcounts, which=1) {
     for(chr in levels(d$chr)) {
         x <- d[d$chr==chr, "counts"]
         n <- length(x)
-        t <- wilcox.test(x=(x-grandmedian)) # should use Poisson here? NO
+        t <- wilcox.test(x=(x-grandmedian)) # should use Poisson or chisquare here? NO
         pval <- p.adjust(t$p.value, method="BH")
         mean <- mean(x)
         meandiff <- mean-grandmean
