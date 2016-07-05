@@ -40,12 +40,12 @@ suppressWarnings(suppressMessages(library(uuutils)))
 suppressWarnings(suppressMessages(library(ngsutils)))
 suppressWarnings(suppressMessages(library(rtracklayer)))
 
-if(FALSE )  {
+if(FALSE )  {                           #for debugging
 
     args <- list(ignore="/hpc/local/CentOS7/gen/data/genomes/sacCer3/ignoreRegions/all.bed",
                  unpaired=FALSE)
-    setwd("/hpc/dbg_gen/philip/seqdata/marian/gro977/gcn4")
-    samples <- sprintf("G%d", c(6,5))
+    setwd("/hpc/dbg_gen/philip/seqdata/marian/gro977/mnase")
+    samples <- sprintf("M%d", 1:3)
     bamfiles <- paste0(samples, ".bam")
     args$.rest <- bamfiles
     args$bedoutput <- 'out.bed'
