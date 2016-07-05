@@ -7,7 +7,7 @@ Determine whole-chromosome aneuploidy and, if more than one BAM file
 is given, determine any 'copy number variations', i.e. regions with
 more/fewer reads than expected using cn.mops. Note: if deviating
 copy number levels are found, the region(s) but not the sample(s)
-are given, since any sample may be deviating differently.
+are given, since any sample may be deviating in a different way.
 
 Note: this is yeast specific, with chromosome names like 'chrVI'
 
@@ -45,7 +45,7 @@ if(FALSE )  {                           #for debugging
     args <- list(ignore="/hpc/local/CentOS7/gen/data/genomes/sacCer3/ignoreRegions/all.bed",
                  unpaired=FALSE)
     setwd("/hpc/dbg_gen/philip/seqdata/marian/gro977/mnase")
-    samples <- sprintf("M%d", 1:3)
+    samples <- sprintf("M%d", 1:6)
     bamfiles <- paste0(samples, ".bam")
     args$.rest <- bamfiles
     args$bedoutput <- 'out.bed'
