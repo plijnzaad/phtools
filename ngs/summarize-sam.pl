@@ -5,7 +5,12 @@
 ## 
 ## Usage e.g. 
 ##  samtools view foo.bam | summarize-sam.pl 2> foo.sumstat | gzip > foo.sum.gz
-##
+
+## It outputs a very short hash of the id (for fast/visual searching),
+## chromosome, position, mateposition, insertlength, a summary of the
+## sesquence (numbers of A,C,T,G,N), detail of paired-end status, a human
+## readable version of all the flags, and lastly the original seqid.
+
 ## The thing has been written with bowtie2 output/terminology in mind.
 ## For one-off inspection of flags, check https://broadinstitute.github.io/picard/explain-flags.html
 
