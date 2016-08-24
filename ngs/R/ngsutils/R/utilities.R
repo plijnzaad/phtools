@@ -670,8 +670,7 @@ read.macs2xls <- function(file, seqlengths=NULL, ...) {
     stopifnot(is(gr, "GRanges"))
     if(any(strand(gr) == "*"))
       stop("got unstranded feature")
-    test <- ifelse(side==5, "+", "-")
-    sapply(1:length(gr), function(i)ifelse(as.vector(strand(gr[i])) == test,start(gr[i]),end(gr[i])))
+    start(resize(gr,width=1,fix=ifelse(side==5,'start','end')))
 }
 
 #' Get the 5' (or 3') coordinates from a GRanges object.
