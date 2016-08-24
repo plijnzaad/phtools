@@ -5,4 +5,6 @@
 ## 
 ##  ... | samtoolssort.sh -@ 4  -n -m 8G  -Obam -o output/x.bam
 ## 
-samtools sort -T$TMPDIR/sort "$@"
+tmpdir=$TMPDIR/sort$RAND
+mkdir -p $tmpdir || exit 28
+samtools sort -T$tmpdir "$@"
