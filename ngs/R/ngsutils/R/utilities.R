@@ -665,3 +665,13 @@ read.macs2xls <- function(file, seqlengths=NULL, ...) {
     colnames(mcols)[c(3,5)] <- paste0('minlog10.', c("p","q"), "val")
     with(peaks,GRanges(ranges=IRanges(start=start, end=end), seqnames=chr, strand='*', mcols, ...))
 }
+
+..53prime <- function(gr, side) {
+    stopifnot(is(gr, "GRanges"))
+    if(any(strand(gr) == "*"))
+      stop("got unstranded feature")
+    test <- ifelse(side==5, "+", "-")
+    sapply(1:length(gr), function(i)ifelse(as.vector(strand(gr[i])) == test,start(gr[i]),end(gr[i])))
+}
+fiveprime <- function(gr)..53prime(gr, side=5)
+threeprime <- function(gr)..53prime(gr, side=3)
