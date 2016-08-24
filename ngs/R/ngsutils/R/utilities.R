@@ -673,5 +673,10 @@ read.macs2xls <- function(file, seqlengths=NULL, ...) {
     test <- ifelse(side==5, "+", "-")
     sapply(1:length(gr), function(i)ifelse(as.vector(strand(gr[i])) == test,start(gr[i]),end(gr[i])))
 }
+
+#' Get the 5' (or 3') coordinates from a GRanges object.
+#' @param gr The GRanges on which to operate
+#' @seealso \code{start, end, width, strand}
 fiveprime <- function(gr)..53prime(gr, side=5)
+#' @rdname fiveprime
 threeprime <- function(gr)..53prime(gr, side=3)

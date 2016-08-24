@@ -5,9 +5,17 @@ Version: 0.9.0
 Date: 2016-03-23
 Author: Philip Lijnzaad <plijnzaad@gmail.com>
 Maintainer: Philip Lijnzaad <plijnzaad@gmail.com>
-Suggests: NCIS, Rsamtools
+Suggests:
+    uuutils (>= 1.32),
+    Gviz
 Description: Various little things for NGS analysis.
 License: GPL (>= 2)
 LazyLoad: yes
-Depends: R (>= 2.14), Biobase, IRanges, GenomicRanges (>= 1.6.7), rtracklayer, ShortRead
-Suggests: uuutils (>= 1.32), Gviz
+Depends:
+    R (>= 2.14),
+    Biobase,
+    IRanges,
+    GenomicRanges (>= 1.6.7),
+    rtracklayer,
+    ShortRead
+RoxygenNote: 5.0.1
