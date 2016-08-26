@@ -1,8 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
 #### note: this is based on the xml file as produced by IGV 2.3.72
-#### also: we rely on the string '/yeast' being present in the URL,
-### otherwise we have to check too much ...
 ### Written by plijnzaad@gmail.com
 
 file="$@"
@@ -13,19 +11,28 @@ urlnotfound() {
     return $?
 }
 
+### NOTE: we canot keep track of totals, since the while-construct below
+### runs in a sub-shell ...
+
 ### Resources first:
-sed -n '/Resource.*\/yeast/{s|<.*http|http|;s|".*$||;p;}' $file |\
+echo "==== Resources ===="
+sed -n '/Resource.*http/{s|<.*http|http|;s|".*$||;p;}' $file |\
     while read url; do
-        echo $url
+        echo -n $url
         if urlnotfound $url; then
-            echo "**** Resource $url not found ****"
+            echo "**** NOT FOUND ****"
+        else
+            echo " OK"
         fi
     done
 
-sed -n '/Track.*\/yeast/{s/^.*http/http/;s/" name.*$//;p;}' $file |\
+echo "==== Tracks ===="
+sed -n '/Track.*http/{s/^.*http/http/;s/" name.*$//;p;}' $file |\
     while read url; do
-        echo $url
+        echo -n $url
         if urlnotfound $url; then
-            echo "**** Track contains URL $url which is not found ****"
+            echo "**** NOT FOUND ****"
+        else
+            echo " OK"
         fi
     done
