@@ -1,6 +1,6 @@
 #!/bin/bash
-
-#### note: this is based on the xml file as produced by IGV 2.3.72
+### Check validity of URLs in side an igv_session.xml file.
+### note: this is based on the xml file as produced by IGV 2.3.72
 ### Written by plijnzaad@gmail.com
 
 file="$@"
