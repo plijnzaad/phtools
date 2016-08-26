@@ -70,7 +70,9 @@ subset <- interg$type=="tandem" &  interg$left.strand=="-"
 interg[ subset ]$name <-
   with(values(interg[ subset ]), makename(left, right, sep="<<"))
 
-export.bed(con="intergenic2.bed", interg)
+export.bed(con="intergenic.bed", interg, index=FALSE)
+## also produce the indexed gzip files:
+export.bed(con="intergenic.bed", interg, index=TRUE) # .bed.bgz + .bed.bgz.tbi
 
 ### The next bit really should also be rewritten as for the
 ### intergenic thing! 100x faster and cleaner ...
