@@ -680,6 +680,8 @@ fiveprime <- function(gr)..53prime(gr, side=5)
 #' @rdname fiveprime
 threeprime <- function(gr)..53prime(gr, side=3)
 
+### Saved here too (also in /home/gen/philip/git/phtools/ngs/R/ngsutils/R/utilities.R, git version 29aug2016, but
+## may disappear as it is actually close to  reduce)
 #' Fuse two sets of GRanges into larger granges
 #' 
 #' When comparing sets of features such as binding peaks, it is
@@ -691,7 +693,12 @@ threeprime <- function(gr)..53prime(gr, side=3)
 #' 
 #' @param query,subject,... as for \code{findOverlaps}
 #' @param keep.singletons if FALSE, do not return GRange elements that did not overlap with anything
-#' @return a GRanges object. The \code{orig.members} shows how many original GRanges elements fused into the current one
+#' @return a GRanges object. \code{n.orig.members} contains the number of 
+#' original GRanges elements fused into the current one. The
+#' \code{n.queryhits} shows how many came from \code{query},
+#' \code{n.subjecthits} shows how many came from \code{subject}. If
+#' \code{keep.singletons} was TRUE, their sum is always
+#' \code{n.orig.members}
 #' @examples
 #' gr1 <- GRanges(ranges=IRanges(start=c(1,21,31),width=c(5,5,12)), strand='*',seqnames='X', mcols=DataFrame(ID=letters[1:3]))
 #' gr2 <- GRanges(ranges=IRanges(start=c(11, 19, 41),width=c(5,14,12)),strand='*',seqnames='X', mcols=DataFrame(ID=LETTERS[1:3]))
@@ -717,11 +724,13 @@ fuseOverlaps <- function(query, subject, keep.singletons=TRUE, ...) {
     .get.range <- function(idx) if(idx > 0 ) query[idx] else subject[ - idx ] 
 
     gr <- GRanges()                   #accumulator
-    values(gr)$orig.members <- integer(0)
-
     for(clus in clusters) {
         fuse <- do.call(range, args=sapply(as.integer(clus), .get.range))
-        values(fuse)$orig.members <- length(clus)
+        h <- as.integer(clus)
+        values(fuse)$n.orig.members <- length(h)
+        q <- h[h>0]; s <- h[h<0]
+        values(fuse)$n.queryhits <- length(q)
+        values(fuse)$n.subjecthits <- length(s)
         gr <- c(gr, fuse)
     }
     gr

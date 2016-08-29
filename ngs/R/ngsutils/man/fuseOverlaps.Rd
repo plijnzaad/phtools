@@ -12,7 +12,12 @@ fuseOverlaps(query, subject, keep.singletons = TRUE, ...)
 \item{keep.singletons}{if FALSE, do not return GRange elements that did not overlap with anything}
 }
 \value{
-a GRanges object. The \code{orig.members} shows how many original GRanges elements fused into the current one
+a GRanges object. \code{n.orig.members} contains the number of 
+original GRanges elements fused into the current one. The
+\code{n.queryhits} shows how many came from \code{query},
+\code{n.subjecthits} shows how many came from \code{subject}. If
+\code{keep.singletons} was TRUE, their sum is always
+\code{n.orig.members}
 }
 \description{
 When comparing sets of features such as binding peaks, it is
