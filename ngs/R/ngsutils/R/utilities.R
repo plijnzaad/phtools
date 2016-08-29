@@ -692,11 +692,13 @@ threeprime <- function(gr)..53prime(gr, side=3)
 #' @param query,subject,... as for \code{findOverlaps}
 #' @param keep.singletons if FALSE, do not return GRange elements that did not overlap with anything
 #' @return a GRanges object. The \code{orig.members} shows how many original GRanges elements fused into the current one
-#' @example
+#' @examples
 #' gr1 <- GRanges(ranges=IRanges(start=c(1,21,31),width=c(5,5,12)), strand='*',seqnames='X', mcols=DataFrame(ID=letters[1:3]))
 #' gr2 <- GRanges(ranges=IRanges(start=c(11, 19, 41),width=c(5,14,12)),strand='*',seqnames='X', mcols=DataFrame(ID=LETTERS[1:3]))
-#' @notes In this simple case, \code{fuseOverlaps(gr1,gr2)} is identical to \code{reduce(gr1,gr2)}
+#' fuseOverlaps(gr1,gr2)
+#' @note In this simple case, \code{fuseOverlaps(gr1,gr2)} is identical to \code{reduce(gr1,gr2)}
 fuseOverlaps <- function(query, subject, keep.singletons=TRUE, ...) {
+    library(igraph)
     overlaps <- findOverlaps(query, subject, ...)
 
     singles <- c(1:length(query), -(1:length(subject)))

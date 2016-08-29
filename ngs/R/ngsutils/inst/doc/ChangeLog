@@ -1,3 +1,8 @@
+2016-08-29  Philip Lijnzaad  <plijnzaad@gmail.com>
+
+	* added fiveprime,threeprime,fuseOverlaps, read.macs2xls, (de)commafy, location2granges, align. 
+	Version bump to 0.10.0
+
 2015-09-09  Philip Lijnzaad  <plijnzaad@gmail.com>
 
 	* added read.bam.region, added dependencies. Version bump to 0.4
