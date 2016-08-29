@@ -679,3 +679,48 @@ read.macs2xls <- function(file, seqlengths=NULL, ...) {
 fiveprime <- function(gr)..53prime(gr, side=5)
 #' @rdname fiveprime
 threeprime <- function(gr)..53prime(gr, side=3)
+
+#' Fuse two sets of GRanges into larger granges
+#' 
+#' When comparing sets of features such as binding peaks, it is
+#' sometimes necessary to fuse their GRanges into larger GRanges.
+#' This is made difficult by the fact that often such ranges are clustered.
+#
+#' This function constructs 'islands' of connected components and fuses them
+#' one GRange element for all elements of the cluster. See example
+#' 
+#' @param query,subject,... as for \code{findOverlaps}
+#' @param keep.singletons if FALSE, do not return GRange elements that did not overlap with anything
+#' @return a GRanges object. The \code{orig.members} shows how many original GRanges elements fused into the current one
+#' @example
+#' gr1 <- GRanges(ranges=IRanges(start=c(1,21,31),width=c(5,5,12)), strand='*',seqnames='X', mcols=DataFrame(ID=letters[1:3]))
+#' gr2 <- GRanges(ranges=IRanges(start=c(11, 19, 41),width=c(5,14,12)),strand='*',seqnames='X', mcols=DataFrame(ID=LETTERS[1:3]))
+#' @notes In this simple case, \code{fuseOverlaps(gr1,gr2)} is identical to \code{reduce(gr1,gr2)}
+fuseOverlaps <- function(query, subject, keep.singletons=TRUE, ...) {
+    overlaps <- findOverlaps(query, subject, ...)
+
+    singles <- c(1:length(query), -(1:length(subject)))
+    if(!keep.singletons) singles <- NULL
+    m <- as.matrix(overlaps)
+    m[,2] <- -m[,2]                     # weird bipartite graph, encode subjectHits as negative numbers
+
+    g <- graph.empty(directed=FALSE) +  vertices(unique(c(singles, as.vector(m))))
+    for(i in 1:nrow(m))
+      g <- g +  edge( V(g)[[ as.character(m[i,1]) ]], V(g)[[ as.character(m[i,2]) ]])
+    clusters <- components(g)$membership #named vector: names are hits, values are cluster id
+    d <- data.frame(hit=names(clusters), cluster=as.character(unname(clusters)))
+    ## convert to list so that clusters[[clustername]] contains all its members
+    clusters <- unstack(d, form=hit~cluster)
+
+    .get.range <- function(idx) if(idx > 0 ) query[idx] else subject[ - idx ] 
+
+    gr <- GRanges()                   #accumulator
+    values(gr)$orig.members <- integer(0)
+
+    for(clus in clusters) {
+        fuse <- do.call(range, args=sapply(as.integer(clus), .get.range))
+        values(fuse)$orig.members <- length(clus)
+        gr <- c(gr, fuse)
+    }
+    gr
+}                                       # fuseOverlaps
