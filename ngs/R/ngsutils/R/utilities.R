@@ -175,7 +175,7 @@ igb.format <- function(grange) {
   chr <- as.character(seqnames(grange))
   start <- commafy(as.vector(start(grange)))
   end <- commafy(as.vector(end(grange)))
-  gsub(" ","", sprintf(" %s:%s-%s ", chr, start,end))
+  paste(" ", gsub(" ","", sprintf("%s:%s-%s", chr, start,end))," ")
 }
 
 .codname <- function(file)gsub("\\.[^.]*$", "", basename(file))
