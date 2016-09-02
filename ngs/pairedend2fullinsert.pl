@@ -24,15 +24,22 @@ Usage: Convert paired-end reads to full-length inserts for the purpose of
 
   The --minlen and --maxlen arguments apply to the length after any untrimming.
 
+  The header in the output gets and extra \@PG line with program name and
+  arguments, to indicate how the program was run. Since the program reads
+  from stdin, it may be useful to include how the input was obtained
+  (e.g. if it was filtered on quality or template length using
+  e.g. samtools). Use --prependPGline option for this.
+
 Options:
   --untrim <number>  Extend all reads on their 5'-side (needed if they were trimmed during mapping)
   --minlen <number>  Skip reads where the fragment length (after any untrimming) is less than this (default: 0)
   --maxlen <number>  Skip reads where the fragment length (after any untrimming) is greater than this (default: 1e6)
   --chrom_sizes <file> tab-delimited file with ^chromosome_name\\tchromosome_length$ (needed if not in header of SAM file, or if those are wrong)
+  --prependPGline <string> Prepend this string (should start with \"\@PG\\tID:\") before the programs own \@PG lie
 
-This is typically part of a pipeline, e.g. 
+pairedend2fullinsert is typically run as part of a pipeline, e.g. 
 
-   sambamba -h --filter 'paired and proper_pair mapping_quality>= 40' file.bam  | pairedend2fullinsert.pl | sambamba view -h -f bam -o file-FI.bam
+   sambamba -h --filter 'paired and proper_pair mapping_quality>= 40' file.bam  | pairedend2fullinsert.pl | sambamba view /dev/stdin -S -h -f bam -o file-FI.bam
 
 Written by <plijnzaad\@gmail.com>
 
@@ -49,6 +56,7 @@ my $untrim=0;
 my $ninserts=0;
 
 my $pg_printed=0;
+my $prependPGline="";
 
 my $chromos=undef;
 
@@ -60,7 +68,8 @@ die $usage if  GetOptions('help'=> \$help,
                           'chrom_sizes|c=s' => \$chrom_sizes,
                           'untrim|u=i' => \$untrim,
                           'minlen|G=i' => \$minlen,
-                          'maxlen|L=i' => \$maxlen
+                          'maxlen|L=i' => \$maxlen,
+                          'prependPGline|p=s' => \$prependPGline,
     ) ==0 || $help;
 
 my $cmdline= "$0 " . join(" ", @argv_copy);
@@ -71,6 +80,7 @@ if ($chrom_sizes) {
   $chromos = {};                        # read during parsing
 }
 
+$prependPGline .= "\n" if $prependPGline;
 
 my $single_read_mask= 0x10 | 0xf00;
 ### (any bits not in this refer to paired end reads, so must be unset)
@@ -84,7 +94,7 @@ LINE:
         }
         next LINE;
       } else {                          # append our own line
-        print "\@PG\tID:$scriptname\tPN:$scriptname\tVN:$version CL:\"$cmdline\"\n"
+        print "$prependPGline\@PG\tID:$scriptname\tPN:$scriptname\tVN:$version CL:\"$cmdline\"\n"
             unless $pg_printed++;
       }
       s/[\n\r]*$//;
