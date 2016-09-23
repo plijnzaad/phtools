@@ -8,7 +8,7 @@
 ##
 ## The thing has been written with bowtie2 output/terminology in mind.
 ## To process this file in to a histrogram of insertsizes, see phtools/ngs/R/insertlen-distro.R
-## reused parts from summarize-sam.pl commit 329eab4f0349ed2ab ( 2015-12-21 14:44:01)
+## reused parts from summarize-sam.pl commit 329eab4f0349ed2ab (2015-12-21 14:44:01)
 
 ## The script is not exactly fast (better use Bio::DB::Sam library?)
 
