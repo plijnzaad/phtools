@@ -24,10 +24,13 @@ When comparing sets of features such as binding peaks, it is
 sometimes necessary to fuse their GRanges into larger GRanges.
 This is made difficult by the fact that often such ranges are clustered.
 This function constructs 'islands' of connected components and fuses them
-one GRange element for all elements of the cluster. See example
+one GRange element for all elements of the cluster. See example.
 }
 \note{
-In this simple case, \code{fuseOverlaps(gr1,gr2)} is identical to \code{reduce(gr1,gr2)}
+In this simple case, \code{fuseOverlaps(gr1,gr2)} is identical
+to \code{reduce(gr1,gr2)} which is much faster. However, it does
+not yield the number of original query and subject GRanges that ended
+up in the fused GRanges element.
 }
 \examples{
 gr1 <- GRanges(ranges=IRanges(start=c(1,21,31),width=c(5,5,12)), strand='*',seqnames='X', mcols=DataFrame(ID=letters[1:3]))

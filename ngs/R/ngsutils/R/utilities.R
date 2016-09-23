@@ -704,7 +704,7 @@ threeprime <- function(gr)..53prime(gr, side=3)
 #' gr2 <- GRanges(ranges=IRanges(start=c(11, 19, 41),width=c(5,14,12)),strand='*',seqnames='X', mcols=DataFrame(ID=LETTERS[1:3]))
 #' fuseOverlaps(gr1,gr2)
 #' @note In this simple case, \code{fuseOverlaps(gr1,gr2)} is identical
-#' to \code{reduce(gr1,gr2)} which is much faster. However, it does
+#' to \code{reduce(c(gr1,gr2))} which is much faster. However, it does
 #' not yield the number of original query and subject GRanges that ended
 #' up in the fused GRanges element.
 
