@@ -1,5 +1,6 @@
 #!/bin/env Rscript
-
+## Create distribution plot of insert sizes, which are read from the tab-delimited file(s)
+## (input also be just one column I think). The files can typically extracted using phtools/ngs/sam-insertlengths.pl
 ## issues:
 ##  - legend quickly unreadable
 ##  
