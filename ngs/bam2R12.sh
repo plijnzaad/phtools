@@ -1,7 +1,7 @@
 #!/bin/sh -x
 # -*- mode: sh; -*-
 
-# silly script to split bam files into separate {R1,R2}{mapped,unmapped} bam file
+# silly script to split bam files into separate {R1,R2}{mapped,unmapped} bam files
 
 bam="$@"
 
