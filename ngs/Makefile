@@ -188,6 +188,7 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 	$(call warn_var, filter_opts)
 	$(call warn_var, sort_opts)
 	samtools view -h $(filter_opts) -b -u $*.sam | samtools sort -@ 4 $(sort_opts) -T$(tmpdir)/sort -Obam > $@
+##or    sambamba view -S -f bam -o $@  $<
 	date
 	samtools index $@
 	(bamstats.pl $@ ; echo '----'; $(bamstat) $@) > $*.bamstat
