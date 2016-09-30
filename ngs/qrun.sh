@@ -29,7 +29,7 @@ usage_msg="
 \n  always!).  The most important ones are: -q (specifies queue) and -N
 \n  (specifies jobname). Other qsub options currently recognized are -j
 \n  (join stdout and stderr), -M (mail address to use) -m (when to mail),
-\n  -p (priority) and -l (resources). For the -p option (corresponds
+\n  -p (priority) and -l (resources). For the -p option (corresponding
 \n  to qsub's \"-pe\") you can specify the environment and the number
 \n  separated by '='. I.e. both -p 'threaded 4' and -p threaded=4 are
 \n  fine (the latter may save you quoting trouble). Option -h
@@ -133,7 +133,7 @@ while getopts "N:q:o:e:j:M:m:p:l:h:H:" opt; do
 
 ### multi-letter qsub options:
         p)
-            opt_pe="-pe $OPTARG"        # sorry, -p has to be one-letter options
+            opt_pe="-pe $OPTARG"        # sorry, qrun.sh requires one-letter options, therefore -p, not -pe
             opt_pe=$(echo $opt_pe | tr '=' ' ')
             ;;
 
