@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 ## written <plijnzaad@gmail.com>
+## to test, do e.g. 
+##   ./demultiplex.pl -m 1 < testdata/one-mismatch.fastq  -b testdata/testbarcodes.txt -p DEMUL
 
 use strict;
 use Getopt::Std;
@@ -50,6 +52,8 @@ sub _getmismatch_REs {
 }                                       # getmismatch_REs
 
 sub readbarcodes {
+  ### die "@@@@ : split reading and converting into two subs";
+
   ## returns list  ($barcodes, $mm_REs);
   ## $barcodes maps bardcodes to IDs; $mm_REs maps barcodes to mismatch regexps
   ## eg. $barcodes->{'AGCGTT') => 'M3'                  }
