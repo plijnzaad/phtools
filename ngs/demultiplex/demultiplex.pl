@@ -32,11 +32,12 @@ if ( !getopts("b:p:o:m:h") || ! $opt_b ||  $opt_h ) {
 my  $allowed_mismatches = 1;
 $allowed_mismatches = $opt_m if defined($opt_m);  # 0 also possible, meaning no mismatched allowed
 
-
-my $barcodes = mismatch::readbarcodes($opt_b); ## eg. $h->{'AGCGTT') => 'M3'
+my $barcodes = mismatch::readbarcodes($opt_b); ## eg. $h->{'AGCGtT') => 'M3' # note: may still contain lower case letters!
+my $uppercase_codes = {}; 
+for my $code ( keys %$barcodes ) { $uppercase_codes->{"\U$code"}=$barcodes->{$code}}
 my $mismatch_REs = mismatch::convert2mismatchREs(barcodes=>$barcodes, allowed_mismatches =>$allowed_mismatches);# eg. $h->{'AGCGTT') =>  REGEXP(0x25a7788)
 
-my @files=map { "\U$_" } (values %$barcodes, 'UNKNOWN');
+my @files=(values %$barcodes, 'UNKNOWN');
 my $filehandles=open_outfiles(@files);      # opens M3.fastq.gz, ambiguous.fastq.gz etc.
 
 my $nexact=0;
@@ -58,7 +59,7 @@ while(1) {
   my $lib;
  CASE:
   while(1) {
-    $lib=$barcodes->{$foundcode};            # majority of cases
+    $lib=$uppercase_codes->{$foundcode};            # majority of cases
     if ($lib) {
       $nexact++;
       last CASE;
@@ -82,6 +83,15 @@ while(1) {
   $filehandles->{$lib}->print($record);
 }                                       # RECORD
 close_outfiles($filehandles);
+
+sub commafy {
+  # insert comma's to separate powers of 1000
+  my($i)=@_;
+  my $r = join('',reverse(split('',$i)));
+  $r =~ s/(\d{3})/$1,/g;
+  $r =~ s/,$//;
+  join('',reverse(split('',$r)));
+}
 
 warn sprintf("exact: %s\nmismatched: %s\nunknown: %s\n", 
              map { commafy $_ } ($nexact, $nmismatched, $nunknown ));
@@ -122,11 +132,3 @@ sub close_outfiles {
   }
 }
 
-sub commafy {
-  # insert comma's to separate powers of 1000
-  my($i)=@_;
-  my $r = join('',reverse(split('',$i)));
-  $r =~ s/(\d{3})/$1,/g;
-  $r =~ s/,$//;
-  join('',reverse(split('',$r)));
-}

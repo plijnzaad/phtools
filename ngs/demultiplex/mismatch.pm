@@ -11,6 +11,8 @@ use Regexp::Optimizer;
 sub readbarcodes {
   ## utility function to read barcodes
   ## returns hash with $barcodes->{'AGCGTT') => 'M3' }
+  ## note that lower case letters (used for disallowing specific mismatches) are
+  ## still there, and won't match actual barcodes!
   my ($file)=@_;
   my $barcodeids={};
   my $barcodes = {};
@@ -35,8 +37,9 @@ LINE:
 }                                       # readbarcodes
 
 sub convert2mismatchREs {
-## takes hash with barcodes (e.g. $h->{'AGCGTT') => 'M3' )  and
-## returns e.g.$mismatch_REs->{'AGCGTT') =>  REGEXP(0x25a7788)
+## takes hash with barcodes (e.g. $h->{'AGCGtT') => 'M3' )  and returns e.g. $h->{'AGCGTT') =>  REGEXP(0x25a7788)
+## The hash returned contains, per barcode, one regexp representing all possible mismatches of that barcode.
+## Lowercase letters are uppercased and the regexp does not allow these letters to mismatch.
   my $args = ref $_[0] eq 'HASH' ? shift : {@_}; # args: barcodes, allowed
   my $o=Regexp::Optimizer->new;
 
@@ -51,7 +54,7 @@ sub convert2mismatchREs {
 }                                       # convert2mismatchREs
 
 sub _getmismatch_REs {
-  ## set up regular expressions that allows mismatches
+  ## for one barcode, set up the regular expressions that allows mismatches
   my($code, $max_mm)=@_;
 
   return () if ! $max_mm;
