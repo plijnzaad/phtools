@@ -24,11 +24,10 @@ if ( !getopts("b:p:o:m:h") || ! $opt_b ||  $opt_h ) {
     die $Usage; 
 }
 
-my  $mismatches_allowed = 1;
-$mismatches_allowed = $opt_m if defined($opt_m);  # 0 also possible
+my  $allowed_mismatches = 1;
+$allowed_mismatches = $opt_m if defined($opt_m);  # 0 also possible
 
 my $o=Regexp::Optimizer->new;
-
 
 sub _getmismatch_REs {
   ## set up regular expressions to allow mismatches
@@ -52,39 +51,38 @@ sub _getmismatch_REs {
 }                                       # getmismatch_REs
 
 sub readbarcodes {
-  ### die "@@@@ : split reading and converting into two subs";
-
-  ## returns list  ($barcodes, $mm_REs);
-  ## $barcodes maps bardcodes to IDs; $mm_REs maps barcodes to mismatch regexps
-  ## eg. $barcodes->{'AGCGTT') => 'M3'                  }
-  ## eg. $mismatch_REs->{'AGCGTT') =>  REGEXP(0x25a7788)
-
-  my $args = ref $_[0] eq 'HASH' ? shift : {@_};
-  my ($file, $allowed_mms)=($args->{file}, $args->{allowed_mms});
-  my $libs={};
+  ## returns hash with $barcodes->{'AGCGTT') => 'M3'                  }
+  my ($file)=@_;
+  my $barcodeids={};
   my $barcodes = {};
-  my $mm_REs = {};
-
   open(FILE, "$file") or die "Barcode '$file': $!";
 LINE:
   while(<FILE>) {
     s/[\n\r]*$//g;
     s/#.*//;
     next LINE unless $_;
-    my ($lib, $code)=split(' ');            # e.g. 'G7 \t CCAACAAT'
-    die "Library '$lib' not unique" if $libs->{$lib}++;
+    my ($barcodeid, $code)=split(' ');            # e.g. 'G7 \t CCAACAAT'
+    die "Barcode id '$barcodeid' not unique" if $barcodeids->{$barcodeid}++;
     die "Barcode '$code' not unique" if $barcodes->{$code};
-    $barcodes->{$code}=$lib;
+    $barcodes->{$code}=$barcodeid;
+  }                                     # while LINE
+  close(FILE);
+  $barcodes;
+}                                       # readbarcodes
 
-    my @res= _getmismatch_REs($code, $mismatches_allowed); # empty if $mismatches_allowed==0
+sub convert2mmmREs {
+# takes hash with barcodes, returns e.g.$mismatch_REs->{'AGCGTT') =>  REGEXP(0x25a7788)
+  my $args = ref $_[0] eq 'HASH' ? shift : {@_}; # args: barcodes, allowed
 
+  my $mm_REs={};
+  for my $code (keys %{$args->{barcodes}}) { 
+    my @res= _getmismatch_REs($code, $args->{allowed_mismatches}); # empty if allowed_mismatches==0
     my $r='^'.join("|", @res).'$';
     $r=$o->optimize(qr/$r/);
     $mm_REs->{$code}= $r;         # just one big regexp!
-  }                                     # while LINE
-  close(FILE);
-  ( $barcodes, $mm_REs);
-}                                       # readbarcodes
+  }                               # for $code
+  $mm_REs;  
+}                                       # convert2mmmREs
 
 sub rescue { 
   my($foundcode, $barcodes, $mm_REs)=@_;
@@ -132,9 +130,8 @@ sub close_outfiles {
   }
 }
 
-my ($barcodes, $mismatch_REs) = readbarcodes(file=>$opt_b, allowed_=>$mismatches_allowed);
-## eg. $barcodes->{'AGCGTT') => 'M3'
-## eg. $mismatch_REs->{'AGCGTT') =>  REGEXP(0x25a7788)
+my $barcodes = readbarcodes($opt_b); ## eg. $h->{'AGCGTT') => 'M3'
+my $mismatch_REs = convert2mmmREs(barcodes=>$barcodes, allowed_mismatches =>$allowed_mismatches);# eg. $h->{'AGCGTT') =>  REGEXP(0x25a7788)
 
 my @files=(values %$barcodes, 'UNKNOWN');
 my $filehandles=open_outfiles(@files);      # opens M3.fastq.gz, ambiguous.fastq.gz etc.
@@ -143,6 +140,7 @@ my $nexact=0;
 my $nmismatched=0;                         # having at most $mismatch mismatches
 my $nunknown=0;
 
+## lastly, process the actual input:
 RECORD:
 while(1) { 
   my $record=<>;
@@ -162,7 +160,7 @@ while(1) {
       $nexact++;
       last CASE;
     }
-    if (! $mismatches_allowed) {
+    if (! $allowed_mismatches) {
       $nunknown++;
       $lib='UNKNOWN';
       last CASE;
