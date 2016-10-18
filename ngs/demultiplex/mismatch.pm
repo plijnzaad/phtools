@@ -37,9 +37,11 @@ LINE:
 }                                       # readbarcodes
 
 sub convert2mismatchREs {
-## takes hash with barcodes (e.g. $h->{'AGCGtT') => 'M3' )  and returns e.g. $h->{'AGCGtT') =>  REGEXP(0x25a7788)
-## The hash returned contains, per barcode, one regexp representing all possible mismatches of that barcode.
-## Lowercase letters are uppercased and the regexp does not allow these letters to mismatch.
+## takes hash with barcodes (e.g. $h->{'AGCGtT') => 'M3' ) and returns
+## e.g. $h->{'AGCGtT') => REGEXP(0x25a7788) The hash returned contains,
+## per barcode, one regexp representing all possible mismatches of that
+## barcode.  In the values (i.e. regexps), the lowercase letters are
+## uppercased and the regexp does not allow these letters to mismatch.
   my $args = ref $_[0] eq 'HASH' ? shift : {@_}; # args: barcodes, allowed
   my $o=Regexp::Optimizer->new;
 
