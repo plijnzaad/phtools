@@ -32,41 +32,6 @@ if ( !getopts("b:p:o:m:h") || ! $opt_b ||  $opt_h ) {
 my  $allowed_mismatches = 1;
 $allowed_mismatches = $opt_m if defined($opt_m);  # 0 also possible, meaning no mismatched allowed
 
-sub open_infile {
-  die "not used nor tested";
-  my($file)=@_;
-  my $fh=FileHandle->new();
-  if ($file =~ /\.gz/) { 
-    $fh->open("zcat $file | ", "r")  or die "'$file': $!";
-  } else { 
-    $fh->open("< $file")  or die "'$file': $!";
-  }
-  $fh;
-}
-
-sub open_outfiles { 
-  my(@libs)=@_;
-  my $fhs={};
-
-  for my $lib (@libs) { 
-    my $name=sprintf("%s.fastq.gz", $lib);
-##    my $name=sprintf("%s.fastq", $lib);
-    $name="$opt_p$name" if $opt_p;
-    $name="$opt_o/$name" if $opt_o;
-    my $fh = FileHandle->new("| gzip > $name") or die "library $lib, file $name: $!";
-##    my $fh = FileHandle->new(" > $name") or die "library $lib, file $name: $! (did you create the output directory?)";
-    warn "Creating/overwriting file $name ...\n";
-    $fhs->{$lib}=$fh;
-  }
-  $fhs;
-}                                       # open_outfiles
-
-sub close_outfiles {
-  my($fhs)=@_;
-  for my $lib (keys %$fhs) {
-    $fhs->{$lib}->close() or die "could not close demultiplexed file for library $lib; investigate";
-  }
-}
 
 my $barcodes = mismatch::readbarcodes($opt_b); ## eg. $h->{'AGCGTT') => 'M3'
 my $mismatch_REs = mismatch::convert2mismatchREs(barcodes=>$barcodes, allowed_mismatches =>$allowed_mismatches);# eg. $h->{'AGCGTT') =>  REGEXP(0x25a7788)
@@ -118,6 +83,45 @@ while(1) {
 }                                       # RECORD
 close_outfiles($filehandles);
 
+warn sprintf("exact: %s\nmismatched: %s\nunknown: %s\n", 
+             map { commafy $_ } ($nexact, $nmismatched, $nunknown ));
+
+sub open_infile {
+  die "not used nor tested";
+  my($file)=@_;
+  my $fh=FileHandle->new();
+  if ($file =~ /\.gz/) { 
+    $fh->open("zcat $file | ", "r")  or die "'$file': $!";
+  } else { 
+    $fh->open("< $file")  or die "'$file': $!";
+  }
+  $fh;
+}
+
+sub open_outfiles { 
+  my(@libs)=@_;
+  my $fhs={};
+
+  for my $lib (@libs) { 
+    my $name=sprintf("%s.fastq.gz", $lib);
+##    my $name=sprintf("%s.fastq", $lib);
+    $name="$opt_p$name" if $opt_p;
+    $name="$opt_o/$name" if $opt_o;
+    my $fh = FileHandle->new("| gzip > $name") or die "library $lib, file $name: $!";
+##    my $fh = FileHandle->new(" > $name") or die "library $lib, file $name: $! (did you create the output directory?)";
+    warn "Creating/overwriting file $name ...\n";
+    $fhs->{$lib}=$fh;
+  }
+  $fhs;
+}                                       # open_outfiles
+
+sub close_outfiles {
+  my($fhs)=@_;
+  for my $lib (keys %$fhs) {
+    $fhs->{$lib}->close() or die "could not close demultiplexed file for library $lib; investigate";
+  }
+}
+
 sub commafy {
   # insert comma's to separate powers of 1000
   my($i)=@_;
@@ -126,6 +130,3 @@ sub commafy {
   $r =~ s/,$//;
   join('',reverse(split('',$r)));
 }
-
-warn sprintf("exact: %s\nmismatched: %s\nunknown: %s\n", 
-             map { commafy $_ } ($nexact, $nmismatched, $nunknown ));
