@@ -4,7 +4,13 @@
 
 use strict;
 use Getopt::Std;
-use Text::Levenshtein qw(distance);
+use Text::Levenshtein qw(distance);     
+## note: we actually need Hamming distance, e.g. 
+sub hammingdist {                       
+## from http://www.perlmonks.org/?node_id=500244
+  length( $_[ 0 ] ) - ( ( $_[ 0 ] ^ $_[ 1 ] ) =~ tr[\0][\0] );
+}
+### but leave for now
 
 use vars qw($opt_h $opt_l);
 
