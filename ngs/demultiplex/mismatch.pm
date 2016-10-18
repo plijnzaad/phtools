@@ -22,7 +22,7 @@ LINE:
     s/[\n\r]*$//g;
     s/#.*//;
     next LINE unless $_;
-    my ($barcodeid, $code)=split(' ');            # e.g. 'G7 \t CCAACAAT'
+    my ($barcodeid, $code)=split(' ');  # e.g. 'G7 \t CCAACAAT'
     if( $code =~ /[a-z]/) { 
       warn "barcode $barcodeid contains lower case letters, these will be uppercased and will not be allowed to mismatch";
     }
@@ -47,8 +47,9 @@ sub convert2mismatchREs {
 ## takes hash with barcodes (e.g. $h->{'AGCGtT') => 'M3' ) and returns
 ## e.g. $h->{'AGCGtT') => REGEXP(0x25a7788) The hash returned contains,
 ## per barcode, one regexp representing all possible mismatches of that
-## barcode.  In the values (i.e. regexps), the lowercase letters are
+## barcode.  In the values (i.e. regexps), lowercase letters (if any) are
 ## uppercased and the regexp does not allow these letters to mismatch.
+
   my $args = ref $_[0] eq 'HASH' ? shift : {@_}; # args: barcodes, allowed
   my $o=Regexp::Optimizer->new;
 
@@ -57,10 +58,21 @@ sub convert2mismatchREs {
     my @res= _getmismatch_REs($code, $args->{allowed_mismatches}); # empty if allowed_mismatches==0
     my $r='^'.join("|", @res).'$';
     $r=$o->optimize(qr/$r/);
-    $mm_REs->{$code}= $r;         # just one big regexp!
-  }                               # for $code
+    $mm_REs->{$code}= $r;               # just one big regexp!
+  }                                     # for $code
   $mm_REs;  
 }                                       # convert2mismatchREs
+
+sub rescue { 
+  ### return the barcode without mismatches (not its id!)
+  my($foundcode, $mm_REs)=@_;
+
+  foreach my $code (keys %$mm_REs) {
+    my $re=$mm_REs->{$code};
+    return  $code if $foundcode =~ $re;
+  }
+  return undef;
+}                                       # rescue
 
 sub _getmismatch_REs {
   ## for one barcode, set up the regular expressions that allows mismatches
@@ -99,16 +111,6 @@ sub _getmismatch_REs {
   @mmcodes;
 }                                       # _getmismatch_REs
 
-sub rescue { 
-  ### return the barcode without mismatches (not the library!)
-  my($foundcode, $mm_REs)=@_;
-
-  foreach my $code (keys %$mm_REs) {
-    my $re=$mm_REs->{$code};
-    return  $code if $foundcode =~ $re;
-  }
-  return undef;
-}                                       # rescue
 
 
 1;
