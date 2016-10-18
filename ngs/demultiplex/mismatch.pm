@@ -7,15 +7,13 @@ use strict;
 use Math::Combinatorics;
 use Regexp::Optimizer;
 
-
-sub readbarcodes {
-  ## utility function to read barcodes
-  ## returns hash with $barcodes->{'AGCGTT') => 'M3' }
-  ## note that lower case letters (used for disallowing specific mismatches) are
-  ## still there, and won't match actual barcodes!
+sub readbarcodes_mixedcase {
+  ## utility function to read barcodes, returns hash with eg. $barcodes->{'AGCGtT') => 'M3' }
+  ## Note that lower case letters (used for disallowing specific mismatches) are
+  ## still there (and won't match actual barcodes).
   my ($file)=@_;
   my $barcodeids={};
-  my $barcodes = {};
+  my $barcodes_mixedcase = {};
   my $uppercase_codes={};
 
   open(FILE, "$file") or die "Barcode '$file': $!";
@@ -30,11 +28,20 @@ LINE:
     }
     die "Barcode id '$barcodeid' not unique" if $barcodeids->{$barcodeid}++;
     die "Barcode '$code' not unique" if $uppercase_codes->{"\U$code"}++;
-    $barcodes->{$code}=$barcodeid;
+    $barcodes_mixedcase->{$code}=$barcodeid;
   }                                     # while LINE
   close(FILE);
+  $barcodes_mixedcase;
+}                                       # readbarcodes_mixedcase
+
+sub mixedcase2upper { 
+  ## utility function to convert the mixed case hash (which is used for the mismatch regular expressions) to an uppercased
+  ## hash
+  my ($mixed) = @_;
+  my $barcodes={};
+  for my $code ( keys %$mixed ) { $barcodes->{"\U$code"}=$mixed->{$code}}
   $barcodes;
-}                                       # readbarcodes
+}
 
 sub convert2mismatchREs {
 ## takes hash with barcodes (e.g. $h->{'AGCGtT') => 'M3' ) and returns
@@ -94,9 +101,9 @@ sub _getmismatch_REs {
 
 sub rescue { 
   ### return the barcode without mismatches (not the library!)
-  my($foundcode, $barcodes, $mm_REs)=@_;
+  my($foundcode, $mm_REs)=@_;
 
-  foreach my $code (keys %$barcodes) {
+  foreach my $code (keys %$mm_REs) {
     my $re=$mm_REs->{$code};
     return  $code if $foundcode =~ $re;
   }

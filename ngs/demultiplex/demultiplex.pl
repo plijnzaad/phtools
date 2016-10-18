@@ -32,10 +32,11 @@ if ( !getopts("b:p:o:m:h") || ! $opt_b ||  $opt_h ) {
 my  $allowed_mismatches = 1;
 $allowed_mismatches = $opt_m if defined($opt_m);  # 0 also possible, meaning no mismatched allowed
 
-my $barcodes = mismatch::readbarcodes($opt_b); ## eg. $h->{'AGCGtT') => 'M3' # note: may still contain lower case letters!
-my $uppercase_codes = {}; 
-for my $code ( keys %$barcodes ) { $uppercase_codes->{"\U$code"}=$barcodes->{$code}}
-my $mismatch_REs = mismatch::convert2mismatchREs(barcodes=>$barcodes, allowed_mismatches =>$allowed_mismatches);# eg. $h->{'AGCGTT') =>  REGEXP(0x25a7788)
+my $barcodes_mixedcase = mismatch::readbarcodes_mixedcase($opt_b); ## eg. $h->{'AGCGtT') => 'M3'
+my $barcodes = mismatch::mixedcase2upper($barcodes_mixedcase);     ## e.g. $h->{'AGCGTT') => 'M3'
+my $mismatch_REs = mismatch::convert2mismatchREs(barcodes=>$barcodes_mixedcase, 
+                                                 allowed_mismatches =>$allowed_mismatches);# eg. $h->{'AGCGTT') =>  REGEXP(0x25a7788)
+$barcodes_mixedcase=undef;
 
 my @files=(values %$barcodes, 'UNKNOWN');
 my $filehandles=open_outfiles(@files);      # opens M3.fastq.gz, ambiguous.fastq.gz etc.
@@ -59,7 +60,7 @@ while(1) {
   my $lib;
  CASE:
   while(1) {
-    $lib=$uppercase_codes->{$foundcode};            # majority of cases
+    $lib=$barcodes->{$foundcode};       # majority of cases
     if ($lib) {
       $nexact++;
       last CASE;
@@ -69,7 +70,7 @@ while(1) {
       $lib='UNKNOWN';
       last CASE;
     }
-    my $correction = mismatch::rescue($foundcode, $barcodes, $mismatch_REs);
+    my $correction = mismatch::rescue($foundcode, $mismatch_REs);
     if($correction) {
       $lib=$barcodes->{$correction};
       $nmismatched++;
