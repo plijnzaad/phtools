@@ -10,7 +10,7 @@ use Regexp::Optimizer;
 
 sub readbarcodes {
   ## utility function to read barcodes
-  ## returns hash with $barcodes->{'AGCGTT') => 'M3'                  }
+  ## returns hash with $barcodes->{'AGCGTT') => 'M3' }
   my ($file)=@_;
   my $barcodeids={};
   my $barcodes = {};
@@ -85,7 +85,7 @@ sub _getmismatch_REs {
     }
   }
   @mmcodes;
-}                                       # getmismatch_REs
+}                                       # _getmismatch_REs
 
 sub rescue { 
   my($foundcode, $barcodes, $mm_REs)=@_;
