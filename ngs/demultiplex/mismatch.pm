@@ -93,11 +93,12 @@ sub _getmismatch_REs {
 }                                       # _getmismatch_REs
 
 sub rescue { 
+  ### return the barcode without mismatches (not the library!)
   my($foundcode, $barcodes, $mm_REs)=@_;
 
   foreach my $code (keys %$barcodes) {
     my $re=$mm_REs->{$code};
-    return  $barcodes->{$code} if $foundcode =~ $re;
+    return  $code if $foundcode =~ $re;
   }
   return undef;
 }                                       # rescue

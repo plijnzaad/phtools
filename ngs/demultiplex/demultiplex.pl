@@ -69,8 +69,9 @@ while(1) {
       $lib='UNKNOWN';
       last CASE;
     }
-    $lib=mismatch::rescue($foundcode, $barcodes, $mismatch_REs); # takes longish (regexp matching)
-    if($lib) {
+    my $correction = mismatch::rescue($foundcode, $barcodes, $mismatch_REs);
+    if($correction) {
+      $lib=$barcodes->{$correction};
       $nmismatched++;
       last CASE;
     } else { 
