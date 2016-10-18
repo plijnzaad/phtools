@@ -1,7 +1,12 @@
+package mismatch;
+
+### Usage: see demultiplex.pl
+
+use strict;
+
 use Math::Combinatorics;
 use Regexp::Optimizer;
 
-### Usage: see demultiplex.pl
 
 sub readbarcodes {
   ## utility function to read barcodes

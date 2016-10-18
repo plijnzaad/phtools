@@ -11,8 +11,8 @@
 use strict;
 use Getopt::Std;
 use FileHandle;
-use Math::Combinatorics;
-use Regexp::Optimizer;
+
+use mismatch;
 
 use vars qw($opt_h $opt_b $opt_m $opt_p $opt_o);
 
@@ -30,96 +30,7 @@ if ( !getopts("b:p:o:m:h") || ! $opt_b ||  $opt_h ) {
 }
 
 my  $allowed_mismatches = 1;
-$allowed_mismatches = $opt_m if defined($opt_m);  # 0 also possible
-
-my $o=Regexp::Optimizer->new;
-
-sub _getmismatch_REs {
-  ## set up regular expressions to allow mismatches
-  my($code, $max_mm)=@_;
-
-  return () if ! $max_mm;
-
-  my @fixed = ();
-  if ($code =~ /[a-z]/)  {
-    my $fixed= $code;
-    $fixed =~ s/[a-z]/!/g;
-    @fixed = split(//, $fixed);
-    $code = "\U$code";
-  }
-
-  my @mmcodes=();
-  my(@code)=split(//, $code);
-
-  ## set up array of arrays with '.' where to do the replacements:
-  for(my $i=0; $i<$max_mm; $i++) { 
-    my @combs = combine(($i+1), 0..$#code);
-  COMB:
-    foreach my $comb ( @combs ) { 
-      my @mm=@code;
-      @mm[ @$comb ] = split(//, '.' x int(@$comb) ); # yay, splicing
-      my $mm=join("", @mm);
-      for my $i (0 .. $#fixed) { 
-        if ($fixed[$i] eq '!' && $mm[$i] eq '.') { 
-          warn "regexp $mm conflicts with a fixed position, skipped\n";
-          next COMB;
-        }
-      }
-      push(@mmcodes, $mm);
-    }
-  }
-  @mmcodes;
-}                                       # getmismatch_REs
-
-sub readbarcodes {
-  ## returns hash with $barcodes->{'AGCGTT') => 'M3'                  }
-  my ($file)=@_;
-  my $barcodeids={};
-  my $barcodes = {};
-  my $uppercase_codes={};
-
-  open(FILE, "$file") or die "Barcode '$file': $!";
-LINE:
-  while(<FILE>) {
-    s/[\n\r]*$//g;
-    s/#.*//;
-    next LINE unless $_;
-    my ($barcodeid, $code)=split(' ');            # e.g. 'G7 \t CCAACAAT'
-    if( $code =~ /[a-z]/) { 
-      warn "barcode $barcodeid contains lower case letters, these will be uppercased and will not be allowed to mismatch";
-    }
-    die "Barcode id '$barcodeid' not unique" if $barcodeids->{$barcodeid}++;
-    die "Barcode '$code' not unique" if $uppercase_codes->{"\U$code"}++;
-    $barcodes->{$code}=$barcodeid;
-  }                                     # while LINE
-  close(FILE);
-  $barcodes;
-}                                       # readbarcodes
-
-sub convert2mismatchREs {
-## takes hash with barcodes (e.g. $h->{'AGCGTT') => 'M3' )  and
-## returns e.g.$mismatch_REs->{'AGCGTT') =>  REGEXP(0x25a7788)
-  my $args = ref $_[0] eq 'HASH' ? shift : {@_}; # args: barcodes, allowed
-
-  my $mm_REs={};
-  for my $code (keys %{$args->{barcodes}}) {
-    my @res= _getmismatch_REs($code, $args->{allowed_mismatches}); # empty if allowed_mismatches==0
-    my $r='^'.join("|", @res).'$';
-    $r=$o->optimize(qr/$r/);
-    $mm_REs->{$code}= $r;         # just one big regexp!
-  }                               # for $code
-  $mm_REs;  
-}                                       # convert2mismatchREs
-
-sub rescue { 
-  my($foundcode, $barcodes, $mm_REs)=@_;
-
-  foreach my $code (keys %$barcodes) {
-    my $re=$mm_REs->{$code};
-    return  $barcodes->{$code} if $foundcode =~ $re;
-  }
-  return undef;
-}                                       # rescue
+$allowed_mismatches = $opt_m if defined($opt_m);  # 0 also possible, meaning no mismatched allowed
 
 sub open_infile {
   die "not used nor tested";
@@ -157,8 +68,8 @@ sub close_outfiles {
   }
 }
 
-my $barcodes = readbarcodes($opt_b); ## eg. $h->{'AGCGTT') => 'M3'
-my $mismatch_REs = convert2mismatchREs(barcodes=>$barcodes, allowed_mismatches =>$allowed_mismatches);# eg. $h->{'AGCGTT') =>  REGEXP(0x25a7788)
+my $barcodes = mismatch::readbarcodes($opt_b); ## eg. $h->{'AGCGTT') => 'M3'
+my $mismatch_REs = mismatch::convert2mismatchREs(barcodes=>$barcodes, allowed_mismatches =>$allowed_mismatches);# eg. $h->{'AGCGTT') =>  REGEXP(0x25a7788)
 
 my @files=map { "\U$_" } (values %$barcodes, 'UNKNOWN');
 my $filehandles=open_outfiles(@files);      # opens M3.fastq.gz, ambiguous.fastq.gz etc.
@@ -192,7 +103,7 @@ while(1) {
       $lib='UNKNOWN';
       last CASE;
     }
-    $lib=rescue($foundcode, $barcodes, $mismatch_REs); # takes longish (regexp matching)
+    $lib=mismatch::rescue($foundcode, $barcodes, $mismatch_REs); # takes longish (regexp matching)
     if($lib) {
       $nmismatched++;
       last CASE;
