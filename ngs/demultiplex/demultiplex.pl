@@ -1,12 +1,13 @@
 #!/usr/bin/env perl
-## written by <plijnzaad@gmail.com>
-##
-## To test, do e.g. 
-##   ./demultiplex.pl -m 1 < testdata/one-mismatch.fastq  -b testdata/testbarcodes.txt -p DEMUL
-## 
-## Given a barcode file, demultiplexes a FASTQ file (on stdin) while potentially allowing for mismatches.
-## For format of barcode file, see testdata/testbarcodes.txt.
-##
+#
+# Given a barcode file, demultiplexes a FASTQ file (on stdin) while potentially allowing for mismatches.
+# For format of the barcode file, see testdata/testbarcodes.txt.
+#
+# To test, do e.g. 
+#
+#   ./demultiplex.pl -m 1 < testdata/one-mismatch.fastq  -b testdata/testbarcodes.txt -p DEMUL
+# 
+# written by <plijnzaad@gmail.com>
 
 use strict;
 use Getopt::Std;
