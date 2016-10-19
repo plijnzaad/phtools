@@ -53,13 +53,10 @@ for(my $i=0; $i<@strings; $i++) {
   my @d = distance($s , @s);
   my @hits = grep( $d[$_] <= $limit, 0..$#d);
   next SEQ unless @hits;
-  print $strings->{$s}. "  $s: "; 
+  print $strings->{$s}. "\t$s\n"; 
   for(my $h=0; $h<@hits; $h++) {
     my $hs=$s[ $hits[$h] ];
-    print $strings->{$hs} . " ($hs, d=$d[ $hits[$h] ]); ";
+    print $strings->{$hs} . "\t$hs (d=$d[ $hits[$h] ])\n";
   }
   print "\n";
 }
-
-#  print $strings->{$s}. "\t$s:" . join(", ", @d). "\n";
-#  my @o= sort { $d[$a] <=>  $d[$b] } a0..int(@d);      # mimic R's order() function
