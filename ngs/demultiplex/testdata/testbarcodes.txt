@@ -1,8 +1,10 @@
-## comments in this file are ignored
-## two columns (space or tab-delimited) specify the barcode id and the bardcode itself
-## a lower case letter in the barcode means: this letter must *always* be exact.
-## This can be used if some barcodes are not different enough from the other
-## to allow a fixed number of mismatches
+# Comments in this file are ignored.  Two columns (space or
+# tab-delimited) specify the barcode id and the bardcode respectively.
+# A lower case letter in the barcode means: this letter (in uppercase)
+# at this position must *always* be exact This can be used if some
+# barcodes are not different enough from one another to allow a fixed
+# number of mismatches. (The example in M2 below is contrived since the
+# barcodes have a hamming distance of at least 2)
 M1	GTAGCCAA
 M2	TcGAAGAT
 M3	GATCAGAT
