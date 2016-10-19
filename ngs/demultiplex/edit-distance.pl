@@ -7,7 +7,7 @@ use vars qw($opt_h $opt_l);
 
 my $Usage="Find near-duplicates among barcodes. 
 
-For list of strings on stdin (format: id \\t barcode), print all the
+For list of strings on stdin (format: name TAB barcode), print all the
 sets of strings with distance less than -l to each other.
 
 Usage: 
