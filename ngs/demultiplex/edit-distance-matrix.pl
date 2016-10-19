@@ -2,24 +2,16 @@
 #
 use strict;
 use Getopt::Std;
-use Text::Levenshtein qw(distance);
-## note: we actually need Hamming distance, e.g. 
-sub hammingdist {                       
-## from http://www.perlmonks.org/?node_id=500244
-  length( $_[ 0 ] ) - ( ( $_[ 0 ] ^ $_[ 1 ] ) =~ tr[\0][\0] );
-}
-### but leave for now
+## use Text::Levenshtein qw(distance);
 
 use vars qw($opt_h);
-
-### for list of strings (id \t barcode) on standard in, print 
-### all pairwise edit distances;
 
 my $Usage="Usage: 
 
   $0 [-h] < file.txt > output.txt
 
-Prints complete table of edit distances. File must be tab-delimited, two-columns (name TAB barcode)
+Prints complete table of edit distances. File must be tab-delimited, two-columns (name TAB barcode).
+Output (to stdout) is likewise tab-delimited.
 ";
 
 if ( !getopts("h") || $opt_h ) {
@@ -29,6 +21,11 @@ if ( !getopts("h") || $opt_h ) {
 my  $names=[];
 my  $strings={};
 my  $codes={};
+
+sub hammingdist {                       
+## honestly stolen from http://www.perlmonks.org/?node_id=500244
+  length( $_[ 0 ] ) - ( ( $_[ 0 ] ^ $_[ 1 ] ) =~ tr[\0][\0] );
+}
 
 ### read codes
 LINE:
@@ -56,7 +53,8 @@ for(my $i=0; $i<$n; $i++) {
   print "$a\t";
   for(my $j=0; $j<$n; $j++) { 
     my ($b, $y)=($names->[$j], $codes->{$names->[$j]});
-    print distance($x,$y), "\t";
+    print distance($x,$y), "\t"; ### Levenshtein edit distance, but we don't allow indels
+###    print hammingdistance($x,$y), "\t";
   }                                     # for $j
   print "\n";
 }                                       # for $i
