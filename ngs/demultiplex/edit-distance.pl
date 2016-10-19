@@ -1,29 +1,30 @@
 #!/usr/bin/env perl
-
-# Code to find near-duplicates among barcodes
-
 use strict;
 use Getopt::Std;
-use Text::Levenshtein qw(distance);     
-## note: we actually need Hamming distance, e.g. 
-sub hammingdist {                       
-## from http://www.perlmonks.org/?node_id=500244
-  length( $_[ 0 ] ) - ( ( $_[ 0 ] ^ $_[ 1 ] ) =~ tr[\0][\0] );
-}
-### but leave for now
+## use Text::Levenshtein qw(distance);     
 
 use vars qw($opt_h $opt_l);
 
-### for list of strings on standard in, print the closest distance (and
-### corresponding string)
+my $Usage="Find near-duplicates among barcodes. 
 
-my $Usage="$0 [ -l number ] < file > output";
+For list of strings on stdin (format: id \\t barcode), print all the
+sets of strings with distance less than -l to each other.
+
+Usage: 
+  $0 [ -l number ] < file > output
+";
 
 if ( !getopts("hl:") || $opt_h ) {
     die $Usage; 
 }
 
 my $limit= $opt_l || 1;
+
+
+sub hammingdist {                       
+## honestly stolen from http://www.perlmonks.org/?node_id=500244
+  length( $_[ 0 ] ) - ( ( $_[ 0 ] ^ $_[ 1 ] ) =~ tr[\0][\0] );
+}
 
 my  $strings={};
 
@@ -50,7 +51,8 @@ for(my $i=0; $i<@strings; $i++) {
   my @s=@strings;
   my $s=$s[$i];
   splice(@s, $i, 1);
-  my @d = distance($s , @s);
+  ## my @d = distance($s , @s); ### Levenshtein edit distance, but we don't allow indels
+  my @d = map { hammingdist($_, $s); } @s;
   my @hits = grep( $d[$_] <= $limit, 0..$#d);
   next SEQ unless @hits;
   print $strings->{$s}. "\t$s\n"; 
