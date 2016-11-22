@@ -6,7 +6,7 @@ use Getopt::Long;
 use strict;
 use File::Basename;
 
-my $usage="md5sum-c.pl [-f | -b | -p path | -e 's/pattern/replacement/' ] [ somefile.md5sum]
+my $usage="md5sum-c.pl [-f | -b | -p path | -e 's/pattern/replacement/' ] [ somefile.md5sum ]
 
 Same as md5sum -c, but allows substitutions on the filename inside the
 file with md5sum.
@@ -14,15 +14,19 @@ file with md5sum.
 Options:
 
 
- -b	Use the file's basename (i.e., filename sans directories)
- -f     Use the md5sum file's dirname as the path for the checksummed file(s)
- -p PATH Prepend files's basename with different path
- -e CMD	Edit filename contained in \$_ using perl expression, typically involving s///;
+ -b	Use the file's basename (i.e., filename without directory-part)
+ -f     find(1) mode: use the md5sum file's dirname as the path for the checksummed file(s)
+ -p PATH Prepend files's basename with PATH. 
+ -e CMD	 Transform full path name of file  (contained in \$_) using perl expression, typically involving s///;
 
 To recursively check a directory tree containing md5sum files alongside
 the checksummed files, do something like
 
   find . -name '*.md5sum' -exec md5sum-c.pl -f {} \; 
+
+For *.gzipped files, an extra check is done to make sure that the .gz file does not include a time-stamp.
+(In that case the gzip was run in standard mode, which renders the .gz useless for checksumming. Detecting
+this before checksumming is of course faster)
 
 ";
 
@@ -58,5 +62,19 @@ while(<>) {
   eval $opt_eval if $opt_eval;
   $file=$_;
   $file = "$dir/$file" if $opt_path || $opt_findmode ;
+
+  die "File $file not found or readable" unless -r $file;
+
+  if ($file =~ /\.gz$/ ) { 
+    my $cmd="dd bs=4 skip=1 count=1 < $file 2>/dev/null | od -t d4 | sed -n '1s/0*[ \t]*//;p;q;'";
+     open(FILE, "$cmd |") or die "$cmd: $!";
+     my $line=<FILE>;chomp($line);
+     close(FILE) or die "$cmd: $!";
+     if ($line ne '0' ) { 
+        die "File $file was gzipped improperly. It includes a time-stamp ($line) which renders it useless
+for checksumming (use gzip -n ...)";
+     }
+  }
+
   system("echo '$sum  $file' | md5sum -c - \n"); # note: two spaces
 }
