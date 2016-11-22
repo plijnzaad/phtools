@@ -128,7 +128,7 @@ my $fh;
 if (@ARGV) { 
   die "Only single file allowed " unless @ARGV==1;
   my $f=$ARGV[0];
-  if ($f =~ /\.(b|cr)am$/) {
+  if ($f =~ /\.u?(b|cr)am$/) {
     my $cmd="$samview $f |";
     $fh = FileHandle->new($cmd) or die "$cmd: $!";
   } else {
