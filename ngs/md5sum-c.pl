@@ -77,7 +77,7 @@ while(<>) {
 
     if ($line ne '0' ) { 
       warn "File $file was not gzipped properly. It includes a time-stamp ($line) which renders it useless
-for checksumming (use gzip -n ...)";
+for checksumming (consider checking such gzipped files using gzip -t)";
       next LINE;
     }
   }
