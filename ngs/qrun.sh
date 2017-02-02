@@ -13,49 +13,52 @@ usage_msg="
 \n
 \n  Usage: $(basename $0) [ -n ] [ qsub-options ] command arg1 arg2 ...
 \n
-\n  qrun.sh is a qsub replacement for simple job submissions.  It frees
-\n  you from having to write wrapper scripts around the simple command
-\n  line that you use interactively: simply put 'qrun.sh' in front of it,
-\n  and it will run on the cluster, rather than locally. The qrun.sh
-\n  script takes care of all the directories, environment variables
-\n  (including the various PATHs and LIBs). Stdout and stderr go to subdir
-\n  ./$logdirname, which is created if not present in the current directory. 
-\n  Default queue is $queue, but you can override this with the -q QUEUENAME
-\n  option. A job name, if not specified using -N JOBNAME, is 'invented'
-\n  based on the name of submitted command + arguments.
+\n qrun.sh is a qsub wrapper for simple job submissions.  It frees
+\n you from having to write wrapper scripts around the simple command
+\n line that you use interactively: simply put 'qrun.sh' in front of it,
+\n and it will run on the cluster, rather than locally. The qrun.sh
+\n script takes care of all the directories, environment variables
+\n (including the various PATHs and LIBs). Stdout and stderr go to subdir
+\n ./$logdirname, which is created if not present in the current directory. 
+\n Default queue is $queue, but you can override this with the -q QUEUENAME
+\n option. A job name, if not specified using -N JOBNAME, is 'invented'
+\n based on the name of submitted command + arguments.
 \n
-\n  For simplicity, there is only a limited number of qsub options
-\n  available, all of them single-letter options (SGE's qsub are not
-\n  always!).  The most important ones are: -q (specifies queue) and -N
-\n  (specifies jobname). Other qsub options currently recognized are -j
-\n  (join stdout and stderr), -M (mail address to use) -m (when to mail),
-\n  -p (priority) and -l (resources). For the -p option (corresponding
-\n  to qsub's \"-pe\") you can specify the environment and the number
-\n  separated by '='. I.e. both -p 'threaded 4' and -p threaded=4 are
-\n  fine (the latter may save you quoting trouble). Option -h
-\n  correpsonds to qsub's option \"-hold_jid\"; option -H to qsub's
-\n  \"-hold_jid_ad\"
+\n For simplicity, there is only a limited number of qsub options
+\n available, all of them single-letter options (SGE's qsub are not
+\n always).  The most important ones are: -q (specifies queue) and -N
+\n (specifies jobname). Other qsub options currently recognized are -j
+\n (join stdout and stderr), -M (mail address to use) -m (when to mail),
+\n -p (priority) and -l (resources). For the -p option (corresponding
+\n to qsub's \"-pe\") you can specify the environment and the number
+\n separated by '='. I.e. both -p 'threaded 4' and -p threaded=4 are
+\n fine (the latter may save you quoting trouble). Option -h
+\n correpsonds to qsub's option \"-hold_jid\"; option -H to qsub's
+\n \"-hold_jid_ad\"
 \n
-\n  Unix pipe lines can be specified as a job, but the pipeline must be
-\n  quoted as a whole, which would look like
+\n Unix pipe lines can be specified as a job, but the pipeline must be
+\n quoted as a whole, which would look like
 \n
-\n  $ qrun.sh \"cmd1 | cmd2 > out.txt\"
+\n $ qrun.sh \"cmd1 | cmd2 > out.txt\"
 \n
-\n  Be careful in this case with the dollar signs of variable references
-\n  (including things like \$1, \$2 in a one-liner awk or
-\n  perl-script). Escape them to avoid premature substitution by the
-\n  invoking shell. If the commands use arguments that must be quoted
-\n  (spaces and shell meta-characters), use escaped double quotes:
+\n Be careful in this case with the dollar signs of variable references
+\n (including things like \$1, \$2 in a one-liner awk or
+\n perl-script). Escape them to avoid premature substitution by the
+\n invoking shell. If the commands use arguments that must be quoted
+\n (spaces and shell meta-characters), use escaped double quotes:
 \n
-\n qrun.sh \"sambamba view --filter=\\\"mapping_quality >= 40\\\" M1.bam | center+smooth.pl --type paired > M1-cen.bam \"
+\n $ qrun.sh \"sambamba view --filter=\\\"mapping_quality >= 40\\\" M1.bam | center+smooth.pl --type paired > M1-cen.bam \"
 \n
-\n  If your system has no ldapsearch for looking up the e-mail address, 
-\n  consider creating a file $HOME/.forward that contains the right
-\n  e-mail address (file must be unreadable to group and world).
+\n If your system has no ldapsearch for looking up the e-mail address, 
+\n consider creating a file $HOME/.forward that contains the right
+\n e-mail address (file must be unreadable to group and world).
 \n
-\n  Due to some brain damage on the part of both CentOS and SGE, you may
-\n  see errors like 'sh: which: line 1: syntax error: unexpected end of
-\n  file'. These errors are harmless.
+\n Due to some brain damage on the part of both CentOS and SGE, you may
+\n see errors like 'sh: which: line 1: syntax error: unexpected end of
+\n file'. These errors are harmless.
+\n
+\n To see exactly what the qsub commandline will be like (but not actually 
+\n run it, AKA dryrun), use the -n  option.
 \n
 \n Written by Philip Lijnzaad <plijnzaad@gmail.com>
 \n"
