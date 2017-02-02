@@ -11,7 +11,7 @@ logdirname=logs                        # always relative to current dir!
 
 usage_msg="
 \n
-\n  Usage: $(basename $0) [ qsub-options ] command arg1 arg2 ...
+\n  Usage: $(basename $0) [ -n ] [ qsub-options ] command arg1 arg2 ...
 \n
 \n  qrun.sh is a qsub replacement for simple job submissions.  It frees
 \n  you from having to write wrapper scripts around the simple command
@@ -107,8 +107,11 @@ opt_m="-m a"
 
 jobname=""
 resources=""
-while getopts "N:q:o:e:j:M:m:p:l:h:H:" opt; do
+dryrun=""
+while getopts "nN:q:o:e:j:M:m:p:l:h:H:" opt; do
     case $opt in
+        n)  dryrun=dryrun
+            ;;
         N)
             jobname=$OPTARG
             ;;
@@ -191,4 +194,8 @@ qsub_opts="-shell no -b yes -cwd -V -o $logdir -e $logdir -q $queue -N $jobname 
 
 ## finally, submit:
 cmd=$(echo "$@")                        # remove one level of quoting ...
-qsub $qsub_opts sh -c "(echo -n 'Started ';date; echo Command line: '$cmd'; echo; )>&2 ; $cmd;  (echo; echo -n 'Ended ';date)>&2"
+if [ x$dryrun = xdryrun ]; then
+echo NOT RUN: qsub $qsub_opts sh -c "(echo -n 'Started ';date; echo Command line: '$cmd'; echo; )>&2 ; $cmd;  (echo; echo -n 'Ended ';date)>&2"
+else
+              qsub $qsub_opts sh -c "(echo -n 'Started ';date; echo Command line: '$cmd'; echo; )>&2 ; $cmd;  (echo; echo -n 'Ended ';date)>&2"
+fi
