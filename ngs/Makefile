@@ -225,7 +225,6 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 %.bam.bai: %.bam
 	@echo Creating $@ 1>&2
 	date
-	## samtools index $*.bam
 	sambamba index --nthreads=2 $*.bam
 	(bamstats.pl $< ; echo '----'; $(bamstat) $< ) > $*.bamstat
 	date
