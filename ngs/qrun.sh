@@ -200,5 +200,5 @@ cmd=$(echo "$@")                        # remove one level of quoting ...
 if [ x$dryrun = xdryrun ]; then
 echo NOT RUN: qsub $qsub_opts sh -c "(echo -n 'Started ';date; echo Command line: '$cmd'; echo; )>&2 ; $cmd;  (echo; echo -n 'Ended ';date)>&2"
 else
-              qsub $qsub_opts sh -c "(echo -n 'Started ';date; echo Command line: '$cmd'; echo; )>&2 ; $cmd;  (echo; echo -n 'Ended ';date)>&2"
+              qsub $qsub_opts sh -c "(echo -n Started: ; date; echo Command line: $cmd; echo; )>&2 ; $cmd;  (echo; echo -n Ended: ; date)>&2"
 fi
