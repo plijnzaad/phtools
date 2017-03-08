@@ -42,7 +42,7 @@ usage_msg="
 \n $ qrun.sh \"cmd1 | cmd2 > out.txt\"
 \n
 \n Be careful in this case with the dollar signs of variable references
-\n (including things like \$1, \$2 in a one-liner awk or
+\n (including things like \$1, \$2, \\t and quotes in a one-liner awk or
 \n perl-script). Escape them to avoid premature substitution by the
 \n invoking shell. If the commands use arguments that must be quoted
 \n (spaces and shell meta-characters), use escaped double quotes:
