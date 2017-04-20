@@ -49,9 +49,10 @@ usage_msg="
 \n
 \n $ qrun.sh \"sambamba view --filter=\\\"mapping_quality >= 40\\\" M1.bam | center+smooth.pl --type paired > M1-cen.bam \"
 \n
-\n If your system has no ldapsearch for looking up the e-mail address, 
-\n consider creating a file $HOME/.forward that contains the right
-\n e-mail address (file must be unreadable to group and world).
+\n To find out the mail address to sent mail to, the script first looks
+\n at the environment variable $USER_EMAIL, then at the contents of
+\n $HOME/.forward (which must not group- and world-UNreadable) and
+\n lastly it tries to find it from the LDAP using ldapsearch.
 \n
 \n Due to some brain damage on the part of both CentOS and SGE, you may
 \n see errors like 'sh: which: line 1: syntax error: unexpected end of
@@ -93,17 +94,21 @@ if [ $# -eq 0 ]; then usage; fi
 # default mail adres:
 user=$(id -un)
 
-if [ -f $HOME/.forward ]; then
-  mail_address=$user@localhost
+if  [ -n "$USER_EMAIL"   ]; then
+  : # already set, excellent
+elif [ -f $HOME/.forward ]; then
+  USER_EMAIL=`cat $HOME/.forward`
 else
-    mail_address=$(ldapsearch -x "(& (objectClass=person)(uid=$user))" mail |  awk '/^mail/{print $2}')
-    if [ -z "$mail_address" ]; then
-        echo "$0: Could not find mail address for user $user (consider creating a $HOME/.forward). Exiting." >&2
-        exit 5
-    fi
+  USER_EMAIL=$(ldapsearch -x "(& (objectClass=person)(uid=$user))" mail |  awk '/^mail/{print $2}')
+  if [ -z "$USER_EMAIL" ]; then
+      echo "$0: Could not find mail address for user $user (consider setting $USER_EMAIL or creating a $HOME/.forward). Exiting." >&2
+      exit 5
+  fi
 fi
 
-opt_M="-M $mail_address"
+export USER_EMAIL
+
+opt_M="-M $USER_EMAIL"
 
 # default: only sent mail when jobs is aborted
 opt_m="-m a"
