@@ -1,6 +1,6 @@
 #!/usr/bin/perl 
 
-### silly script to quicly produce a GFF file. Currently only knows about
+### silly script to quickly produce a GFF file. Currently only knows about
 ### perfect single-segment matches
 
 use strict;

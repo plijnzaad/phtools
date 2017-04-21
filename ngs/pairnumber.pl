@@ -2,7 +2,7 @@
 my $version = 'unknown';
 ## (leave as is, id is automagically adjusted by svn)
 
-## danpos nucleosome caller requires paird mate ID's to end in 1 and
+## The DanPos nucleosome caller requires paired mate ID's to end in 1 and
 ## 2. This does that (needs name-sorted sam file, and outputs the same
 
 die "Better to use 'bamTobed -i file.bam > file.bed' and run it on that ...";

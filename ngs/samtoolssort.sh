@@ -1,5 +1,10 @@
 #!/bin/sh
 # -*- mode: sh; -*-
+##
+## drop-in replacement of samtools sort that makes use of the proper
+## local TMPDIR on the compute node. See also the Makefile in this
+## directory (and/or sambambasort.sh)
+
 ## This script is just so that the queueing system can supply the $TMPDIR
 ## Typically used as e.g. 
 ## 

@@ -1,8 +1,9 @@
 #!/bin/env perl
 ## samtools flagstat produces output per mate (i.e. halfpair, which
-## corresponds to one line in a .file), not per readpair (as it in fact
-## should to given the defition of a pairedend read in the SAM
-## specificiation). This script reads samtools flagstat output, calculates
+## corresponds to one line in a .sam file), not per readpair (as it in fact
+## should, given the defition of a pairedend read in the SAM
+## specificiation, but few people seem to stick to that). 
+## This script reads samtools flagstat output, calculates
 ## the numbers based on readpairs, and reformats it to something more
 ## readable, including all percentages.
 ##
