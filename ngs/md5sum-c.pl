@@ -81,5 +81,5 @@ for checksumming (consider checking such gzipped files using gzip -t)";
       next LINE;
     }
   }
-  system("echo '$sum  $file' | md5sum -c - \n"); # note: two spaces
+  system("echo '$sum  $file' | nice md5sum -c - \n"); # note: two spaces
 }
