@@ -15,8 +15,6 @@ sub commafy {   $fmt->format_number($_[0]); }
 
 my $samview="samtools view";            # alternatively, specify full path, or e.g. sambamba
 
-my $version="summarize-sam.pl v0.4";
-
 my $flags = ['PE',                      # 0
             'proper pair',              # 1
             'unmapped',                 # 2
@@ -51,27 +49,6 @@ sub seqsummary {
   $sum;
 }                                       # seqsummary
 
-my $stats={};
-
-sub print_stats { 
-    my($stats)=@_;
-
-    my $order=['total reads',
-               'concordant',
-               'discordant',
-               'one of mates unmapped',
-               "  of which read1 unmapped",
-               "  of which read2 unmapped",
-               'both mates unmapped',
-               'mate on other chromosome',
-        ];
-    my $ntot=$stats->{'total reads'};
-    print STDERR "# $version. All numbers are per mate, not per readpair!\n";
-    for my $key (@$order) { 
-      print STDERR join("\t", ($key, commafy($stats->{$key}), sprintf("%.1f%%", 100*$stats->{$key}/$ntot)))."\n";
-    }
-}
-
 my $fh;
 if (@ARGV) { 
   die "Only single file allowed " unless @ARGV==1;
@@ -86,7 +63,7 @@ if (@ARGV) {
     $fh = FileHandle->new_from_fd(0, "<") or die "stdin: $!";
 }
 
-print join("\t", qw{mapq editdist score score2 seq pos read}) . "\n";
+print join("\t", qw{mapq reverse editdist score score2 seq pos read}) . "\n";
 
 LINE:
 while(<$fh>) { 
@@ -95,15 +72,15 @@ while(<$fh>) {
   my($qname,$flag, $rname, $pos, $mapq, $cigar, $rnext, $pnext, $tlen, 
      $seq, $qual, @tags)=split("\t", $_);
   die "paired-end only for now ... " if($flag & $FPE);
-  $stats->{'total reads'}++;
   next LINE if $flag & $Funmapped;
+##  next LINE if $rname =~ /^ERCC-/;
+  my $reverse = int($flag & $Frev);
   my $h={};
   foreach my $el (@tags) {
     my ($name,$type,$val) = split(":",$el);
     ## $val = !!$val if $name eq 'SA';     # secondary alignment
     $h->{$name}=$val;
   }
-  print join("\t", ($mapq, (map { my $v=$h->{$_}; defined($v)?$v:'\\N'; } qw(NM AS XS)) , $rname, $pos,$qname)) . "\n";
+  print join("\t", ($mapq, $reverse, (map { my $v=$h->{$_}; defined($v)?$v:'NA'; } qw(NM AS XS)) , $rname, $pos,$qname)) . "\n";
 }                                       # while
 $fh->close();
-print_stats($stats);
