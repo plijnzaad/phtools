@@ -29,9 +29,9 @@ my $flags = ['PE',                      # 0
             'chimeric/supplementary alignment']; # 11
 
 ## make code slightly more readable:
-my($FPE, $Fproper, $Funmapped, $Fmateunmapped, $Frev, $Fmaterev, $Fread1, $Fread2);
-($FPE, $Fproper, $Funmapped, $Fmateunmapped, $Frev, $Fmaterev, $Fread1, $Fread2)=
-    map { 1<<$_ } 0..7;
+my($FPE, $Fproper, $Funmapped, $Fmateunmapped, $Frev, $Fmaterev, $Fread1, $Fread2, 
+ $Fsecondary, $FfailedQC, $Foptdup, $Fchimeric)=
+    map { 1<<$_ } 0..11;
 
 sub seqsummary { 
   my($seq)=@_;
@@ -63,7 +63,7 @@ if (@ARGV) {
     $fh = FileHandle->new_from_fd(0, "<") or die "stdin: $!";
 }
 
-print join("\t", qw{mapq reverse editdist score score2 seq pos read}) . "\n";
+print join("\t", qw{mapq sense rank editdist score score2 seq pos read}) . "\n";
 
 LINE:
 while(<$fh>) { 
@@ -74,13 +74,14 @@ while(<$fh>) {
   die "paired-end only for now ... " if($flag & $FPE);
   next LINE if $flag & $Funmapped;
 ##  next LINE if $rname =~ /^ERCC-/;
-  my $reverse = int($flag & $Frev);
+  my $sense = ($flag & $Frev)? 'as' : 'sense';
+  my $rank = ($flag & $Fsecondary)? 'secondary' : 'primary';
   my $h={};
   foreach my $el (@tags) {
     my ($name,$type,$val) = split(":",$el);
     ## $val = !!$val if $name eq 'SA';     # secondary alignment
     $h->{$name}=$val;
   }
-  print join("\t", ($mapq, $reverse, (map { my $v=$h->{$_}; defined($v)?$v:'NA'; } qw(NM AS XS)) , $rname, $pos,$qname)) . "\n";
+  print join("\t", ($mapq, $sense, $rank, (map { my $v=$h->{$_}; defined($v)?$v:'NA'; } qw(NM AS XS)) , $rname, $pos,$qname)) . "\n";
 }                                       # while
 $fh->close();
