@@ -1,0 +1,43 @@
+#!/bin/bash
+# -*- mode: sh; -*-
+## Provide logging for advanced plumbing.
+## Make sure that the environment variable $WRAPLOGDIR is set; this
+## is where the log will go. stdin, stdout and stderr are not used,
+## so remain available for the plumbing. Stdout and stderr are made
+## line buffered; this may make things slower. Very contrived example:
+# $ mkdir t
+# $ export WRAPLOGDIR=`pwd`/t
+# wrap ps -x  | wrap tac | wrap sort > $(wrap echo barf)
+# $ ls -l t/
+# total 16
+# -rw-rw-r-- 1 philip 5000 146 May 23 15:56 tac.52886.log
+# -rw-rw-r-- 1 philip 5000 147 May 23 15:56 sort.52887.log
+# -rw-rw-r-- 1 philip 5000 148 May 23 15:56 ps--x.52885.log
+# -rw-rw-r-- 1 philip 5000 152 May 23 15:56 echo-barf.52888.log
+
+if [ $# -eq 0 ];then
+  echo "Usage:  ... | wrap command arg1 arg2 etc. | ...  " >&2
+  exit 77
+fi
+
+if [ -z "$WRAPLOGDIR" -o ! -d $WRAPLOGDIR ];then
+  echo "Environment variable WRAPLOGDIR must point to an existing directory; exiting" >&2
+  exit 78
+fi
+
+name=$(echo $@| sed 's/[^A-Za-z0-9.,+-]/-/g')
+log=$WRAPLOGDIR/$name.$$.log
+
+echo "cmd + args: $@" > $log
+echo "started: `date`" >> $log
+echo "pid of wrap: $$" >> $log
+echo "ppid of wrap: $PPID" >> $log
+
+## now run it in unbuffered mode:
+
+stdbuf -oL -eL  $@
+
+status=$?
+echo "exit status: $status" >> $log
+echo "ended: `date`" >> $log
+exit $status
