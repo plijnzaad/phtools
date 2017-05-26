@@ -91,7 +91,14 @@ case "$1" in
 *.ubam|*.bam|*.cram) 
         ## Use Samtools to view a next generation sequencing genome alignment file (.[u]bam or .cram)
         if [ -x "`which samtools 2>/dev/null`" ]; then
-            (echo '-- First 20 header lines: --'; samtools view -H "$1" | head -20; echo '-- Program headers: --'; samtools view -H "$1" | grep '^@PG' ; echo '-- Skipping to first read: --' ; samtools view "$1")
+            (echo '-- First 20 header lines: --'
+             samtools view -H "$1" | head -20
+             echo '-- First 10 readgroups (if any): --'
+             samtools view -H "$1" | grep '^@RG' | head -10
+             echo '-- Program headers: --'
+             samtools view -H "$1" | grep '^@PG'
+             echo '-- Skipping to first read: --'
+             samtools view "$1")
         else 
 	    echo -e "$0: cannot find samtools" >&2
             exit 1
