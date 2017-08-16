@@ -9,6 +9,7 @@ print(R.version)
 print(Sys.time())
 print(invocation)
 
+stop("revisit this, NCIS has moved into Bioconductor")
 
 library(parseArgs)
 
