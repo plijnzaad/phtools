@@ -564,15 +564,18 @@ align <- function(gr, ref=gr, width=NA, start=TRUE, ignore.strand=TRUE) {
     both
 }                                       #align
 
-
 decommafy <- function(x){
   res <- as.integer(gsub(",", "",x))
   dim(res) <- dim(x)
+  names(res) <- names(x)
   res
 }
 
-commafy <- function(x, preserve.width="common") { 
-  formatC(as.integer(x), format="d", big.mark=",", preserve.width=preserve.width)
+commafy <- function(x, preserve.width="common") {
+    n <- names(x)
+    x <- formatC(as.integer(x), format="d", big.mark=",", preserve.width=preserve.width)
+    names(x) <- n
+    x
 }
 
 location2granges <- function(location, seqinfo=NULL, seqlengths=NULL) {
