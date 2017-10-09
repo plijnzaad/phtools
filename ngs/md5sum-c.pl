@@ -6,7 +6,7 @@ use Getopt::Long;
 use strict;
 use File::Basename;
 
-my $usage="md5sum-c.pl [-f | -b | -p path | -e 's/pattern/replacement/' ] [ somefile.md5sum ]
+my $usage="md5sum-c.pl [ -q | -f | -b | -p path | -e 's/pattern/replacement/' ] [ somefile.md5sum ]
 
 Same as md5sum -c, but allows substitutions on the filename inside the
 file with md5sum.
@@ -14,6 +14,7 @@ file with md5sum.
 Options:
 
  -b	Use the file's basename (i.e., filename without directory-part)
+ -q     quiet mode: don't complain about files in md5sum file that cannot be found ( typically when using -b )
  -f     find(1) mode: use the md5sum file's dirname as the path for the checksummed file(s)
  -p PATH Prepend files's basename with PATH. 
  -e CMD	 Transform full path name of file  (contained in \$_) using perl expression, typically involving s///;
@@ -34,9 +35,11 @@ my $opt_eval=undef;
 my $opt_basename=undef;
 my $opt_path=undef;
 my $opt_findmode=undef;
+my $opt_quiet=undef;
 
 die $usage if GetOptions(
   "h|help"=> \$help,
+  "q|quiet" => \$opt_quiet,
   "e=s" => \$opt_eval,
   "p=s" => \$opt_path,
   "b" => \$opt_basename,
@@ -64,7 +67,7 @@ while(<>) {
   $file = "$dir/$file" if $opt_path || $opt_findmode ;
 
   if (! -r $file )  {
-    warn "File $file not found or readable";
+    warn "File $file not found or readable" unless $opt_quiet;
     next LINE;
   }
 
