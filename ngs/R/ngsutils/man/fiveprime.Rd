@@ -18,4 +18,3 @@ Get the 5' (or 3') coordinates from a GRanges object.
 \seealso{
 \code{start, end, width, strand}
 }
-

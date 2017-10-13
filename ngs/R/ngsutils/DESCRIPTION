@@ -19,4 +19,4 @@ Depends:
     GenomicRanges (>= 1.6.7),
     rtracklayer,
     ShortRead
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

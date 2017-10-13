@@ -742,3 +742,27 @@ fuseOverlaps <- function(query, subject, keep.singletons=TRUE, ...) {
     }
     gr
 }                                       # fuseOverlaps
+
+
+#' Format numbers using metric prefixes (k for 1000, M for 1e6, G for 1e9, etc)
+#' 
+#' @param x Vector of numbers to format
+#' @param fmt The format to use for the part before the prefix (the magnitude of which has changed).
+#'     It must start with a number format (typically %f with some precision) and the string format
+#'     used for the prefix.
+#' @return a character vector
+#' @examples
+#'  format.kMG(10^rcauchy(10)) # may over or underrun
+#' @seealso \code{\link{sprintf}}, \code{\link{formatC}}, \code{\link{prettyNum}}
+format.kMG <- function(x, fmt="%.0f%s") {
+  ## use kilo, mega, giga etc. prefixes to print numbers (and likewise for numbers < 1)
+  ## first format specifier does the number, second is the prefix
+  stopifnot(all(1e-6 < x  & x < 1e+24))
+  prefixes <- c("a", "f", "p", "n", "u","m", "", "k","M", "G", "T", "P", "E", "Z", "Y")
+  offset <- which( prefixes=="" )
+  f <- floor(floor(log10(x))/3)
+  prefix <- prefixes[f+offset]
+  om <- 10^(3*floor(floor(log10(x))/3))
+  scaled <- x/om
+  sprintf(fmt, scaled, prefix) 
+}                                       #format.kMG
