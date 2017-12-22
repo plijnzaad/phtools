@@ -161,6 +161,7 @@ while(<$fh>) {
       $stats->{"  of which read2 unmapped"}++ if ($flag & $Fread2 && ($flag &$Funmapped));
     }
     if ( !($flag & $Fproper) && !($flag & $Funmapped) && !($flag & $Fmateunmapped)) { 
+      ## proper meaning: according to aligner
       $PEsummary .= "; discordant";
       $stats->{'discordant'}++;
     }
