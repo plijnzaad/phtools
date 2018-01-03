@@ -71,9 +71,12 @@ bamstat = /usr/bin/true			# bamstat is from bbcfutils. too much work
 
 ### -------- mapping-related stuff (formerly in SRA.makefile) -------- 
 
-### General direction is sra -> fastq -> sam -> bam -> bdg (i.e. bedGraph) -> bw
-
-### 
+## General direction is sra -> fastq -> sam -> bam -> bdg (i.e. bedGraph) -> bw
+## NOTE: when downloading with prefetch needs a proper data location in
+## ~/.ncbi/user-settings.mkfg, otherwise ~/ncbi/public will be used (and
+## overflow). Do something like this:
+## /repository/user/main/public/root = "/hpc/pmc_gen/philip/ncbi/public"
+## 
 
 %.fastq: %.sra
 	@echo Creating $@ 1>&2
