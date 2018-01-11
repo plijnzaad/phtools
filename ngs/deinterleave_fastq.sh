@@ -24,3 +24,7 @@ paste - - - - - - - -  | tee >(
   cut -f 1-4 | tr "\t" "\n" | awk '{if(NR%4==3){print "+"} else {print}}' | gzip > $1_R1.fastq.gz) |\
   cut -f 5-8 | tr "\t" "\n" | awk '{if(NR%4==3){print "+"} else {print}}' | gzip > $1_R2.fastq.gz
 
+## paste - - - - - - - -  | tee >(
+##  cut -f 1-4 | tr "\t" "\n" | awk '{ if(NR%4==1)sub(/^@[^ ][^ ]* */, "@"); if(NR%4==3)gsub(/.*/, "+"); print}' | gzip > $1_R1.fastq.gz) |\
+##  cut -f 5-8 | tr "\t" "\n" | awk '{ if(NR%4==1)sub(/^@[^ ][^ ]* */, "@"); if(NR%4==3)gsub(/.*/, "+"); print}' | gzip > $1_R2.fastq.gz
+
