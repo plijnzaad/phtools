@@ -29,8 +29,15 @@ nice zcat $unsorted \
   | paste - - - - \
   | nice sort -k1,1 -S $buffersize \
   | tr '\t' '\n' \
+  | awk '{ if(NR%4==1)sub(/^@[^ ][^ ]* */, "@"); if(NR%4==3)gsub(/.*/, "+"); print}' \
   | nice gzip > $file
 
+## to do some on the fly editing on the fastq file (e.g. to get rid of useless SRR-numbers), consider
+## sticking in an awk line just before the final 'nice gzip', e.g.
+##  | awk '{ if(NR%4==1)sub(/^@[^ ][^ ]* */, "@"); if(NR%4==3)gsub(/.*/, "+"); print}' \
+
+
+### To silently removed the original files:
 ## if rm $unsorted; then
 ## :
 ## else
