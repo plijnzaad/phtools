@@ -60,12 +60,12 @@ case "$1" in
 	if [ -n "$DECOMPRESSOR" ] && $DECOMPRESSOR -- "$1" | file - | grep -q troff; then
 		$DECOMPRESSOR -- "$1" | groff -Tascii -mandoc -
 		exit $?
-	fi ;;&
+	fi ;;
 *.[1-9n]|*.[1-9]x|*.man)
 	if file "$1" | grep -q troff; then
 		man -l "$1" | cat -s
 		exit $?
-	fi ;;&
+	fi ;;
 *.tar) tar tvvf "$1" ;;
 *.tgz|*.tar.gz|*.tar.[zZ]) tar tzvvf "$1" ;;
 *.tar.xz) tar Jtvvf "$1" ;;
