@@ -9,7 +9,7 @@ use File::Basename;
 my $usage="md5sum-c.pl [ -q | -f | -b | -p path | -e 's/pattern/replacement/' ] [ somefile.md5sum ]
 
 Same as md5sum -c, but allows substitutions on the filename inside the
-file with md5sum.
+file with md5sums.
 
 Options:
 
