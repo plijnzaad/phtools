@@ -1,4 +1,4 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 
 ## simple tool to inspect a SAM file and make the flags human-readable.
 ## Reads from stdin, writes to stdout, stats to stderr.
