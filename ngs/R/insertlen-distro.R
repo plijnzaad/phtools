@@ -108,6 +108,8 @@ for(file in files) {
       stop("column should contain integers")
     if (any(data<0))
       stop("data contains negative values")
+    if(args$maxlen>0)
+        data <- data[ data <= args$maxlen ] # otherwise histo's have too few bins
     all.data[[name]] <- data + args$add
     colors[[name]] <- color
 }
