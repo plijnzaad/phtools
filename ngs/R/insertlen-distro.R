@@ -1,6 +1,11 @@
 #!/bin/env Rscript
-## Create distribution plot of insert sizes, which are read from the tab-delimited file(s)
-## (input also be just one column I think). The files can typically extracted using phtools/ngs/sam-insertlengths.pl
+
+## Create distribution plot of insert sizes, which are read from the
+## tab-delimited file(s) (input also be just one column I think).
+## 
+## The
+## files can typically extracted using phtools/ngs/sam-insertlengths.pl
+##
 ## issues:
 ##  - legend quickly unreadable
 ##  
@@ -15,8 +20,11 @@ overview <- function()cat(file=stderr(),
                          "Usage: \
    insertlen-distro.R [ options ] FILENAMES\
 \
-The files should be tab-delimited.  If a filename argument looks like realfilename.insertlen=COLOR, \
+\
+The files should be tab-delimited.  If a filename argument looks like \
+realfilename.insertlen=COLOR, \
 that color is used; otherwise, rainbow colors are used.\
+\
 \
 Options:\
 \
