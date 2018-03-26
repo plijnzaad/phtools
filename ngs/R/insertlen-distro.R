@@ -210,7 +210,13 @@ for(scale in scales) {
             y <- f(x)*scale
             lines(x,y, col=col[sample], lty=lty[sample])
         } else if(log) {
-            lines(x=densities[[sample]]$mids, y=log10(densities[[sample]]$counts), col=col[sample], lty=lty[sample])
+            x <- densities[[sample]]$mids
+            y <- log10(densities[[sample]]$counts)
+            nonzero <- densities[[sample]]$counts >0
+            lines(x=x[nonzero],
+                  y=y[nonzero],
+                  col=col[sample],
+                  lty=lty[sample])
         } else  {
              d <- densities[[sample]]
              d$y <-  d$y * scale
