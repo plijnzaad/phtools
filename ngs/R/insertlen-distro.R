@@ -30,7 +30,8 @@ Options:\
 \
 --title=STRING    title of the plots\
 --out=FILE        name of output file\
---maxlen=INTEGER  show distribution up to this length\
+--minlen=INTEGER  show distribution for insert no short than this \
+--maxlen=INTEGER  show distribution for insert no longer than this \
 --add=INTEGER     adjust insert lengths (e.g., when mapping was done in trimmed way)\
 --column=INTEGER  use this column to find the lengths (default: 1)\
 --cumulative=BOOLEAN  Print cumulative plots\
@@ -42,7 +43,8 @@ args <- parseArgs(out="insert-length-distro.pdf",
                   title='insert length distribution',
                   cumulative=FALSE,
                   add=0L,
-                  maxlen=0L,
+                  minlen=0L,
+                  maxlen=Inf,
                   multiscale="none",
                   column=1L,
                   .overview=overview,
@@ -108,8 +110,9 @@ for(file in files) {
       stop("column should contain integers")
     if (any(data<0))
       stop("data contains negative values")
-    if(args$maxlen>0)
-        data <- data[ data <= args$maxlen ] # otherwise histo's have too few bins
+     # early size selection to keep maximal detail in the density plots
+    data <- data[ data >= args$minlen ]
+    data <- data[ data <= args$maxlen ]
     all.data[[name]] <- data + args$add
     colors[[name]] <- color
 }
@@ -156,6 +159,7 @@ if(log) {
   pdf(file = out, title = title, useDingbats = FALSE, height = 11.7, 
       width = 8.3)
 }
+
 scales <- as.integer(unlist(strsplit(args$scales, ",")))
 stopifnot(length(scales)>0 && sum(is.na(scales))==0)
 
@@ -165,24 +169,24 @@ if(log) {
     par(mfrow=c(length(scales), 1), mar=c(1,5,1,1))
 }
 
+minx <- args$minlen
 maxx <- args$maxlen
-if(maxx==0)
+if(maxx==Inf)
    maxx <- max(unlist(lapply(all.data,max)))
 
 for(scale in scales) { 
     plot(type="n", xlab="",ylab= "",
-         x=c(0, maxx), y=c(0, ifelse(log,log10(maxy), maxy/scale)),
+         x=c(minx, maxx), y=c(0, ifelse(log,log10(maxy), maxy/scale)),
          xaxt="n", yaxt="n")
-    axis(side=1,at=seq(0, maxx, 50), labels=TRUE)
-    axis(side=1,at=seq(0, maxx, 10), labels=FALSE, tcl=-0.25) #minor ticks
-    abline(v=seq(0,maxx,100), col="lightgrey")
+    axis(side=1,at=seq(minx, maxx, 50), labels=TRUE)
+    axis(side=1,at=seq(minx, maxx, 10), labels=FALSE, tcl=-0.25) #minor ticks
+    abline(v=seq(minx,maxx,100), col="lightgrey")
     
     if(args$cumulative) {
         axis(side=2,labels=TRUE)
         abline(v=seq(h,1,0.1), col="lightgrey")
     } else if(log) {
         title(ylab=sprintf("reads"))
-#        yticks <- as.integer(c(1,2,5) %o% 10^(0:5))
         yticks <- 10^(0:6)
         abline(h=1:6, col="lightgrey")
         ylabs <- parse(text=paste("10^", 0:6, sep=""))
@@ -202,7 +206,7 @@ for(scale in scales) {
     for(sample in names(all.data)) {
         if(args$cumulative) {
             f <- ecdfs[[sample]]
-            x <- seq(0, maxx, length.out=500)
+            x <- seq(minx, maxx, length.out=500)
             y <- f(x)*scale
             lines(x,y, col=col[sample], lty=lty[sample])
         } else if(log) {
