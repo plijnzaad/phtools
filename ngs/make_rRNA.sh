@@ -32,6 +32,9 @@ then
     > $chrom_sizes
 fi
 
+### note: picard is exceedingly picky: the *order* of chromosomes in the
+### bam file header must be identical to that in the interval_list
+
 # 2. rRNA interval_list file -------------------------------------------------
 
 # Genes from Gencode.
