@@ -34,7 +34,8 @@ Options:\
 --maxlen=INTEGER  show distribution for insert no longer than this \
 --add=INTEGER     adjust insert lengths (e.g., when mapping was done in trimmed way)\
 --column=INTEGER  use this column to find the lengths (default: 1)\
---multiscale=STRING    comma-separated list of magnifications (default is to use one logarithmic scale)\
+--multiscale=STRING    comma-separated list of magnifications (default is to use one)\
+--log=BOOLEAN      use logarithmic y-scale (default: TRUE)\
 
 ")
 
@@ -46,18 +47,17 @@ args <- parseArgs(out="insert-length-distro.pdf",
                   minlen=0L,
                   maxlen=Inf,
                   multiscale="none",
+                  log=TRUE,
                   column=1L,
                   .overview=overview,
                   .allow.rest=TRUE
                   )
 
-log <- TRUE
-if (args$multiscale == 'none') { 
-    args$scales <- "1"
-} else {
-    log <- FALSE
-    args$scales <- args$multiscale      #old name of the argument
-}
+if (args$multiscale == 'none')
+  args$scales <- "1"
+else
+  args$scales <- args$multiscale      #old name of the argument
+
 
 ## show complete information
 library(uuutils)
@@ -94,9 +94,10 @@ if(FALSE) {                             #debugging
     args$scales="1"                     #must be string
     args$files <- list.files(pattern="*insert*")
     files <- list.files(pattern="*insert*")
-    log <- TRUE
+    args$log <- TRUE
 }
 
+log <- args$log
 
 estimate.mode <- function(x) {          #from uuutils
     d <- density(x)
@@ -195,11 +196,7 @@ if(log) {
 scales <- as.integer(unlist(strsplit(args$scales, ",")))
 stopifnot(length(scales)>0 && sum(is.na(scales))==0)
 
-if(log) { 
-    scales <- 1L
-} else { 
-    par(mfrow=c(length(scales), 1), mar=c(1,5,1,1))
-}
+par(mfrow=c(length(scales), 1), mar=c(1,5,1,1))
 
 minx <- args$minlen
 maxx <- args$maxlen
