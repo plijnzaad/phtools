@@ -191,13 +191,8 @@ out <- paste0(out, ".pdf")
 title <- args$title
 
 warning("Creating file ", out)
-if(log) { 
-  pdf(file = out, title = title, useDingbats = FALSE, width = 11.7, 
-      height = 8.3)
-} else { 
-  pdf(file = out, title = title, useDingbats = FALSE, height = 11.7, 
-      width = 8.3)
-}
+pdf(file = out, title = title, useDingbats = FALSE, width = 11.7, 
+    height = 8.3)
 
 scales <- as.integer(unlist(strsplit(args$scales, ",")))
 stopifnot(length(scales)>0 && sum(is.na(scales))==0)
