@@ -35,14 +35,14 @@ Options:\
 --maxlen=INTEGER  show distribution for insert no longer than this \
 --add=INTEGER     adjust insert lengths (e.g., when mapping was done in trimmed way)\
 --column=INTEGER  use this column to find the lengths (default: 1)\
---cumulative=BOOLEAN  Print cumulative plots\
 --multiscale=STRING    comma-separated list of magnifications (default is to use one logarithmic scale)\
 
 ")
 
+## --cumulative option has gone since 5-Apr-2018 14:26:16, as cumulative plot is now included by default
+
 args <- parseArgs(out="insert-length-distro.pdf",
                   title='insert length distribution',
-                  cumulative=FALSE,
                   add=0L,
                   minlen=0L,
                   maxlen=Inf,
@@ -60,8 +60,8 @@ if (args$multiscale == 'none') {
     args$scales <- args$multiscale      #old name of the argument
 }
 
-if(log && args$cumulative)
-  stop("logarithmic and cumulative prolly don't work, first check this")
+if(log)
+  stop("logarithmic prolly don't work, first check this")
 
 ## show complete information
 library(uuutils)
@@ -147,10 +147,7 @@ for(n in names(colors)) {
   }
 }
 
-if(args$cumulative) {
-    ecdfs <- lapply(all.data, ecdf)
-    maxy <- 1
- } else if (log) {
+if (log) {
      densities <- lapply(all.data, function(d){ hist(d, nclass=1000, plot=FALSE)})
      maxy <- max(unlist(lapply(densities,function(d)max(d$counts))))
  } else { 
@@ -193,10 +190,7 @@ for(scale in scales) {
     axis(side=1,at=seq(minx, maxx, 10), labels=FALSE, tcl=-0.25) #minor ticks
     abline(v=seq(minx,maxx,100), col="lightgrey")
     
-    if(args$cumulative) {
-        axis(side=2,labels=TRUE)
-        abline(v=seq(h,1,0.1), col="lightgrey")
-    } else if(log) {
+    if(log) {
         title(ylab=sprintf("reads"))
         yticks <- 10^(0:6)
         abline(h=1:6, col="lightgrey")
@@ -219,12 +213,7 @@ for(scale in scales) {
     }
 
     for(sample in names(all.data)) {
-        if(args$cumulative) {
-            f <- ecdfs[[sample]]
-            x <- seq(minx, maxx, length.out=500)
-            y <- f(x)*scale
-            lines(x,y, col=col[sample], lty=lty[sample])
-        } else if(log) {
+        if(log) {
             x <- densities[[sample]]$mids
             y <- log10(densities[[sample]]$counts)
             nonzero <- densities[[sample]]$counts >0
