@@ -13,6 +13,7 @@
 
 library(parseArgs)
 library(gplots)
+library(uuutils)                        #
 
 invocation <- paste(commandArgs(), collapse=" ")
 
@@ -82,6 +83,12 @@ for (lib in libraries) {
 
 files <- args$.rest
 
+estimate.mode <- function(x) {          #from uuutils
+    d <- density(x)
+    d$x[which.max(d$y)]
+}                                       #estimate.mode
+
+
 file.color <- function(file) {
     re <- "^([^=]+)=([^=]+)$"
     if(grepl(re, file, perl=TRUE)) {
@@ -96,6 +103,7 @@ all.data <- list()
 ##   c("Hsf1t0-1B.insertlen", "Hsf1t0-1D.insertlen=red", "Hsf1t0-2B.insertlen=blue", "Hsf1t0-2D.insertlen=blue")
 
 colors <- list()
+summaries <- list()
 
 for(file in files) {
     fc <- file.color(file)        #pair of color, file
@@ -107,13 +115,16 @@ for(file in files) {
       stop("asking for non-existing column")
     data <- x[[args$column]]
     if (!is.integer(data))
-      stop("column should contain integers")
+      stop("column should only contain integers")
     if (any(data<0))
       stop("data contains negative values")
      # early size selection to keep maximal detail in the density plots
     data <- data[ data >= args$minlen ]
     data <- data[ data <= args$maxlen ]
-    all.data[[name]] <- data + args$add
+    data <- data + args$add
+    s <- summary(data)
+    summaries[[name]] <- c(mean=mean(data), median=median(data), max=max(data), mode=estimate.mode(data))
+    all.data[[name]] <- data
     colors[[name]] <- color
 }
 
@@ -199,7 +210,11 @@ for(scale in scales) {
     
     if (abs(scale - 1) < 1e-6) {        #put legend in corner of the topmost plot
         title(main=title)
-        legend(x="topright", legend=names(all.data),
+        legend(x="topright", legend=sprintf("%s mean=%.0f med=%.0f mode=%.0f",
+                               names(summaries),
+                               sapply(summaries,function(x)x['mean']),
+                               sapply(summaries,function(x)x['median']),
+                               sapply(summaries,function(x)x['mode'])),
                lty=lty[names(all.data)], col=col[names(all.data)])
     }
 
