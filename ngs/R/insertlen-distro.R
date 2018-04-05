@@ -35,7 +35,8 @@ Options:\
 --add=INTEGER     adjust insert lengths (e.g., when mapping was done in trimmed way)\
 --column=INTEGER  use this column to find the lengths (default: 1)\
 --multiscale=STRING    comma-separated list of magnifications (default is to use one)\
---log=BOOLEAN      use logarithmic y-scale (default: TRUE)\
+                  (This disables log-scaling) 
+--log=BOOLEAN     use logarithmic y-scale (default: TRUE)\
 
 ")
 
@@ -53,11 +54,15 @@ args <- parseArgs(out="insert-length-distro.pdf",
                   .allow.rest=TRUE
                   )
 
-if (args$multiscale == 'none')
+if (args$multiscale == 'none') { 
   args$scales <- "1"
-else
-  args$scales <- args$multiscale      #old name of the argument
-
+} else {
+    args$scales <- args$multiscale      #old name of the argument
+    if(args$log) { 
+        warning("*** multiscale display is pointless with --log=TRUE, ignored ***")
+        args$log <- FALSE
+    }
+}
 
 ## show complete information
 library(uuutils)
@@ -81,7 +86,7 @@ files <- args$.rest
 
 if(FALSE) {                             #debugging
 
-    setwd("/Users/philip/tmp/insertsizes")
+    setwd("/Users/philip/tmp/insertsizes/h10000")
 
     args <- list()
     args$title='foo'
@@ -95,6 +100,7 @@ if(FALSE) {                             #debugging
     args$files <- list.files(pattern="*insert*")
     files <- list.files(pattern="*insert*")
     args$log <- TRUE
+
 }
 
 log <- args$log
@@ -173,9 +179,9 @@ for(n in names(colors)) {
 }
 
 if (log) {
-     densities <- lapply(all.data, function(d){ hist(d, nclass=1000, plot=FALSE)})
-     maxy <- max(unlist(lapply(densities,function(d)max(d$counts))))
- } else { 
+    densities <- lapply(all.data, function(d){ hist(d, nclass=1000, plot=FALSE)})
+    maxy <- max(unlist(lapply(densities,function(d)max(d$counts))))
+} else { 
     densities <- lapply(all.data, density)
     maxy <- max(unlist(lapply(densities,function(d)max(d$y))))
 }
@@ -188,7 +194,7 @@ warning("Creating file ", out)
 if(log) { 
   pdf(file = out, title = title, useDingbats = FALSE, width = 11.7, 
       height = 8.3)
-} else  { 
+} else { 
   pdf(file = out, title = title, useDingbats = FALSE, height = 11.7, 
       width = 8.3)
 }
@@ -196,16 +202,17 @@ if(log) {
 scales <- as.integer(unlist(strsplit(args$scales, ",")))
 stopifnot(length(scales)>0 && sum(is.na(scales))==0)
 
-par(mfrow=c(length(scales), 1), mar=c(1,5,1,1))
+par(mfrow=c(length(scales), 1), mar=c(2,5,2,3))
 
 minx <- args$minlen
 maxx <- args$maxlen
 if(maxx==Inf)
    maxx <- max(unlist(lapply(all.data,max)))
 
-for(scale in scales) { 
+for(scale in scales) {
+    this.maxy <- ifelse(log,log10(maxy), maxy/scale)
     plot(type="n", xlab="",ylab= "",
-         x=c(minx, maxx), y=c(0, ifelse(log,log10(maxy), maxy/scale)),
+         x=c(minx, maxx), y=c(0, this.maxy),
          xaxt="n", yaxt="n")
     axis(side=1,at=seq(minx, maxx, 50), labels=TRUE)
     axis(side=1,at=seq(minx, maxx, 10), labels=FALSE, tcl=-0.25) #minor ticks
@@ -220,8 +227,20 @@ for(scale in scales) {
         title(xlab="fragment length")
     } else {
         title(ylab=sprintf("density x %.0f", scale))
-        axis(side=2,labels=FALSE)
+        axis(side=2,labels=FALSE) # labels meaningless since they are densities
     }        
+
+    tcksz <- -0.02
+    axis(side=4, tck=tcksz,
+         at=seq(0,this.maxy, length.out=11),
+         labels=seq(0,100,length.out=11),
+         las=1)
+    axis(side=4, tck=tcksz/2,              #minor ticks
+         at=seq(0,this.maxy, length.out=21),
+         labels=NA)
+    axis(side=4, tck=tcksz/5,              #minorest ticks
+         at=seq(0,this.maxy, length.out=101),
+         labels=NA)
     
     if (abs(scale - 1) < 1e-6) {        #put legend in corner of the topmost plot
         title(main=title)
@@ -236,7 +255,7 @@ for(scale in scales) {
     for(sample in names(all.data)) {
         if(log) {
             x <- densities[[sample]]$mids
-            y <- log10(densities[[sample]]$counts)
+            y <- log10(densities[[sample]]$counts) # real counts (unless truncated)
             nonzero <- densities[[sample]]$counts >0
             lines(lwd=2,
                   x=x[nonzero],
@@ -248,14 +267,16 @@ for(scale in scales) {
             d$y <-  d$y * scale
             lines(d, col=col[sample], lty=lty[sample])
         }
-        ## cumulative plots
-        with(cum.data[[sample]],
-             lines(type='s',
-                   lwd=1,
-                   x=x,
-                   y=y, 
-                   col=col[sample],
-                   lty=lty[sample]))
+        ## cumulative plots (only  when scale is 1)
+        if(abs(scale-1) < 1e-6) { 
+            with(cum.data[[sample]],
+                 lines(type='s',
+                       lwd=1,
+                       x=x,
+                       y=y*this.maxy, 
+                       col=col[sample],
+                       lty=lty[sample]))
+        }
     }                                   #for samples
 }                                       #for scales
 
