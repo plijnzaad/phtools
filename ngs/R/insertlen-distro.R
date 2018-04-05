@@ -59,9 +59,6 @@ if (args$multiscale == 'none') {
     args$scales <- args$multiscale      #old name of the argument
 }
 
-if(log)
-  stop("logarithmic prolly don't work, first check this")
-
 ## show complete information
 library(uuutils)
 print(R.version)
@@ -81,6 +78,25 @@ for (lib in libraries) {
 }
 
 files <- args$.rest
+
+if(FALSE) {                             #debugging
+
+    setwd("/Users/philip/tmp/insertsizes")
+
+    args <- list()
+    args$title='foo'
+    args$add=0
+    args$minlen=0
+    args$maxlen=1000
+    args$multiscale='none'
+    args$column=1
+    args$out='test.pdf'
+    args$scales="1"                     #must be string
+    args$files <- list.files(pattern="*insert*")
+    files <- list.files(pattern="*insert*")
+    log <- TRUE
+}
+
 
 estimate.mode <- function(x) {          #from uuutils
     d <- density(x)
@@ -122,7 +138,7 @@ for(file in files) {
     h <- hist(data, nclass=10000, plot=FALSE) # hope this is enough ...
     h$x <- h$mids + 0.5*mean(diff(h$breaks)) #the 'ends' of each bin
     h$y <- cumsum(h$counts)
-    h$y <- h$cum/max(h$y)           #fraction
+    h$y <- h$y/max(h$y)           #fraction
     
     cum.data[[name]] <- h
 
@@ -185,7 +201,7 @@ if(log) {
     par(mfrow=c(length(scales), 1), mar=c(1,5,1,1))
 }
 
-    minx <- args$minlen
+minx <- args$minlen
 maxx <- args$maxlen
 if(maxx==Inf)
    maxx <- max(unlist(lapply(all.data,max)))
@@ -225,17 +241,26 @@ for(scale in scales) {
             x <- densities[[sample]]$mids
             y <- log10(densities[[sample]]$counts)
             nonzero <- densities[[sample]]$counts >0
-            lines(x=x[nonzero],
+            lines(lwd=2,
+                  x=x[nonzero],
                   y=y[nonzero],
                   col=col[sample],
                   lty=lty[sample])
         } else  {
-             d <- densities[[sample]]
-             d$y <-  d$y * scale
-             lines(d, col=col[sample], lty=lty[sample])
-         }
-    }
-}                                       #for scale
+            d <- densities[[sample]]
+            d$y <-  d$y * scale
+            lines(d, col=col[sample], lty=lty[sample])
+        }
+        ## cumulative plots
+        with(cum.data[[sample]],
+             lines(type='s',
+                   lwd=1,
+                   x=x,
+                   y=y, 
+                   col=col[sample],
+                   lty=lty[sample]))
+    }                                   #for samples
+}                                       #for scales
 
 dev.off()
 
