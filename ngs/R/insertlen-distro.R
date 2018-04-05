@@ -13,7 +13,6 @@
 
 library(parseArgs)
 library(gplots)
-library(uuutils)                        #
 
 invocation <- paste(commandArgs(), collapse=" ")
 
