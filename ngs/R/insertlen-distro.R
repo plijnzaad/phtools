@@ -98,6 +98,7 @@ file.color <- function(file) {
 }                                       #file.color
 
 all.data <- list()
+cum.data <- list()                      #cumulative
 
 ## files <-
 ##   c("Hsf1t0-1B.insertlen", "Hsf1t0-1D.insertlen=red", "Hsf1t0-2B.insertlen=blue", "Hsf1t0-2D.insertlen=blue")
@@ -118,7 +119,15 @@ for(file in files) {
       stop("column should only contain integers")
     if (any(data<0))
       stop("data contains negative values")
-     # early size selection to keep maximal detail in the density plots
+
+    h <- hist(data, nclass=10000, plot=FALSE) # hope this is enough ...
+    h$x <- h$mids + 0.5*mean(diff(h$breaks)) #the 'ends' of each bin
+    h$y <- cumsum(h$counts)
+    h$y <- h$cum/max(h$y)           #fraction
+    
+    cum.data[[name]] <- h
+
+    ## early size selection to keep maximal detail in the density plots
     data <- data[ data >= args$minlen ]
     data <- data[ data <= args$maxlen ]
     data <- data + args$add
@@ -126,7 +135,7 @@ for(file in files) {
     summaries[[name]] <- c(mean=mean(data), median=median(data), max=max(data), mode=estimate.mode(data))
     all.data[[name]] <- data
     colors[[name]] <- color
-}
+}                                       #for files
 
 col <- rainbow(length(all.data), v=0.8)
 ncurves <- length(all.data)
@@ -177,7 +186,7 @@ if(log) {
     par(mfrow=c(length(scales), 1), mar=c(1,5,1,1))
 }
 
-minx <- args$minlen
+    minx <- args$minlen
 maxx <- args$maxlen
 if(maxx==Inf)
    maxx <- max(unlist(lapply(all.data,max)))
