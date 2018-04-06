@@ -197,7 +197,7 @@ pdf(file = out, title = title, useDingbats = FALSE, width = 11.7,
 scales <- as.integer(unlist(strsplit(args$scales, ",")))
 stopifnot(length(scales)>0 && sum(is.na(scales))==0)
 
-par(mfrow=c(length(scales), 1), mar=c(2,5,2,3))
+par(mfrow=c(length(scales), 1), mar=c(4,5,2,4))
 
 minx <- args$minlen
 maxx <- args$maxlen
@@ -212,6 +212,7 @@ for(scale in scales) {
     axis(side=1,at=seq(minx, maxx, 50), labels=TRUE)
     axis(side=1,at=seq(minx, maxx, 10), labels=FALSE, tcl=-0.25) #minor ticks
     abline(v=seq(minx,maxx,100), col="lightgrey")
+    mtext("insert size", side=1, line=2.2)
     
     if(log) {
         title(ylab=sprintf("reads"))
@@ -219,7 +220,8 @@ for(scale in scales) {
         abline(h=1:6, col="lightgrey")
         ylabs <- parse(text=paste("10^", 0:6, sep=""))
         axis(side=2,at=log10(yticks),labels=ylabs, las=1)
-        title(xlab="fragment length")
+        ## title(xlab="fragment length")
+
     } else {
         title(ylab=sprintf("density x %.0f", scale))
         axis(side=2,labels=FALSE) # labels meaningless since they are densities
@@ -236,6 +238,8 @@ for(scale in scales) {
     axis(side=4, tck=tcksz/5,              #minorest ticks
          at=seq(0,this.maxy, length.out=101),
          labels=NA)
+    mtext("cumulative percentage", side=4, line=2.2)
+
     
     if (abs(scale - 1) < 1e-6) {        #put legend in corner of the topmost plot
         title(main=title)
@@ -252,7 +256,7 @@ for(scale in scales) {
             x <- densities[[sample]]$mids
             y <- log10(densities[[sample]]$counts) # real counts (unless truncated)
             nonzero <- densities[[sample]]$counts >0
-            lines(lwd=2,
+            lines(lwd=1,
                   x=x[nonzero],
                   y=y[nonzero],
                   col=col[sample],
