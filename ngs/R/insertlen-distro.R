@@ -143,7 +143,7 @@ for(file in files) {
       stop("data contains negative values")
 
     h <- hist(data, nclass=10000, plot=FALSE) # hope this is enough ...
-    h$x <- h$mids + 0.5*mean(diff(h$breaks)) #the 'ends' of each bin
+    h$x <- h$mids - 0.5*mean(diff(h$breaks)) #the 'ends' of each bin
     h$y <- cumsum(h$counts)
     h$y <- h$y/max(h$y)           #fraction
     
