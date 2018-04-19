@@ -6,7 +6,10 @@
 ##
 ##  samtools view foo.bam | sam-insertlengths.pl > foo.insertlen
 ##
-## The thing has been written with bowtie2 output/terminology in mind.
+## Too select reads based on insert length, best use something like 
+## 
+##   sambamba view -h --filter 'template_length > 0 and template_length < 100'
+## 
 ## To process this file in to a histrogram of insertsizes, see phtools/ngs/R/insertlen-distro.R
 ## reused parts from summarize-sam.pl commit 329eab4f0349ed2ab (2015-12-21 14:44:01)
 
