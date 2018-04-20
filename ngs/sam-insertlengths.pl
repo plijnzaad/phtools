@@ -6,7 +6,7 @@
 ##
 ##  samtools view foo.bam | sam-insertlengths.pl > foo.insertlen
 ##
-## Too select reads based on insert length, best use something like 
+## To select reads based on insert length, best use something like 
 ## 
 ##   sambamba view -h --filter 'template_length > 0 and template_length < 100'
 ## 
