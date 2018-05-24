@@ -1,6 +1,6 @@
 #!/bin/env perl
 ## Extract insert lengths from SAM file
-## Reads from stdin, writes length to stdout
+## Reads from stdin, writes lengths to stdout
 ## 
 ## Usage e.g. 
 ##
