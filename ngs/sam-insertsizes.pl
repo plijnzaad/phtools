@@ -1,12 +1,12 @@
 #!/bin/env perl
-## Extract insert lengths from SAM file
-## Reads from stdin, writes lengths to stdout
+## Extract insert sizes from SAM file
+## Reads from stdin, writes sizes to stdout
 ## 
 ## Usage e.g. 
 ##
-##  samtools view foo.bam | sam-insertlengths.pl > foo.insertlen
+##  samtools view foo.bam | sam-insertsizes.pl > foo.insertlen
 ##
-## To select reads based on insert length, best use something like 
+## To select reads based on insert size, best use something like 
 ## 
 ##   sambamba view -h --filter 'template_length > 0 and template_length < 100'
 ## 

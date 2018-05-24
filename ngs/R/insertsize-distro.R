@@ -4,7 +4,7 @@
 ## tab-delimited file(s) (input also be just one column I think).
 ## 
 ## The
-## files can typically extracted using phtools/ngs/sam-insertlengths.pl
+## files can typically extracted using phtools/ngs/sam-insertsizes.pl
 ##
 ## issues:
 ##  - legend quickly unreadable
@@ -18,7 +18,7 @@ invocation <- paste(commandArgs(), collapse=" ")
 
 overview <- function()cat(file=stderr(),
                          "Usage: \
-   insertlen-distro.R [ options ] FILENAMES\
+   insertsize-distro.R [ options ] FILENAMES\
 \
 \
 The files should be tab-delimited.  If a filename argument looks like \
@@ -30,9 +30,9 @@ Options:\
 \
 --title=STRING    title of the plots\
 --out=FILE        name of output file\
---minlen=INTEGER  show distribution for insert no short than this \
---maxlen=INTEGER  show distribution for insert no longer than this \
---add=INTEGER     adjust insert lengths (e.g., when mapping was done in trimmed way)\
+--minlen=INTEGER  show distribution for inserts no short than this \
+--maxlen=INTEGER  show distribution for inserts no longer than this \
+--add=INTEGER     adjust insert sizes (e.g., when mapping was done in trimmed way)\
 --column=INTEGER  use this column to find the lengths (default: 1)\
 --multiscale=STRING    comma-separated list of magnifications (default is to use one)\
                   (This disables log-scaling) 
@@ -42,8 +42,8 @@ Options:\
 
 ## --cumulative option has gone since 5-Apr-2018 14:26:16, as cumulative plot is now included by default
 
-args <- parseArgs(out="insert-length-distro.pdf",
-                  title='insert length distribution',
+args <- parseArgs(out="insert-size-distro.pdf",
+                  title='insert size distribution',
                   add=0L,
                   minlen=0L,
                   maxlen=Inf,
@@ -121,9 +121,6 @@ file.color <- function(file) {
 
 all.data <- list()
 cum.data <- list()                      #cumulative
-
-## files <-
-##   c("Hsf1t0-1B.insertlen", "Hsf1t0-1D.insertlen=red", "Hsf1t0-2B.insertlen=blue", "Hsf1t0-2D.insertlen=blue")
 
 colors <- list()
 summaries <- list()
@@ -220,7 +217,6 @@ for(scale in scales) {
         abline(h=1:6, col="lightgrey")
         ylabs <- parse(text=paste("10^", 0:6, sep=""))
         axis(side=2,at=log10(yticks),labels=ylabs, las=1)
-        ## title(xlab="fragment length")
 
     } else {
         title(ylab=sprintf("density x %.0f", scale))
