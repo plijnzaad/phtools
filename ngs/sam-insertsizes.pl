@@ -4,11 +4,15 @@
 ## 
 ## Usage e.g. 
 ##
-##  samtools view foo.bam | sam-insertsizes.pl > foo.insertlen
+##  samtools view [...] foo.bam | sam-insertsizes.pl > foo.insertlen
 ##
 ## To select reads based on insert size, best use something like 
 ## 
-##   sambamba view -h --filter 'template_length > 0 and template_length < 100'
+## samtools view foo.bam | tawk '$9 > 200 && $9 < 1200' | sam-insertsizes.pl ...
+## 
+## To do sub-sampling and/or duplicate filtering at the same time, do
+##
+##   samtools view -s0.001 -F 1024 foo.bam  | sam-insertsizes.pl ...
 ## 
 ## To process this file in to a histrogram of insertsizes, see phtools/ngs/R/insertlen-distro.R
 ## reused parts from summarize-sam.pl commit 329eab4f0349ed2ab (2015-12-21 14:44:01)
@@ -46,7 +50,7 @@ while(<>) {
   next if /^@/;
   my($qname,$flag, $rname, $pos, $mapq, $cigar, $rnext, $pnext, $tlen,
      $seq, $qual, @optionals)=split("\t", $_);
-  print "$tlen\n" unless $tlen <= 0;                # rest is 'the other mate', or unmapped or discordant or
+  print "$tlen\n" unless $tlen <= 0;                # rest is 'the other mate', or unmapped or discordant
 }
 
 
