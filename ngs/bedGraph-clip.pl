@@ -1,7 +1,9 @@
 #!/usr/bin/env perl
 use strict;
 
-# script to clip content of bedGraph files that lie beyond the specified sizes
+## Exceedingly stupid script to clip content of bedGraph files that lie beyond the specified sizes.
+## Clipping is a bit of a misnomer: any line with start or end coordinates beyond the chromosome size
+## is fully obliterated.
 
 my $usage = "Usage: gunzip< sample.bedgraph.gz | bedGraph-clip.pl chromsizes.txt | gzip > sample-clipped.bedgraph.gz\n";
 
