@@ -37,7 +37,7 @@ while(<>) {
   my ($chr,$start, $end,$value)=split("\t", $_);
   my $len = $chrlens->{$chr};
   die "Unknown chromosome '$chr'" unless defined($len);
-  if ($start > $len || $end > $len) {
+  if ($start >= $len || $end >= $len) {
     $nclipped++;
     next LINE;
   }
