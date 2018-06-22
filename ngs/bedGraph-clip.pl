@@ -26,6 +26,7 @@ close(TAB);
 
 my $nlines=0;
 my $nclipped=0;
+my $nzero=0;
 
 LINE:
 while(<>) {
@@ -35,6 +36,7 @@ while(<>) {
   }
   $nlines++;
   my ($chr,$start, $end,$value)=split("\t", $_);
+  $nzero += ($start == $end);
   my $len = $chrlens->{$chr};
   die "Unknown chromosome '$chr'" unless defined($len);
   if ($start >= $len || $end >= $len) {
@@ -44,3 +46,4 @@ while(<>) {
   print;
 }
 warn sprintf("Clipped %d out %d lines (%.1f%%)\n", $nclipped, $nlines, 100*$nclipped/$nlines);
+warn "*** Note $nzero lines had zero-length features\n" if $nzero;
