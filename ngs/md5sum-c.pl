@@ -8,25 +8,34 @@ use File::Basename;
 
 my $usage="md5sum-c.pl [ -q | -f | -b | -p path | -e 's/pattern/replacement/' ] [ somefile.md5sum ]
 
-Same as md5sum -c, but allows substitutions on the filename inside the
-file with md5sums.
+Same as md5sum -c, but allows more flexibility with the files mentioned in the
+2nd column of *.md5sum file.
 
 Options:
 
- -b	Use the file's basename (i.e., filename without directory-part)
- -q     quiet mode: don't complain about files in md5sum file that cannot be found ( typically when using -b )
- -f     find(1) mode: use the md5sum file's dirname as the path for the checksummed file(s)
- -p PATH Prepend files's basename with PATH. 
- -e CMD	 Transform full path name of file  (contained in \$_) using perl expression, typically involving s///;
+ -b Use the file's basename (i.e., filename without directory-part). 
+    I.o.w.: assume the file to be checked is in the current directory
+
+ -q quiet mode: don't complain about files file that cannot be
+    found ( typically when using -b )
+
+ -f find(1) mode: use the md5sum file's dirname as the path for the
+    checksummed file(s)
+
+ -p PATH Prepend files's basename with PATH
+
+ -e CMD Transform full path name of file (contained in \$_) using a perl
+    expression (typically involving s///)
 
 To recursively check a directory tree containing md5sum files alongside
 the checksummed files, do something like
 
   find . -name '*.md5sum' -exec md5sum-c.pl -f {} \; 
 
-For *.gzipped files, an extra check is done to make sure that the .gz file does not include a time-stamp.
-(In that case the gzip was run in standard mode, which renders the .gz useless for checksumming. Detecting
- this before checksumming is of course faster)";
+For *.gzipped files, an extra check is done to make sure that the .gz file
+does not include a time-stamp.  (In that case the gzip was run in standard
+mode, which renders the .gz useless for checksumming. Detecting this
+before checksumming is of course faster)";
 
 #'"; # quote to fool emacs
 
