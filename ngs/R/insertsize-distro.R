@@ -10,6 +10,8 @@
 ## issues:
 ##  - legend quickly unreadable
 ##
+## Note: added to bitbucket.org/princessmaximacenter/rnafusion.git
+## on Fri Aug  3 17:56:15 CEST 2018
 
 options(stringsAsFactors = FALSE)
 library(optparse)
