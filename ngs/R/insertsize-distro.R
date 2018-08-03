@@ -1,14 +1,14 @@
 #!/usr/bin/env Rscript
-
+##
 ## Create distribution plot of insert sizes, which are read from the
-## tab-delimited file(s) (input also be just one column I think).
+## tab-delimited file. The sizes can be extracted like
+##
+##    samtools view -s42.1 foo.bam | awk '!/^@/ && $9 > 0{print $9}' > foo-10perc.insertsizes
 ## 
-## The
-## files can typically extracted using phtools/ngs/sam-insertsizes.pl
+## or using e.g. phtools/ngs/sam-insertsizes.pl
 ##
 ## issues:
 ##  - legend quickly unreadable
-##  
 ##
 
 library(parseArgs)
@@ -18,7 +18,7 @@ invocation <- paste(commandArgs(), collapse=" ")
 
 overview <- function()cat(file=stderr(),
                          "Usage: \
-   insertsize-distro.R [ options ] FILENAMES\
+   insertsize-distro.R [ options ] FILENAME(s) \
 \
 \
 The files should be tab-delimited.  If a filename argument looks like \
