@@ -11,67 +11,54 @@
 ##  - legend quickly unreadable
 ##
 
-library(parseArgs)
-library(gplots)
+options(stringsAsFactors = FALSE)
+library(optparse)
+suppressPackageStartupMessages(library(gplots))
+suppressPackageStartupMessages(library(uuutils))
 
 invocation <- paste(commandArgs(), collapse=" ")
 
-overview <- function()cat(file=stderr(),
-                         "Usage: \
-   insertsize-distro.R [ options ] FILENAME(s) \
-\
-\
-The files should be tab-delimited.  If a filename argument looks like \
-realfilename.insertlen=COLOR, \
-that color is used; otherwise, rainbow colors are used.\
-\
-\
-Options:\
-\
---title=STRING    title of the plots\
---out=FILE        name of output file\
---minlen=INTEGER  show distribution for inserts no short than this \
---maxlen=INTEGER  show distribution for inserts no longer than this \
---add=INTEGER     adjust insert sizes (e.g., when mapping was done in trimmed way)\
---column=INTEGER  use this column to find the lengths (default: 1)\
---multiscale=STRING    comma-separated list of magnifications (default is to use one)\
-                  (This disables log-scaling) 
---log=BOOLEAN     use logarithmic y-scale (default: TRUE)\
+usage <- "Usage: %prog [ ] [options] FILENAME(s)
 
-")
+The files should be tab-delimited.  If a filename argument looks like
+realfilename.insertlen=COLOR, that color is used; otherwise, rainbow
+colors are used."
 
-## --cumulative option has gone since 5-Apr-2018 14:26:16, as cumulative plot is now included by default
+formalargs <- list(
+  make_option("--title", default="insert size distribution", meta='STRING', help='main title of the plot [default: %default]'),
+  make_option("--out", default='insert-size-distribution.pdf', meta='FILE', help='name of the output file [default: %default]'),
+  make_option("--minlen", default=0L, meta='INTEGER', help='show distribution for inserts no short than this [default: %default]'),
+  make_option("--maxlen", default=Inf, meta='INTEGER', help='show distribution for inserts no longer than this [default: %default]'),
+  make_option("--add", default=0L, meta='INTEGER', help='adjust insert sizes (e.g., when mapping was done in trimmed way) [default: %default]'),
+  make_option("--column", default=1L, meta='INTEGER', help='to find the lengths, use this column in input file [default: %default]'),
+  make_option("--scales", default="1", meta='STRING', help='comma-separated list of magnifications for y-axis [default: %default]
+                  (This disables log-scaling)'),
+  make_option("--no_log", default=FALSE, action='store_true', help='do not use logarithmic y-scale')
+  )
 
-args <- parseArgs(out="insert-size-distro.pdf",
-                  title='insert size distribution',
-                  add=0L,
-                  minlen=0L,
-                  maxlen=Inf,
-                  multiscale="none",
-                  log=TRUE,
-                  column=1L,
-                  .overview=overview,
-                  .allow.rest=TRUE
-                  )
+epilogue <- ''
+parser <- OptionParser(usage=usage,
+                     option_list=formalargs,
+                       epilogue=epilogue)
+p <- parse_args(parser, positional_arguments=TRUE)
+opts <- p$options
+args <- p$args
+rm(p)
 
-if (args$multiscale == 'none') { 
-  args$scales <- "1"
-} else {
-    args$scales <- args$multiscale      #old name of the argument
-    if(args$log) { 
-        warning("*** multiscale display is pointless with --log=TRUE, ignored ***")
-        args$log <- FALSE
-    }
+opts$log <- !opts$no_log
+
+if( any(grepl(",", opts$scales)) && opts$log) { 
+    warning("*** multiscale display is pointless with --log=TRUE, ignored ***")
+    opts$no_log <- TRUE
+    opts$log <- FALSE
 }
 
 ## show complete information
-library(uuutils)
 print(R.version)
 print(Sys.time())
 print(invocation)
 
 print("Arguments:\n")
-print(args)
 print("\n")
 
 libraries <- c()
@@ -82,28 +69,31 @@ for (lib in libraries) {
   cat("loaded ", lib, " from ", path.package(lib), "\n")
 }
 
-files <- args$.rest
+files <- args
 
 if(FALSE) {                             #debugging
 
     setwd("/Users/philip/tmp/insertsizes/h10000")
 
-    args <- list()
-    args$title='foo'
-    args$add=0
-    args$minlen=0
-    args$maxlen=1000
-    args$multiscale='none'
-    args$column=1
-    args$out='test.pdf'
-    args$scales="1"                     #must be string
-    args$files <- list.files(pattern="*insert*")
+    opts <- list()
+    opts$title='foo'
+    opts$add=0
+    opts$minlen=0
+    opts$maxlen=1000
+    opts$scales=1
+    opts$column=1
+    opts$out='test.pdf'
+    opts$scales="1"                     #must be string
+    opts$files <- list.files(pattern="*insert*")
     files <- list.files(pattern="*insert*")
-    args$log <- TRUE
+    opts$log <- TRUE
 
 }
 
-log <- args$log
+log <- opts$log
+
+if (length(files)==0)
+  stop("\nNo files.\n\n Run with -h for help")
 
 estimate.mode <- function(x) {          #from uuutils
     d <- density(x)
@@ -131,9 +121,9 @@ for(file in files) {
     color <- fc[2]
     name <- sub("^(.*)\\.[^.]*$", "\\1", file) #strip last extension
     x <- read.table(file)
-    if (args$column > ncol(x) )
+    if (opts$column > ncol(x) )
       stop("asking for non-existing column")
-    data <- x[[args$column]]
+    data <- x[[opts$column]]
     if (!is.integer(data))
       stop("column should only contain integers")
     if (any(data<0))
@@ -147,9 +137,9 @@ for(file in files) {
     cum.data[[name]] <- h
 
     ## early size selection to keep maximal detail in the density plots
-    data <- data[ data >= args$minlen ]
-    data <- data[ data <= args$maxlen ]
-    data <- data + args$add
+    data <- data[ data >= opts$minlen ]
+    data <- data[ data <= opts$maxlen ]
+    data <- data + opts$add
     s <- summary(data)
     summaries[[name]] <- c(mean=mean(data), median=median(data), max=max(data), mode=estimate.mode(data))
     all.data[[name]] <- data
@@ -183,21 +173,21 @@ if (log) {
     maxy <- max(unlist(lapply(densities,function(d)max(d$y))))
 }
 
-out <- sub("\\.pdf$","", args$out)
+out <- sub("\\.pdf$","", opts$out)
 out <- paste0(out, ".pdf")
-title <- args$title
+title <- opts$title
 
 warning("Creating file ", out)
 pdf(file = out, title = title, useDingbats = FALSE, width = 11.7, 
     height = 8.3)
 
-scales <- as.integer(unlist(strsplit(args$scales, ",")))
+scales <- as.integer(unlist(strsplit(opts$scales, ",")))
 stopifnot(length(scales)>0 && sum(is.na(scales))==0)
 
 par(mfrow=c(length(scales), 1), mar=c(4,5,2,4))
 
-minx <- args$minlen
-maxx <- args$maxlen
+minx <- opts$minlen
+maxx <- opts$maxlen
 if(maxx==Inf)
    maxx <- max(unlist(lapply(all.data,max)))
 
