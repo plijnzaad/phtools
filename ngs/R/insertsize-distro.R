@@ -85,9 +85,7 @@ for (lib in libraries) {
 files <- args
 
 if(FALSE) {                             #debugging
-
     setwd("/Users/philip/tmp/insertsizes/h10000")
-
     opts <- list()
     opts$title='foo'
     opts$add=0
@@ -99,7 +97,6 @@ if(FALSE) {                             #debugging
     opts$files <- list.files(pattern="*insert*")
     files <- list.files(pattern="*insert*")
     opts$log <- TRUE
-
 }
 
 log <- opts$log
