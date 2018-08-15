@@ -82,7 +82,6 @@ if(FALSE) {                             #debugging
     opts$add=0
     opts$minlen=0
     opts$maxlen=1000
-    opts$scales=1
     opts$column=1
     opts$out='test.pdf'
     opts$scales="1"                     #must be string
