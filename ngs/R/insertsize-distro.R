@@ -12,6 +12,10 @@
 ##
 ## Note: added to bitbucket.org/princessmaximacenter/rnafusion.git
 ## on Fri Aug  3 17:56:15 CEST 2018
+##
+## Written by plijnzaad@gmail.com
+
+version <- 'v1.2'
 
 options(stringsAsFactors = FALSE)
 library(optparse)
@@ -30,7 +34,7 @@ formalargs <- list(
   make_option("--title", default="insert size distribution", meta='STRING', help='main title of the plot [default: %default]'),
   make_option("--out", default='insert-size-distribution.pdf', meta='FILE', help='name of the output file [default: %default]'),
   make_option("--minlen", default=0L, meta='INTEGER', help='show distribution for inserts no short than this [default: %default]'),
-  make_option("--maxlen", default=Inf, meta='INTEGER', help='show distribution for inserts no longer than this [default: %default]'),
+  make_option("--maxlen", default=1000L, meta='INTEGER', help='show distribution for inserts no longer than this [default: %default]'),
   make_option("--add", default=0L, meta='INTEGER', help='adjust insert sizes (e.g., when mapping was done in trimmed way) [default: %default]'),
   make_option("--column", default=1L, meta='INTEGER', help='to find the lengths, use this column in input file [default: %default]'),
   make_option("--scales", default="1", meta='STRING', help='comma-separated list of magnifications for y-axis [default: %default]
@@ -38,7 +42,14 @@ formalargs <- list(
   make_option("--no_log", default=FALSE, action='store_true', help='do not use logarithmic y-scale')
   )
 
-epilogue <- ''
+epilogue <- "insertsize-distro.R creates a plot of the distribution of the insert
+sizes found in all the input files. The plots only show data between
+minlen and maxlen. The legend also gives mean and median of *all* the
+the data, and the mode ('peak') of data that is visible.
+
+If several scales are given, several plots are shown at all those
+'magnifications'. "
+
 parser <- OptionParser(usage=usage,
                      option_list=formalargs,
                        epilogue=epilogue)
@@ -93,11 +104,12 @@ if(FALSE) {                             #debugging
 
 log <- opts$log
 
+
 if (length(files)==0)
   stop("\nNo files.\n\n Run with -h for help")
 
-estimate.mode <- function(x) {          #from uuutils
-    d <- density(x)
+estimate.mode <- function(x, adjust=1) {
+    d <- density(x,adjust=adjust)
     d$x[which.max(d$y)]
 }                                       #estimate.mode
 
@@ -136,13 +148,17 @@ for(file in files) {
     h$y <- h$y/max(h$y)           #fraction
     
     cum.data[[name]] <- h
-
-    ## early size selection to keep maximal detail in the density plots
+    mode <- estimate.mode(data[ opts$minlen < data  & data <= opts$maxlen ])
+    ## summaries on all data:
+    summaries[[name]] <- c(mean=mean(data),
+                           median=median(data),
+                           max=max(data),
+                           mode=mode)
+    ## size selection after this to keep maximal detail in plots
     data <- data[ data >= opts$minlen ]
-    data <- data[ data <= opts$maxlen ]
+    data <- data[ data < opts$maxlen ]
     data <- data + opts$add
     s <- summary(data)
-    summaries[[name]] <- c(mean=mean(data), median=median(data), max=max(data), mode=estimate.mode(data))
     all.data[[name]] <- data
     colors[[name]] <- color
 }                                       #for files
@@ -230,10 +246,10 @@ for(scale in scales) {
     
     if (abs(scale - 1) < 1e-6) {        #put legend in corner of the topmost plot
         title(main=title)
-        legend(x="topright", legend=sprintf("%s mean=%.0f med=%.0f mode=%.0f",
+        legend(x="topright", legend=sprintf("%s med=%.0f mean=%.0f mode=%.0f",
                                names(summaries),
-                               sapply(summaries,function(x)x['mean']),
                                sapply(summaries,function(x)x['median']),
+                               sapply(summaries,function(x)x['mean']),
                                sapply(summaries,function(x)x['mode'])),
                lty=lty[names(all.data)], col=col[names(all.data)])
     }
@@ -252,6 +268,8 @@ for(scale in scales) {
             d <- densities[[sample]]
             d$y <-  d$y * scale
             lines(d, col=col[sample], lty=lty[sample])
+            ## mode <- (summaries[[sample]])['mode'] # for debugging
+            ## abline(v=mode, col=col[sample], lwd=0.1,lty=2)
         }
         ## cumulative plots (only  when scale is 1)
         if(abs(scale-1) < 1e-6) { 
@@ -266,6 +284,8 @@ for(scale in scales) {
     }                                   #for samples
 }                                       #for scales
 
+legend(x='bottomright', bty='n',
+       legend=sprintf("version %s",version), cex=0.6)
 dev.off()
 
 warning("Succesfully completed\n")
