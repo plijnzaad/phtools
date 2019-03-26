@@ -203,7 +203,7 @@ qsub_opts="-shell no -b yes -cwd -V -o $logdir -e $logdir -q $queue -N $jobname 
 ## finally, submit:
 cmd=$(echo "$@")                        # remove one level of quoting ...
 if [ x$dryrun = xdryrun ]; then
-echo NOT RUN: qsub $qsub_opts sh -c "(echo -n 'Started ';date; echo Command line: '$cmd'; echo; )>&2 ; $cmd;  (echo; echo -n 'Ended ';date)>&2"
+echo NOT RUN: qsub $qsub_opts bash -c "(echo -n 'Started ';date; echo Command line: '$cmd'; echo; )>&2 ; $cmd;  (echo; echo -n 'Ended ';date)>&2"
 else
-              qsub $qsub_opts sh -c "(echo -n Started: ; date; echo Command line: $cmd; echo; )>&2 ; $cmd;  (echo; echo -n Ended: ; date)>&2"
+              qsub $qsub_opts bash -c "(echo -n Started: ; date; echo Command line: $cmd; echo; )>&2 ; $cmd;  (echo; echo -n Ended: ; date)>&2"
 fi
