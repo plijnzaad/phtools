@@ -116,7 +116,7 @@ opt_m="-m a"
 jobname=""
 resources=""
 dryrun=""
-while getopts "nN:q:o:e:j:M:m:p:l:h:H:" opt; do
+while getopts "nN:q:o:e:j:t:M:m:p:l:h:H:" opt; do
     case $opt in
         n)  dryrun=dryrun
             ;;
@@ -140,6 +140,9 @@ while getopts "nN:q:o:e:j:M:m:p:l:h:H:" opt; do
             ;;
         l)                              # specifies resources. comma-separated or repeated
             resources="$resources -l $OPTARG"
+            ;;
+        t)                              # specifies arry job
+            opt_t="-t $OPTARG"
             ;;
 
 ### multi-letter qsub options:
@@ -197,7 +200,7 @@ else
 fi
 echo "Using directory $logdir for stdout and stderr" >&2
 
-other_opts="$opt_j $opt_m $opt_l $opt_M $opt_pe $opt_hold_jid $opt_hold_jid_ad"
+other_opts="$opt_j $opt_t $opt_m $opt_l $opt_M $opt_pe $opt_hold_jid $opt_hold_jid_ad"
 qsub_opts="-shell no -b yes -cwd -V -o $logdir -e $logdir -q $queue -N $jobname $other_opts"
 
 ## finally, submit:
