@@ -87,6 +87,15 @@ case "$1" in
 		echo "Install ImageMagick or GraphicsMagick to browse images"
 		exit 1
 	fi ;;
+
+*.json)
+    if [ -x "`which jq 2>/dev/null`" ]; then
+        jq < "$1"
+    else
+        cat "$1"
+    fi ;;
+    
+
 ### bioinformatics:
 *.ubam|*.bam|*.cram) 
         ## Use Samtools to view a next generation sequencing genome alignment file (.[u]bam or .cram)
