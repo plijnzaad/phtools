@@ -97,7 +97,7 @@ user=$(id -un)
 if  [ -n "$USER_EMAIL"   ]; then
   : # already set, excellent
 elif [ -f $HOME/.forward ]; then
-  USER_EMAIL=`cat $HOME/.forward`
+  USER_EMAIL=$(cat $HOME/.forward)
 else
   USER_EMAIL=$(ldapsearch -x "(& (objectClass=person)(uid=$user))" mail |  awk '/^mail/{print $2}')
   if [ -z "$USER_EMAIL" ]; then
