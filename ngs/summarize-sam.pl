@@ -104,8 +104,8 @@ sub print_stats {
     my($stats)=@_;
 
     my $order=['total reads',
-               'concordant',
-               'discordant',
+               'good',
+               'bad',
                'one of mates unmapped',
                "  of which read1 unmapped",
                "  of which read2 unmapped",
@@ -153,7 +153,7 @@ while(<$fh>) {
       $stats->{'both mates unmapped'}++;
     }
     if (!!($flag & $Funmapped) != !!($flag & $Fmateunmapped)) { 
-      $PEsummary .= "; singly unmapped";
+      $PEsummary .= "; singleton";
       $stats->{'one of mates unmapped'}++;
       $stats->{"  of which read1 unmapped"}++ if ($flag & $Fread1 && ($flag &$Funmapped));
       $stats->{"  of which read1 unmapped"}++ if ($flag & $Fread2 && ($flag &$Fmateunmapped));
@@ -162,8 +162,8 @@ while(<$fh>) {
     }
     if ( !($flag & $Fproper) && !($flag & $Funmapped) && !($flag & $Fmateunmapped)) { 
       ## proper meaning: according to aligner
-      $PEsummary .= "; discordant";
-      $stats->{'discordant'}++;
+      $PEsummary .= "; bad";
+      $stats->{'bad'}++;
     }
     if ( $rnext ne '=' && $rname ne $rnext) { 
       $PEsummary .= '; mate on other chromosome';
@@ -171,8 +171,8 @@ while(<$fh>) {
     };
     $PEsummary =~ s/^; //;
     if ( !$PEsummary) { 
-      $PEsummary = "concordant";
-      $stats->{concordant}++;
+      $PEsummary = "good";
+      $stats->{good}++;
     }
   }
   $pos = '?' if $flag & $Funmapped;
