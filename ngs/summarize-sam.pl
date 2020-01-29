@@ -82,7 +82,7 @@ sub explain_flags {
   $s;
 }                                       # explain_flags
 
-sub seqsummary { 
+sub seq_composition { 
   my($seq)=@_;
 
   my $occ={};
@@ -96,7 +96,7 @@ sub seqsummary {
   }
   $sum =~ s/(.*)/\L$1/;                 # for readability
   $sum;
-}                                       # seqsummary
+}                                       # seq_composition
 
 my $stats={};
 
@@ -138,7 +138,13 @@ if (@ARGV) {
     $fh = FileHandle->new_from_fd(0, "<") or die "stdin: $!";
 }
 
-print "#idhash	chr	pos	matepos	inslen	seqsummary	pval	PEsummary	flags	orig_id\n";
+sub header{
+  my @fields=qw(idhash chr pos matepos inslen seq_composition mapq pval PEsummary flags orig_id);
+  print "#" . join("\t", @fields) . "\n";
+}
+
+header();
+
 while(<$fh>) { 
   s/[\n\r]*$//;
   next if /^@/;
@@ -178,8 +184,8 @@ while(<$fh>) {
   $pos = '?' if $flag & $Funmapped;
   $pnext = '?' if $flag & $Fmateunmapped;
   $tlen= '?' if $flag & ($Funmapped | $Fmateunmapped);
-  print join("\t", (idhash($qname), $rname, $pos, $pnext, $tlen, seqsummary($seq), 
-                    pval($mapq), $PEsummary, explain_flags($flag), $qname)) . "\n";
+  print join("\t", (idhash($qname), $rname, $pos, $pnext, $tlen, seq_composition($seq), 
+                    $mapq, pval($mapq), $PEsummary, explain_flags($flag), $qname)) . "\n";
 }                                       # while
 $fh->close();
 print_stats($stats);
