@@ -100,7 +100,7 @@ Note that as a result of the change in read length, the coverage will also
 change. I.e., if single-end reads of 55 bp are centered to 1 bp, then
 smoothed to 31, the coverage per position will be 56% of the original.
 
-Written by Philip Lijnzaad <plijnzaad@gmail.co>
+Written by Philip Lijnzaad <plijnzaad@gmail.com>
 
 ';
 
