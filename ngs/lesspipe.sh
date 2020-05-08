@@ -105,7 +105,7 @@ case "$1" in
              echo '-- First 10 readgroups (if any): --'
              samtools view -H "$1" | grep '^@RG' | head -10
              echo '-- Program headers: --'
-             samtools view -H "$1" | grep '^@PG'
+             samtools view -H "$1" | egrep '^@(PG|CO)'
              echo '-- Skipping to first read: --'
              samtools view "$1")
         else 
