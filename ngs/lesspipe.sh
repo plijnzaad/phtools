@@ -31,6 +31,14 @@
 # after the first one in the LESSOPEN environment variable:
 # export LESSOPEN="||/usr/bin/lesspipe.sh %s"
 
+warn() { 
+    echo "*** $0:  $@ *** " 1>&2 
+}
+die() { 
+    warn "$@"
+    exit 28 
+}
+
 if [ ! -e "$1" ] ; then
 	exit 1
 fi
@@ -83,9 +91,8 @@ case "$1" in
 	elif [ -x /usr/bin/gm ]; then
 		gm identify "$1"
 	else
-		echo "No identify available"
-		echo "Install ImageMagick or GraphicsMagick to browse images"
-		exit 1
+		warn "No identify available"
+		die "Install ImageMagick or GraphicsMagick to browse images"
 	fi ;;
 
 *.json)
@@ -108,17 +115,18 @@ case "$1" in
              samtools view -H "$1" | egrep '^@(PG|CO)'
              echo '-- Skipping to first read: --'
              samtools view "$1")
-        else 
-	    echo -e "$0: cannot find samtools" >&2
-            exit 1
+        else
+            warn "Need samtools for this"
+	    cat "$1"
         fi ;;
+
 *.bw|*.bigwig)
         ## Use bigWigInfo
         if [ -x "`which bigWigInfo 2>/dev/null`" ]; then
             bigWigInfo "$1"
         else 
-	    echo -e "$0: cannot find bigWigInfo (part of the UCSC suite) " >&2
-            exit 1
+	    die "need bigWigInfo for this (part of the UCSC suite)"
+            cat "$1"
         fi ;;
 
 ### last resort:
