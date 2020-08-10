@@ -110,7 +110,18 @@ case "$1" in
     else
         cat "$1"
     fi ;;
-    
+
+*.gitbundle|*.bundle)                   # list heads and pre-requisite commits
+    if havebinary git; then
+        if file "$1" | grep -q 'Git bundle'; then
+            git bundle verify "$1"
+        else
+            warn 'I thought this was a git bundle ... '
+            cat "$1"
+        fi
+    else
+        cat "$1"
+    fi;;
 
 ### bioinformatics:
 *.ubam|*.bam|*.cram) 
