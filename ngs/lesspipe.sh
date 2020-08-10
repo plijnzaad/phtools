@@ -39,6 +39,15 @@ die() {
     exit 28 
 }
 
+havebinary() {
+    if [ -x "`which $1 2>/dev/null`" ]; then
+        return 0
+    else
+        warn "Could not find $1"
+        return 1
+    fi
+}
+
 if [ ! -e "$1" ] ; then
 	exit 1
 fi
@@ -95,8 +104,8 @@ case "$1" in
 		die "Install ImageMagick or GraphicsMagick to browse images"
 	fi ;;
 
-*.json)
-    if [ -x "`which jq 2>/dev/null`" ]; then
+*.json)                                 # pretty-print the json
+    if havebinary jq; then
         jq < "$1"
     else
         cat "$1"
@@ -106,7 +115,7 @@ case "$1" in
 ### bioinformatics:
 *.ubam|*.bam|*.cram) 
         ## Use Samtools to view a next generation sequencing genome alignment file (.[u]bam or .cram)
-        if [ -x "`which samtools 2>/dev/null`" ]; then
+        if havebinary samtools; then
             (echo '-- First 20 header lines: --'
              samtools view -H "$1" | head -20
              echo '-- First 10 readgroups (if any): --'
@@ -121,8 +130,7 @@ case "$1" in
         fi ;;
 
 *.bw|*.bigwig)
-        ## Use bigWigInfo
-        if [ -x "`which bigWigInfo 2>/dev/null`" ]; then
+        if havebinary bigWigInfo; then
             bigWigInfo "$1"
         else 
 	    die "need bigWigInfo for this (part of the UCSC suite)"
