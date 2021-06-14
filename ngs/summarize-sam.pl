@@ -1,7 +1,8 @@
 #!/usr/bin/env perl
 
 ## simple tool to inspect a SAM file and make the flags human-readable.
-## Reads from stdin, writes to stdout, stats to stderr.
+## Reads from stdin, writes to stdout, stats to stderr. Aim is primarily
+## to check paired-end stuff.
 ## 
 ## Usage e.g. 
 ##  samtools view foo.bam | summarize-sam.pl 2> foo.sumstat | gzip > foo.sum.gz
@@ -139,7 +140,7 @@ if (@ARGV) {
 }
 
 sub header{
-  my @fields=qw(idhash chr pos matepos inslen seq_composition mapq pval PEsummary flags orig_id);
+  my @fields=qw(idhash chr pos matepos inslen seq_composition hits score mapq pval PEsummary flags orig_id);
   print "#" . join("\t", @fields) . "\n";
 }
 
@@ -150,7 +151,9 @@ while(<$fh>) {
   next if /^@/;
 
   my($qname,$flag, $rname, $pos, $mapq, $cigar, $rnext, $pnext, $tlen,
-     $seq, $qual, @optionals)=split("\t", $_);
+     $seq, $qual, @tags)=split("\t", $_);
+  my $tags = join(" ", @tags);
+  my($NH, $AS)=('?', '?');
   my $PEsummary="";
   $stats->{'total reads'}++;
   if($flag & $FPE) { 
@@ -181,10 +184,14 @@ while(<$fh>) {
       $stats->{good}++;
     }
   }
+  $tags =~ /NH:i:(\d+)/; $NH=$1;
+  $tags =~ /AS:i:(\d+)/; $AS=$1;
   $pos = '?' if $flag & $Funmapped;
   $pnext = '?' if $flag & $Fmateunmapped;
   $tlen= '?' if $flag & ($Funmapped | $Fmateunmapped);
-  print join("\t", (idhash($qname), $rname, $pos, $pnext, $tlen, seq_composition($seq), 
+  
+  print join("\t", (idhash($qname), $rname, $pos, $pnext, $tlen, seq_composition($seq),
+                    $NH, $AS,
                     $mapq, pval($mapq), $PEsummary, explain_flags($flag), $qname)) . "\n";
 }                                       # while
 $fh->close();
