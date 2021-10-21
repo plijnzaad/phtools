@@ -91,6 +91,7 @@ case "$1" in
 *.[zZ]|*.gz) gzip -dc -- "$1" ;;
 *.bz2) bzip2 -dc -- "$1" ;;
 *.zip|*.jar|*.nbm) zipinfo -- "$1" ;;
+*.7z) 7za l -- "$1"        ;;
 *.rpm) rpm -qpivl --changelog -- "$1" ;;
 *.cpi|*.cpio) cpio -itv < "$1" ;;
 *.gpg) gpg -d "$1" ;;
