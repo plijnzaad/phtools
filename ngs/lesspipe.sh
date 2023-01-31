@@ -1,11 +1,12 @@
 #!/bin/sh
 #
 # This lesspipe.sh is adapted from the /usr/bin/lesspipe.sh shipping
-# with CentOS7. It is extended to be able to read .bam and .cram files
-# (genome alignment files used in next generation sequencing) This
-# requires the installation of samtools; if not available, less will
-# revert to the old behaviour (saying '%s may be a binary file.  See it
-# anyway?')
+# with CentOS7. It is extended to be able to read a number of bioinformatics
+# formats such as .bam, .cram, .bigwig and .hdf5.
+#
+# This requires the presence of samtools, bigwigInfo and h5ls; if not
+# available, less will revert to the old behaviour (saying '%s may be a
+# binary file.  See it anyway?')
 #
 # To use this filter with less, define LESSOPEN as
 #
@@ -145,9 +146,18 @@ case "$1" in
         if havebinary bigWigInfo; then
             bigWigInfo "$1"
         else 
-	    die "need bigWigInfo for this (part of the UCSC suite)"
+	    die "Need bigWigInfo for this (part of the UCSC suite)"
             cat "$1"
         fi ;;
+
+*h5|*.hdf5)
+        if havebinary h5ls; then
+            h5ls "$1"
+        else 
+	    die "Need h5ls for this (part of the hdf5-tools package)"
+            cat "$1"
+        fi ;;
+    
 
 ### last resort:
 *)
