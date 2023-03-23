@@ -150,14 +150,13 @@ case "$1" in
             cat "$1"
         fi ;;
 
-*h5|*.hdf5)
+*h[45]|*.hdf[45]|*.hdf5ad|*.he[25])
         if havebinary h5ls; then
             h5ls "$1"
         else 
 	    die "Need h5ls for this (part of the hdf5-tools package)"
             cat "$1"
         fi ;;
-    
 
 ### last resort:
 *)
