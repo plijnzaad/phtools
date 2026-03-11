@@ -4,7 +4,7 @@
 # with CentOS7. It is extended to be able to read a number of bioinformatics
 # formats such as .bam, .cram, .bigwig and .hdf5.
 #
-# This requires the presence of samtools, bigwigInfo and h5ls; if not
+# This requires the presence of samtools, bigwigInfo and h5dump; if not
 # available, less will revert to the old behaviour (saying '%s may be a
 # binary file.  See it anyway?')
 #
@@ -151,10 +151,10 @@ case "$1" in
         fi ;;
 
 *h[45]|*.hdf[45]|*.hdf5ad|*.he[25])
-        if havebinary h5ls; then
-            h5ls "$1"
+        if havebinary h5dump; then
+            h5dump "$1"
         else 
-	    die "Need h5ls for this (part of the hdf5-tools package)"
+	    die "Need h5dump for this (part of the hdf5-tools package)"
             cat "$1"
         fi ;;
 
