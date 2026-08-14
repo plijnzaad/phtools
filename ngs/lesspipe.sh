@@ -90,6 +90,7 @@ case "$1" in
 *.xz|*.lzma) xz -dc -- "$1" ;;
 *.tar.bz2|*.tbz2) bzip2 -dc -- "$1" | tar tvvf - ;;
 *.[zZ]|*.gz) gzip -dc -- "$1" ;;
+*.zst) zstd -dc -- "$1" ;;
 *.bz2) bzip2 -dc -- "$1" ;;
 *.zip|*.jar|*.nbm) zipinfo -- "$1" ;;
 *.7z) 7za l -- "$1"        ;;
