@@ -151,7 +151,7 @@ case "$1" in
             cat "$1"
         fi ;;
 
-*h[45]|*.hdf[45]|*.hdf5ad|*.he[25]|*.h5ad)
+*h[45]|*.hdf|*.hdf[45]|*.hdf5ad|*.he[25]|*.h5ad)
         if havebinary h5dump; then
             h5dump "$1"
         else 
