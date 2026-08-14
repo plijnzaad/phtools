@@ -11,5 +11,6 @@
 ##  ... | samtoolssort.sh -@ 4  -n -m 8G  -Obam -o output/x.bam
 ## 
 tmpdir=$TMPDIR/sort$RAND
+echo "$0: tmpdir=$tmpdir"
 mkdir -p $tmpdir || exit 28
-samtools sort -T$tmpdir "$@"
+samtools sort -T $tmpdir "$@"
